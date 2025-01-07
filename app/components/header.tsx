@@ -12,9 +12,9 @@ export default function Header() {
             </Link>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/account" className="text-gray-600 hover:text-gray-900">
+            {/* <Link href="/account" className="text-gray-600 hover:text-gray-900">
               Account
-            </Link>
+            </Link> */}
             <UserButton afterSignOutUrl="/" />
           </div>
         </div>
