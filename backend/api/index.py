@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException
 import os
 from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
+from .routers import db_router
 load_dotenv()
 
 app = FastAPI(
@@ -9,19 +10,16 @@ app = FastAPI(
     openapi_url="/api/vi/openapi.json",
 )
 
-# # Configure CORS
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=["*"],  # Modify this in production
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Modify this in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
+app.include_router(db_router, prefix="/api/v1/db")
 
 
 @app.get("/api/py/helloFastApi")
