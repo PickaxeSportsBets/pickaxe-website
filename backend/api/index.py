@@ -22,7 +22,7 @@ app.add_middleware(
 app.include_router(db_router, prefix="/api/v1/db")
 
 
-@app.get("/api/py/helloFastApi")
+@app.get("/api/v1/helloFastApi")
 def hello_fast_api():
     return {"message": "Hello from FastAPI"}
 
