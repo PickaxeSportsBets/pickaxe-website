@@ -966,7 +966,7 @@ class OddsArbitrageFinder:
         return plus_ev_opportunities
 
     def generate_arbitrage_table(self):
-        print("Analyzing...")
+        #print("Analyzing...")
         self.all_opportunities = []
         self.all_odds_data = []
         self.all_plus_ev = []
@@ -994,7 +994,7 @@ class OddsArbitrageFinder:
                 self.all_opportunities.extend(opportunities)
 
                 plus_ev = self.find_plus_ev_bets(game)
-                print(plus_ev)
+                #print(plus_ev)
                 self.all_plus_ev.extend(plus_ev)
 
         if self.all_opportunities:
