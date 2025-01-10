@@ -24,8 +24,7 @@ const BookmakerLogos: { [key: string]: any } = {
   underdog: underDog,
 };
 
-//TODO: Link for each bet in the expanded section, and GET current user state and show it (do in index)
-const BetCard = ({
+const EVBetCard = ({
   bet,
   userState = "NY",
 }: {
@@ -38,18 +37,30 @@ const BetCard = ({
     if (!data) return null;
 
     try {
-      // Get unique bookmakers
+      let overKey = "over";
+      let underKey = "under";
+
+      const keys = Object.keys(data);
+      const overKeys = keys.filter((k) => k.startsWith("Over"));
+      const underKeys = keys.filter((k) => k.startsWith("Under"));
+
+      if (overKeys.length > 0 && underKeys.length > 0) {
+        const point = bet.market_point.toString();
+        overKey = overKeys.find((k) => k.includes(point)) || overKeys[0];
+        underKey = underKeys.find((k) => k.includes(point)) || underKeys[0];
+      }
+
       const bookmakers = Array.from(
         new Set([
-          ...Object.keys(data.over.odds || {}),
-          ...Object.keys(data.under.odds || {}),
+          ...Object.keys(data[overKey]?.odds || {}),
+          ...Object.keys(data[underKey]?.odds || {}),
         ])
       ).sort();
 
       return {
         bookmakers,
-        over: data.over,
-        under: data.under,
+        over: data[overKey] || { odds: {} },
+        under: data[underKey] || { odds: {} },
       };
     } catch (error) {
       console.error("Error processing market data:", error);
@@ -64,19 +75,27 @@ const BetCard = ({
 
   const processedData = processMarketData(bet.market_data);
 
-  const gameDate = new Date(bet.commence_time).toLocaleDateString("en-US", {
-    month: "numeric",
-    day: "numeric",
-    year: "numeric",
-  });
+  const formatDateTime = (dateStr: string) => {
+    const date = new Date(dateStr);
 
-  const gameTime = new Date(bet.commence_time).toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
+    // Format the date
+    const dayOfWeek = date.toLocaleDateString("en-US", { weekday: "long" });
+    const month = date.toLocaleDateString("en-US", { month: "long" });
+    const day = date.getDate();
+    const year = date.getFullYear();
 
-  const formattedDateTime = `${gameDate}T${gameTime}:00Z`;
+    // Format the time
+    const time = date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+      timeZoneName: "short",
+    });
+
+    return `${dayOfWeek}, ${month} ${day}, ${year} at ${time}`;
+  };
+
+  const formattedDateTime = formatDateTime(bet.commence_time);
 
   return (
     <div className="w-full py-4">
@@ -91,7 +110,7 @@ const BetCard = ({
                 +{bet.ev_percentage?.toFixed(2)}%
               </div>
               <div>
-                <div className="text-secondary-text text-sm">
+                <div className="text-secondary-text text-sm whitespace-nowrap">
                   {formattedDateTime}
                 </div>
                 <div className="text-primary-text">{bet.game}</div>
@@ -103,14 +122,14 @@ const BetCard = ({
               <div className="text-right">
                 <div className="text-market-purple">{bet.market_type}</div>
                 <div className="text-primary-text">
-                  {bet.team} ({bet.market_point})
+                  {bet.team} {bet.market_point && `(${bet.market_point})`}
                 </div>
                 <div
                   className={
-                    bet.odds > 0 ? "text-accent-green" : "text-negative-red"
+                    bet.odds >= 0 ? "text-accent-green" : "text-negative-red"
                   }
                 >
-                  {bet.odds > 0 ? `+${bet.odds}` : bet.odds}
+                  {bet.odds >= 0 ? `+${bet.odds}` : bet.odds}
                 </div>
               </div>
 
@@ -181,10 +200,10 @@ const BetCard = ({
                     rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
                     className={`cursor-pointer hover:opacity-80 ${
-                      odds > 0 ? "text-accent-green" : "text-negative-red"
+                      odds >= 0 ? "text-accent-green" : "text-negative-red"
                     }`}
                   >
-                    {odds ? (odds > 0 ? `+${odds}` : odds) : "-"}
+                    {odds ? (odds >= 0 ? `+${odds}` : odds) : "-"}
                   </a>
                 );
               })}
@@ -204,10 +223,10 @@ const BetCard = ({
                     rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
                     className={`cursor-pointer hover:opacity-80 ${
-                      odds > 0 ? "text-accent-green" : "text-negative-red"
+                      odds >= 0 ? "text-accent-green" : "text-negative-red"
                     }`}
                   >
-                    {odds ? (odds > 0 ? `+${odds}` : odds) : "-"}
+                    {odds ? (odds >= 0 ? `+${odds}` : odds) : "-"}
                   </a>
                 );
               })}
@@ -219,4 +238,4 @@ const BetCard = ({
   );
 };
 
-export default BetCard;
+export default EVBetCard;
