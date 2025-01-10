@@ -24,45 +24,42 @@ const BookmakerLogos: { [key: string]: any } = {
   underdog: underDog,
 };
 
-//TODO: FIx expansion, add linking
-
-const BetCard = ({ bet }: any) => {
+//TODO: Link for each bet in the expanded section, and GET current user state and show it (do in index)
+const BetCard = ({
+  bet,
+  userState = "NY",
+}: {
+  bet: any;
+  userState?: string;
+}) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const processMarketData = (data: any) => {
     if (!data) return null;
 
     try {
-      const marketData =
-        typeof data === "string"
-          ? JSON.parse(data.replace(/None/g, "null").replace(/'/g, '"'))
-          : data;
-
-      const bookmakers = new Set<string>();
-      Object.values(marketData).forEach((market: any) => {
-        if (market.odds) {
-          Object.keys(market.odds).forEach((bookie) => bookmakers.add(bookie));
-        }
-      });
-
-      const bookmakersList = Array.from(bookmakers).sort();
-
-      const teamOdds = Object.entries(marketData).map(
-        ([key, value]: [string, any]) => ({
-          team: key.split("_")[0],
-          line: key.split("_")[1],
-          odds: value.odds || {},
-        })
-      );
+      // Get unique bookmakers
+      const bookmakers = Array.from(
+        new Set([
+          ...Object.keys(data.over.odds || {}),
+          ...Object.keys(data.under.odds || {}),
+        ])
+      ).sort();
 
       return {
-        bookmakers: bookmakersList,
-        teamOdds: teamOdds,
+        bookmakers,
+        over: data.over,
+        under: data.under,
       };
     } catch (error) {
       console.error("Error processing market data:", error);
       return null;
     }
+  };
+
+  const formatLink = (link: string) => {
+    if (!link) return "#";
+    return link.replace(/{state}/g, userState.toLowerCase());
   };
 
   const processedData = processMarketData(bet.market_data);
@@ -129,9 +126,15 @@ const BetCard = ({ bet }: any) => {
                   className="rounded"
                 />
                 <span className="text-primary-text">$100</span>
-                <button className="bg-button-green hover:bg-opacity-90 px-4 py-1 rounded text-primary-text">
+                <a
+                  href={formatLink(bet.link)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="bg-button-green hover:bg-opacity-90 px-4 py-1 rounded text-primary-text"
+                >
                   BET
-                </button>
+                </a>
               </div>
             </div>
           </div>
@@ -140,7 +143,8 @@ const BetCard = ({ bet }: any) => {
         {/* Expanded Market Section */}
         {isExpanded && processedData && (
           <div className="bg-primary-bg p-4">
-            <div className="grid grid-cols-4 gap-4 text-center">
+            <div className="grid grid-cols-4 gap-4 text-center mb-4">
+              <div className="text-secondary-text">Selection</div>
               {processedData.bookmakers.map((bookie) => (
                 <div
                   key={bookie}
@@ -163,29 +167,51 @@ const BetCard = ({ bet }: any) => {
               ))}
             </div>
 
-            {processedData.teamOdds.map((team, idx) => (
-              <div
-                key={idx}
-                className="grid grid-cols-4 gap-4 text-center mt-3"
-              >
-                <div className="text-primary-text">
-                  {team.team} ({team.line})
-                </div>
-                {processedData.bookmakers.map((bookie) => {
-                  const odds = team.odds[bookie]?.american;
-                  return (
-                    <div
-                      key={bookie}
-                      className={
-                        odds > 0 ? "text-accent-green" : "text-negative-red"
-                      }
-                    >
-                      {odds ? (odds > 0 ? `+${odds}` : odds) : "-"}
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
+            {/* OVER odds */}
+            <div className="grid grid-cols-4 gap-4 text-center mt-3">
+              <div className="text-primary-text">OVER</div>
+              {processedData.bookmakers.map((bookie) => {
+                const odds = processedData.over.odds[bookie]?.american;
+                const link = processedData.over.odds[bookie]?.link;
+                return (
+                  <a
+                    key={bookie}
+                    href={formatLink(link)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className={`cursor-pointer hover:opacity-80 ${
+                      odds > 0 ? "text-accent-green" : "text-negative-red"
+                    }`}
+                  >
+                    {odds ? (odds > 0 ? `+${odds}` : odds) : "-"}
+                  </a>
+                );
+              })}
+            </div>
+
+            {/* UNDER odds */}
+            <div className="grid grid-cols-4 gap-4 text-center mt-3">
+              <div className="text-primary-text">UNDER</div>
+              {processedData.bookmakers.map((bookie) => {
+                const odds = processedData.under.odds[bookie]?.american;
+                const link = processedData.under.odds[bookie]?.link;
+                return (
+                  <a
+                    key={bookie}
+                    href={formatLink(link)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className={`cursor-pointer hover:opacity-80 ${
+                      odds > 0 ? "text-accent-green" : "text-negative-red"
+                    }`}
+                  >
+                    {odds ? (odds > 0 ? `+${odds}` : odds) : "-"}
+                  </a>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>
