@@ -2,7 +2,6 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { FiArrowRight } from "react-icons/fi"; // Import the arrow icon
 import betmgm from "@/public/images/betmgm-logo.png";
 import betRivers from "@/public/images/betrivers-logo.png";
 import caesars from "@/public/images/caesars-logo.png";
