@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { FiArrowRight } from "react-icons/fi"; // Import the arrow icon
 import betmgm from "@/public/images/betmgm-logo.png";
 import betRivers from "@/public/images/betrivers-logo.png";
 import caesars from "@/public/images/caesars-logo.png";
@@ -11,6 +12,7 @@ import fanduel from "@/public/images/fanduel-logo.png";
 import hardrockBet from "@/public/images/hardrockbet-logo.png";
 import pinnacle from "@/public/images/pinnacle-logo.png";
 import underDog from "@/public/images/underdog-logo.png";
+import { BsArrowUpRight } from "react-icons/bs";
 
 const BookmakerLogos: { [key: string]: any } = {
   betmgm: betmgm,
@@ -106,8 +108,9 @@ const EVBetCard = ({
         >
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center space-x-6">
-              <div className="text-accent-green w-20">
-                +{bet.ev_percentage?.toFixed(2)}%
+              <div className="text-accent-green w-20 text-center">
+                <p className="text-secondary-text text-sm">Profit</p>+
+                {bet.ev_percentage?.toFixed(2)}%
               </div>
               <div>
                 <div className="text-secondary-text text-sm whitespace-nowrap">
@@ -119,7 +122,7 @@ const EVBetCard = ({
             </div>
 
             <div className="flex items-center space-x-8">
-              <div className="text-right">
+              <div className="text-right ">
                 <div className="text-market-purple">{bet.market_type}</div>
                 <div className="text-primary-text">
                   {bet.team} {bet.market_point && `(${bet.market_point})`}
@@ -150,9 +153,9 @@ const EVBetCard = ({
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
-                  className="bg-button-green hover:bg-opacity-90 px-4 py-1 rounded text-primary-text"
+                  className="bg-button-green hover:bg-opacity-90 px-4 py-1 rounded text-primary-text flex items-center"
                 >
-                  BET
+                  BET <BsArrowUpRight size={12} />
                 </a>
               </div>
             </div>
