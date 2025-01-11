@@ -12,7 +12,6 @@ import fanduel from "@/public/images/fanduel-logo.png";
 import hardrockBet from "@/public/images/hardrockbet-logo.png";
 import pinnacle from "@/public/images/pinnacle-logo.png";
 import underDog from "@/public/images/underdog-logo.png";
-import { BsArrowUpRight } from "react-icons/bs";
 
 const BookmakerLogos: { [key: string]: any } = {
   betmgm: betmgm,
@@ -174,7 +173,7 @@ const ArbBetCard = ({
                     rel="noopener noreferrer"
                     className="bg-button-green hover:bg-opacity-90 px-4 py-1 rounded text-primary-text flex items-center"
                   >
-                    BET <BsArrowUpRight size={12} />
+                    BET
                   </a>
                 </div>
               </div>
@@ -218,7 +217,7 @@ const ArbBetCard = ({
                     rel="noopener noreferrer"
                     className="bg-button-green hover:bg-opacity-90 px-4 py-1 rounded text-primary-text flex items-center"
                   >
-                    BET <BsArrowUpRight size={12} />
+                    BET
                   </a>
                 </div>
               </div>
