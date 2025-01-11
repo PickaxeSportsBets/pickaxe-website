@@ -1,0 +1,50 @@
+{
+  "over": {
+    "odds": {
+      "draftkings": {
+        "american": -120,
+        "decimal": 1.83,
+        "link": "https://sportsbook.draftkings.com/event/31649177"
+      },
+      "caesars": {
+        "american": -114,
+        "decimal": 1.88,
+        "link": "https://sportsbook.caesars.com/us/{state}/bet/basketball/acf25f93-b1d4-484e-9201-a25d56dd1134/memphis-grizzlies-at-minnesota-timberwolves"
+      },
+      "fanduel": {
+        "american": 102,
+        "decimal": 2.02,
+        "link": "https://sportsbook.fanduel.com/basketball/nba/memphis-grizzlies-%40-minnesota-timberwolves-33928153"
+      },
+      "betrivers": {
+        "american": -120,
+        "decimal": 1.83,
+        "link": "https://{state}.betrivers.com/?page=sportsbook#event/1021436153"
+      }
+    }
+  },
+  "under": {
+    "odds": {
+      "draftkings": {
+        "american": -110,
+        "decimal": 1.91,
+        "link": "https://sportsbook.draftkings.com/event/31649177"
+      },
+      "caesars": {
+        "american": -120,
+        "decimal": 1.83,
+        "link": "https://sportsbook.caesars.com/us/{state}/bet/basketball/acf25f93-b1d4-484e-9201-a25d56dd1134/memphis-grizzlies-at-minnesota-timberwolves"
+      },
+      "fanduel": {
+        "american": -130,
+        "decimal": 1.77,
+        "link": "https://sportsbook.fanduel.com/basketball/nba/memphis-grizzlies-%40-minnesota-timberwolves-33928153"
+      },
+      "betrivers": {
+        "american": -112,
+        "decimal": 1.89,
+        "link": "https://{state}.betrivers.com/?page=sportsbook#event/1021436153"
+      }
+    }
+  }
+}
