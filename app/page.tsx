@@ -8,6 +8,9 @@ import EVBetCard from "./components/bets/card";
 import NavButtons from "./components/navButtons";
 import ArbBetCard from "./components/bets/arbCard";
 import { createClient } from "./utils/supabase/client";
+import { formatDistanceToNow } from 'date-fns';
+
+
 const supabase = createClient();
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -138,12 +141,32 @@ export default function Home() {
     }
   };
 
+  const getLastUpdated = () => {
+    if (currPage == "EV") {
+      const utcTime = bets.sort(
+        (a: any, b: any) => Number(b.timestamp) - Number(a.timestamp)
+      )[0].timestamp;
+
+      return new Date(utcTime).toLocaleString();
+
+    } else if (currPage == "ARB") {
+      const utcTime = arbBets.sort(
+        (a: any, b: any) => Number(b.timestamp) - Number(a.timestamp)
+      )[0].timestamp;
+
+      return new Date(utcTime).toLocaleString();
+    } else {
+      return ""
+    }
+  };
+
   return (
     <>
       <Header />
       <div className="min-h-screen bg-primary-bg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <NavButtons currPage={currPage} setCurrPage={setCurrPage} />
+          <p className="text-secondary-text">Updated {bets && formatDistanceToNow(getLastUpdated())} ago</p>
           <div className="py-4">{renderContent()}</div>
         </div>
       </div>

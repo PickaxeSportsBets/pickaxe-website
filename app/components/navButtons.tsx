@@ -16,7 +16,7 @@ const NavButtons: React.FC<NavButtonsProps> = ({ currPage, setCurrPage }) => {
   `;
 
   return (
-    <div className="flex gap-4 mb-6 p-4 bg-primary-bg rounded-lg">
+    <div className="flex gap-4 mb-6 py-4 bg-primary-bg rounded-lg">
       <button onClick={() => setCurrPage("EV")} className={buttonClass("EV")}>
         EV Bets
       </button>
