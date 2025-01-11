@@ -33,47 +33,15 @@ const EVBetCard = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const processMarketData = (data: any) => {
-    if (!data) return null;
-
-    try {
-      let overKey = "over";
-      let underKey = "under";
-
-      const keys = Object.keys(data);
-      const overKeys = keys.filter((k) => k.startsWith("Over"));
-      const underKeys = keys.filter((k) => k.startsWith("Under"));
-
-      if (overKeys.length > 0 && underKeys.length > 0) {
-        const point = bet.market_point.toString();
-        overKey = overKeys.find((k) => k.includes(point)) || overKeys[0];
-        underKey = underKeys.find((k) => k.includes(point)) || underKeys[0];
-      }
-
-      const bookmakers = Array.from(
-        new Set([
-          ...Object.keys(data[overKey]?.odds || {}),
-          ...Object.keys(data[underKey]?.odds || {}),
-        ])
-      ).sort();
-
-      return {
-        bookmakers,
-        over: data[overKey] || { odds: {} },
-        under: data[underKey] || { odds: {} },
-      };
-    } catch (error) {
-      console.error("Error processing market data:", error);
-      return null;
-    }
-  };
-
   const formatLink = (link: string) => {
     if (!link) return "#";
     return link.replace(/{state}/g, userState.toLowerCase());
   };
 
-  const processedData = processMarketData(bet.market_data);
+  const market_data =
+    typeof bet.market_data == "string" ? JSON.parse(bet.market_data) : bet.market_data;
+
+  const processedData = market_data
 
   const formatDateTime = (dateStr: string) => {
     const date = new Date(dateStr);
