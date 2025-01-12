@@ -8,8 +8,7 @@ import EVBetCard from "./components/bets/card";
 import NavButtons from "./components/navButtons";
 import ArbBetCard from "./components/bets/arbCard";
 import { createClient } from "./utils/supabase/client";
-import { formatDistanceToNow } from 'date-fns';
-
+import { formatDistanceToNow } from "date-fns";
 
 const supabase = createClient();
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -26,6 +25,8 @@ export default function Home() {
   const [userState, setUserState] = useState("NY");
   const [currPage, setCurrPage] = useState<Page>(Page.EV);
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
+  const [evLastUpdated, setEvLastUpdated] = useState("");
+  const [arbLastUpdated, setArbLastUpdated] = useState("");
   const itemsPerPage = 100;
 
   useEffect(() => {
@@ -43,15 +44,25 @@ export default function Home() {
     };
 
     const fetchBets = async () => {
-      const { data: evBets } = await supabase.from("plus_ev").select();
-      const { data: arbBetsData } = await supabase.from("arbitrage").select();
+      const { data: evBets } = await supabase
+        .from("plus_ev")
+        .select()
+        .order("timestamp", { ascending: false });
+      const { data: arbBetsData } = await supabase
+        .from("arbitrage")
+        .select()
+        .order("timestamp", { ascending: false });
+
       if (evBets) {
+        setEvLastUpdated(evBets[0].timestamp);
         const sortedBets = [...evBets].sort(
           (a, b) => (b.ev_percentage || 0) - (a.ev_percentage || 0)
         );
         setBets(sortedBets);
       }
+
       if (arbBetsData) {
+        setArbLastUpdated(arbBetsData[0].timestamp);
         const sortedArbBets = [...arbBetsData].sort(
           (a, b) => (b.profit_percentage || 0) - (a.profit_percentage || 0)
         );
@@ -143,20 +154,11 @@ export default function Home() {
 
   const getLastUpdated = () => {
     if (currPage == "EV") {
-      const utcTime = bets.sort(
-        (a: any, b: any) => Number(b.timestamp) - Number(a.timestamp)
-      )[0].timestamp;
-
-      return new Date(utcTime).toLocaleString();
-
+      return new Date(evLastUpdated).toLocaleString();
     } else if (currPage == "ARB") {
-      const utcTime = arbBets.sort(
-        (a: any, b: any) => Number(b.timestamp) - Number(a.timestamp)
-      )[0].timestamp;
-
-      return new Date(utcTime).toLocaleString();
+      return new Date(arbLastUpdated).toLocaleString();
     } else {
-      return ""
+      return "";
     }
   };
 
@@ -166,7 +168,9 @@ export default function Home() {
       <div className="min-h-screen bg-primary-bg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <NavButtons currPage={currPage} setCurrPage={setCurrPage} />
-          <p className="text-secondary-text">Updated {bets && formatDistanceToNow(getLastUpdated())} ago</p>
+          <p className="text-secondary-text">
+            Updated {bets && formatDistanceToNow(getLastUpdated())} ago
+          </p>
           <div className="py-4">{renderContent()}</div>
         </div>
       </div>
