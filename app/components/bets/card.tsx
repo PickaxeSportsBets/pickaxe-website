@@ -1,12 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import Image from "next/image";
-import {
-  ChevronDown,
-  ChevronUp,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import betmgm from "@/public/images/betmgm-logo.png";
 import betRivers from "@/public/images/betrivers-logo.png";
 import caesars from "@/public/images/caesars-logo.png";
@@ -16,12 +11,6 @@ import fanduel from "@/public/images/fanduel-logo.png";
 import hardrockBet from "@/public/images/hardrockbet-logo.png";
 import pinnacle from "@/public/images/pinnacle-logo.png";
 import underDog from "@/public/images/underdog-logo.png";
-
-const BOOKMAKERS_PER_PAGE = {
-  sm: 1,
-  md: 2,
-  lg: 3,
-};
 
 const BookmakerLogos: { [key: string]: any } = {
   betmgm: betmgm,
@@ -35,6 +24,13 @@ const BookmakerLogos: { [key: string]: any } = {
   underdog: underDog,
 };
 
+// Number of bookmakers to show per row
+const BOOKMAKERS_PER_ROW = {
+  sm: 1,
+  md: 2,
+  lg: 3,
+};
+
 const EVBetCard = ({
   bet,
   userState = "NY",
@@ -43,7 +39,6 @@ const EVBetCard = ({
   userState?: string;
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [currentPage, setCurrentPage] = useState(0);
 
   const processMarketData = (data: any) => {
     if (!data) return null;
@@ -55,7 +50,9 @@ const EVBetCard = ({
       const allBookmakers = new Set<string>();
       marketEntries.forEach(([_, value]: [string, any]) => {
         if (value.odds) {
-          Object.keys(value.odds).forEach((bookie) => allBookmakers.add(bookie));
+          Object.keys(value.odds).forEach((bookie) =>
+            allBookmakers.add(bookie)
+          );
         }
       });
 
@@ -77,24 +74,6 @@ const EVBetCard = ({
   const processedData = processMarketData(bet.market_data);
   if (!processedData) return null;
 
-  const getBookmakersPerPage = () => {
-    if (typeof window !== 'undefined') {
-      if (window.innerWidth < 640) return BOOKMAKERS_PER_PAGE.sm;
-      if (window.innerWidth < 1024) return BOOKMAKERS_PER_PAGE.md;
-      return BOOKMAKERS_PER_PAGE.lg;
-    }
-    return BOOKMAKERS_PER_PAGE.lg;
-  };
-
-  const totalPages = Math.ceil(
-    processedData.bookmakers.length / getBookmakersPerPage()
-  );
-  const startIdx = currentPage * getBookmakersPerPage();
-  const visibleBookmakers = processedData.bookmakers.slice(
-    startIdx,
-    startIdx + getBookmakersPerPage()
-  );
-
   const formatDateTime = (dateStr: string) => {
     const date = new Date(dateStr);
     const dayOfWeek = date.toLocaleDateString("en-US", { weekday: "long" });
@@ -109,6 +88,28 @@ const EVBetCard = ({
     });
     return `${dayOfWeek}, ${month} ${day}, ${year} at ${time}`;
   };
+
+  // Split bookmakers into rows of 3 (or less for smaller screens)
+  const splitIntoRows = (bookmakers: string[]) => {
+    const rows: string[][] = [];
+    let currentRow: string[] = [];
+
+    bookmakers.forEach((bookie) => {
+      if (currentRow.length === BOOKMAKERS_PER_ROW.lg) {
+        rows.push(currentRow);
+        currentRow = [];
+      }
+      currentRow.push(bookie);
+    });
+
+    if (currentRow.length > 0) {
+      rows.push(currentRow);
+    }
+
+    return rows;
+  };
+
+  const bookmakerRows = splitIntoRows(processedData.bookmakers);
 
   return (
     <div className="w-full py-4">
@@ -158,7 +159,9 @@ const EVBetCard = ({
                   height={24}
                   className="rounded mr-[36.81px] md:mr-0"
                 />
-                <p className="text-primary-text text-center justify-center">$100</p>
+                <p className="text-primary-text text-center justify-center">
+                  $100
+                </p>
                 <a
                   href={formatLink(bet.link)}
                   target="_blank"
@@ -175,91 +178,69 @@ const EVBetCard = ({
 
         {isExpanded && processedData && (
           <div className="p-4">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-center mb-4">
-              <div className="text-secondary-text">Selection</div>
-              {visibleBookmakers.map((bookie) => (
-                <div
-                  key={bookie}
-                  className="flex flex-col items-center justify-center gap-2"
-                >
-                  <Image
-                    src={
-                      BookmakerLogos[bookie.toLowerCase()] ||
-                      "/images/placeholder.png"
-                    }
-                    alt={bookie}
-                    width={24}
-                    height={24}
-                    className="rounded"
-                  />
-                  <div className="text-secondary-text capitalize text-sm">
-                    {bookie}
-                  </div>
+            {bookmakerRows.map((bookmakerRow, rowIndex) => (
+              <div key={rowIndex} className={rowIndex > 0 ? "mt-8" : ""}>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-center mb-4">
+                  <div className="text-secondary-text">Selection</div>
+                  {bookmakerRow.map((bookie) => (
+                    <div
+                      key={bookie}
+                      className="flex flex-col items-center justify-center gap-2"
+                    >
+                      <Image
+                        src={
+                          BookmakerLogos[bookie.toLowerCase()] ||
+                          "/images/placeholder.png"
+                        }
+                        alt={bookie}
+                        width={24}
+                        height={24}
+                        className="rounded"
+                      />
+                      <div className="text-secondary-text capitalize text-sm">
+                        {bookie}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
 
-            {processedData.entries.map(([key, data]: [string, any]) => {
-              const [name, point] = key.split("_");
-              return (
-                <div
-                  key={key}
-                  className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-center mt-3"
-                >
-                  <div className="text-primary-text break-words">
-                    {name} {point !== "None" && point && `(${point})`}
-                  </div>
-                  {visibleBookmakers.map((bookie) => {
-                    const odds = data.odds[bookie]?.american;
-                    const link = data.odds[bookie]?.link;
-                    return (
-                      <a
-                        key={bookie}
-                        href={formatLink(link)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                        className={`cursor-pointer transition-all ${
-                          odds >= 0 ? "text-accent-green hover:text-accent-green-hover" : "text-negative-red hover:text-negative-red-hover"
+                {processedData.entries.map(([key, data]: [string, any]) => {
+                  const [name, point] = key.split("_");
+                  return (
+                    <div
+                      key={`${key}-${rowIndex}`}
+                      className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-center mt-3"
+                    >
+                      <div className="text-primary-text break-words">
+                        {`${name} ${
+                          point !== "None" && point ? `(${point})` : ""
                         }`}
-                      >
-                        {odds ? (odds >= 0 ? `+${odds}` : odds) : "-"}
-                      </a>
-                    );
-                  })}
-                </div>
-              );
-            })}
-
-            {totalPages > 1 && (
-              <div className="flex justify-center items-center gap-4 mt-4">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setCurrentPage((prev) => Math.max(0, prev - 1));
-                  }}
-                  disabled={currentPage === 0}
-                  className="p-1 rounded hover:bg-secondary-bg disabled:opacity-50"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <span className="text-secondary-text">
-                  Page {currentPage + 1} of {totalPages}
-                </span>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setCurrentPage((prev) =>
-                      Math.min(totalPages - 1, prev + 1)
-                    );
-                  }}
-                  disabled={currentPage === totalPages - 1}
-                  className="p-1 rounded hover:bg-secondary-bg disabled:opacity-50"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
+                      </div>
+                      {bookmakerRow.map((bookie) => {
+                        const odds = data.odds[bookie]?.american;
+                        const link = data.odds[bookie]?.link;
+                        return (
+                          <a
+                            key={bookie}
+                            href={formatLink(link)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className={`cursor-pointer transition-all ${
+                              odds >= 0
+                                ? "text-accent-green hover:text-accent-green-hover"
+                                : "text-negative-red hover:text-negative-red-hover"
+                            }`}
+                          >
+                            {odds ? (odds >= 0 ? `+${odds}` : odds) : "-"}
+                          </a>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
               </div>
-            )}
+            ))}
           </div>
         )}
       </div>

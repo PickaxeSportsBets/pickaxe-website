@@ -18,7 +18,7 @@ const NavButtons: React.FC<NavButtonsProps> = ({ currPage, setCurrPage }) => {
   return (
     <div className="flex flex-row gap-2 md:gap-4 mb-6 py-2 pr-2 md:py-4 md:pr-4 bg-primary-bg rounded-lg overflow-x-auto">
       <button onClick={() => setCurrPage("EV")} className={buttonClass("EV")}>
-        EV Bets
+        +EV Bets
       </button>
       <button onClick={() => setCurrPage("ARB")} className={buttonClass("ARB")}>
         Arbitrage
