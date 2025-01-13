@@ -11,7 +11,7 @@ import fanduel from "@/public/images/fanduel-logo.png";
 import hardrockBet from "@/public/images/hardrockbet-logo.png";
 import pinnacle from "@/public/images/pinnacle-logo.png";
 import underDog from "@/public/images/underdog-logo.png";
-
+import CalculatorModal from "./modal";
 const BookmakerLogos: { [key: string]: any } = {
   betmgm: betmgm,
   betrivers: betRivers,
@@ -60,6 +60,8 @@ const ArbBetCard = ({
   bet: any;
   userState?: string;
 }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const formatDateTime = (dateStr: string) => {
     const date = new Date(dateStr);
     const dayOfWeek = date.toLocaleDateString("en-US", { weekday: "long" });
@@ -78,6 +80,33 @@ const ArbBetCard = ({
   const formatLink = (link: string) => {
     if (!link) return "#";
     return link.replace(/{state}/g, userState.toLowerCase());
+  };
+  const handleCardClick = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.tagName === "A" || target.closest("a")) {
+      return;
+    }
+    setIsModalOpen(true);
+  };
+  const calculateResults = () => {
+    const stake1 = bet.team1_stake;
+    const stake2 = bet.team2_stake;
+    const odds1 = bet.team1_odds;
+    const odds2 = bet.team2_odds;
+
+    const totalStake = 100;
+    const stake1Amount = totalStake * (stake1 / 100);
+    const stake2Amount = totalStake * (stake2 / 100);
+    const profitPercentage = bet.profit_percentage;
+    const guaranteedProfit = totalStake * (profitPercentage / 100);
+
+    return {
+      bet1Amount: stake1Amount,
+      bet2Amount: stake2Amount,
+      guaranteedProfit: guaranteedProfit,
+      bet1Odds: odds1 >= 0 ? `+${odds1}` : `${odds1}`,
+      bet2Odds: odds2 >= 0 ? `+${odds2}` : `${odds2}`,
+    };
   };
 
   const getMarketDescription = () => {
@@ -110,7 +139,10 @@ const ArbBetCard = ({
 
   return (
     <div className="w-full py-4">
-      <div className="bg-secondary-bg rounded-lg overflow-hidden">
+      <div
+        className="bg-secondary-bg rounded-lg overflow-hidden cursor-pointer"
+        onClick={handleCardClick}
+      >
         <div className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-6">
@@ -224,6 +256,13 @@ const ArbBetCard = ({
           </div>
         </div>
       </div>
+      <CalculatorModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        result={calculateResults()}
+        type="bonus"
+        gameTitle={bet.game}
+      />
     </div>
   );
 };
