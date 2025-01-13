@@ -101,9 +101,9 @@ const EVBetCard = ({
 
   return (
     <div className="w-full py-4">
-      <div className="bg-secondary-bg rounded-lg overflow-hidden">
+      <div className="rounded-lg overflow-hidden">
         <div
-          className="cursor-pointer hover:bg-opacity-90 transition-colors duration-200"
+          className="cursor-pointer bg-secondary-bg hover:bg-secondary-bg-hover transition-all"
           onClick={() => setIsExpanded(!isExpanded)}
         >
           <div className="flex items-center justify-between p-4">
@@ -153,7 +153,7 @@ const EVBetCard = ({
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
-                  className="bg-button-green hover:bg-opacity-90 px-4 py-1 rounded text-primary-text flex items-center"
+                  className="bg-button-green hover:bg-button-green-hover transition-all px-4 py-1 rounded text-primary-text flex items-center"
                 >
                   BET
                 </a>
@@ -163,7 +163,7 @@ const EVBetCard = ({
         </div>
 
         {isExpanded && processedData && (
-          <div className="bg-primary-bg p-4">
+          <div className="p-4">
             <div className="grid grid-cols-4 gap-4 text-center mb-4">
               <div className="text-secondary-text">Selection</div>
               {visibleBookmakers.map((bookie) => (
@@ -208,8 +208,8 @@ const EVBetCard = ({
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className={`cursor-pointer hover:opacity-80 ${
-                          odds >= 0 ? "text-accent-green" : "text-negative-red"
+                        className={`cursor-pointer transition-all ${
+                          odds >= 0 ? "text-accent-green hover:text-accent-green-hover" : "text-negative-red hover:text-negative-red-hover"
                         }`}
                       >
                         {odds ? (odds >= 0 ? `+${odds}` : odds) : "-"}

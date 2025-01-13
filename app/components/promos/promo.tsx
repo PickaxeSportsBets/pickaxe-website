@@ -188,7 +188,7 @@ const PromosCalculator = () => {
 
             <button
               onClick={calculateRiskFree}
-              className="w-full bg-button-green hover:bg-opacity-80 text-primary-text py-3 px-4 rounded transition-colors"
+              className="w-full bg-button-green hover:bg-button-green-hover text-primary-text py-3 px-4 rounded-md transition-colors"
             >
               Calculate Initial Hedge
             </button>
@@ -230,7 +230,7 @@ const PromosCalculator = () => {
           title="Bonus Bet Hedge"
           description="Calculate optimal hedge for bonus bet promotions"
         >
-          <div className="space-y-4">
+          <div className="space-y-4 flex flex-col justify-around">
             <Input
               label="Odds 1 (+)"
               type="number"
@@ -270,7 +270,7 @@ const PromosCalculator = () => {
 
             <button
               onClick={calculateBonus}
-              className="w-full bg-button-green hover:bg-opacity-80 text-primary-text py-3 px-4 rounded transition-colors"
+              className="w-full bg-button-green hover:bg-button-green-hover text-primary-text py-3 px-4 rounded transition-colors"
             >
               Calculate Bonus Bet Hedge
             </button>

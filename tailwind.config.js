@@ -17,13 +17,17 @@ module.exports = {
   		},
   		colors: {
   			'primary-bg': '#1a1e2d',
-  			'secondary-bg': '#242b3d',
+  			'secondary-bg': '#2A3247',
+			'secondary-bg-hover': '#313B53',
   			'primary-text': '#ffffff',
-  			'secondary-text': '#8b8f9a',
+  			'secondary-text': '#C6C8CD',
   			'accent-green': '#4cd964',
+			'accent-green-hover': '#85E595',
   			'profit-green': '#1cb954',
   			'button-green': '#2c4c3b',
+			'button-green-hover': '#3C6750',
   			'negative-red': '#ff3b30',
+			'negative-red-hover': '#FF8B85',
   			'market-purple': {
   				DEFAULT: '#9f7aea',
   				light: '#805ad5'

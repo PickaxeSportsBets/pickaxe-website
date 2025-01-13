@@ -11,7 +11,7 @@ const NavButtons: React.FC<NavButtonsProps> = ({ currPage, setCurrPage }) => {
     ${
       currPage === page
         ? "bg-button-green text-primary-text"
-        : "bg-secondary-bg text-secondary-text hover:bg-opacity-80"
+        : "bg-secondary-bg text-secondary-text hover:bg-secondary-bg-hover"
     }
   `;
 

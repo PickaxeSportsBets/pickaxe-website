@@ -80,22 +80,12 @@ const CalculatorModal: React.FC<ModalProps> = ({
             <TabsTrigger
               value="total"
               onClick={() => setActiveTab("total")}
-              className={`${
-                activeTab === "total"
-                  ? "bg-button-green text-primary-text"
-                  : "text-secondary-text"
-              }`}
             >
               Total Stake
             </TabsTrigger>
             <TabsTrigger
               value="individual"
               onClick={() => setActiveTab("individual")}
-              className={`${
-                activeTab === "individual"
-                  ? "bg-button-green text-primary-text"
-                  : "text-secondary-text"
-              }`}
             >
               Individual Stakes
             </TabsTrigger>
