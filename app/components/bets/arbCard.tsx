@@ -143,31 +143,30 @@ const ArbBetCard = ({
         className="bg-secondary-bg rounded-lg overflow-hidden cursor-pointer"
         onClick={handleCardClick}
       >
-        <div className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-6">
-              <div className="text-accent-green w-24 items-center text-center">
+        <div className="py-4 md:px-8 px-2">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-0">
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6 w-full md:w-auto px-4 md:px-0">
+              <div className="text-accent-green w-24 text-left">
                 <p className="text-secondary-text text-sm">Profit</p>
                 {formatProfitPercentage(Number(bet.profit_percentage))}
               </div>
               <div>
-                <div className="text-secondary-text text-sm whitespace-nowrap">
+                <div className="text-secondary-text text-sm break-words md:whitespace-nowrap">
                   {formatDateTime(bet.commence_time)}
                 </div>
                 <div className="text-primary-text">{bet.game}</div>
                 <div className="text-secondary-text text-sm">{bet.sport}</div>
               </div>
             </div>
-            <div className="text-market-purple text-center font-medium">
+
+            <div className="text-market-purple font-medium px-4 md:px-0 text-left md:text-center w-full md:w-auto">
               {getMarketDescription()}
             </div>
 
-            <div className="flex flex-col space-y-4">
-              {/* Market Description */}
-
+            <div className="flex flex-col space-y-4 w-full md:w-auto">
               {/* Bet 1 */}
-              <div className="flex items-center justify-end space-x-8">
-                <div className="text-right">
+              <div className="flex items-center justify-between md:justify-end px-4 md:px-0 md:space-x-8">
+                <div className="text-left md:text-right">
                   <div className="text-primary-text">
                     {formatTeamName(bet.team1_name, bet.team1_point)}
                   </div>
@@ -184,7 +183,7 @@ const ArbBetCard = ({
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center justify-between md:justify-start space-x-4">
                   <Image
                     src={
                       BookmakerLogos[bet.team1_book.toLowerCase()] ||
@@ -210,8 +209,8 @@ const ArbBetCard = ({
               </div>
 
               {/* Bet 2 */}
-              <div className="flex items-center justify-end space-x-8">
-                <div className="text-right">
+              <div className="flex items-center justify-between md:justify-end px-4 md:px-0 md:space-x-8">
+                <div className="text-left md:text-right">
                   <div className="text-primary-text">
                     {formatTeamName(bet.team2_name, bet.team2_point)}
                   </div>
@@ -228,7 +227,7 @@ const ArbBetCard = ({
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center justify-between md:justify-start space-x-4">
                   <Image
                     src={
                       BookmakerLogos[bet.team2_book.toLowerCase()] ||

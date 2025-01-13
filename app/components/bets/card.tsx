@@ -17,7 +17,11 @@ import hardrockBet from "@/public/images/hardrockbet-logo.png";
 import pinnacle from "@/public/images/pinnacle-logo.png";
 import underDog from "@/public/images/underdog-logo.png";
 
-const BOOKMAKERS_PER_PAGE = 3;
+const BOOKMAKERS_PER_PAGE = {
+  sm: 1,
+  md: 2,
+  lg: 3,
+};
 
 const BookmakerLogos: { [key: string]: any } = {
   betmgm: betmgm,
@@ -51,9 +55,7 @@ const EVBetCard = ({
       const allBookmakers = new Set<string>();
       marketEntries.forEach(([_, value]: [string, any]) => {
         if (value.odds) {
-          Object.keys(value.odds).forEach((bookie) =>
-            allBookmakers.add(bookie)
-          );
+          Object.keys(value.odds).forEach((bookie) => allBookmakers.add(bookie));
         }
       });
 
@@ -75,13 +77,22 @@ const EVBetCard = ({
   const processedData = processMarketData(bet.market_data);
   if (!processedData) return null;
 
+  const getBookmakersPerPage = () => {
+    if (typeof window !== 'undefined') {
+      if (window.innerWidth < 640) return BOOKMAKERS_PER_PAGE.sm;
+      if (window.innerWidth < 1024) return BOOKMAKERS_PER_PAGE.md;
+      return BOOKMAKERS_PER_PAGE.lg;
+    }
+    return BOOKMAKERS_PER_PAGE.lg;
+  };
+
   const totalPages = Math.ceil(
-    processedData.bookmakers.length / BOOKMAKERS_PER_PAGE
+    processedData.bookmakers.length / getBookmakersPerPage()
   );
-  const startIdx = currentPage * BOOKMAKERS_PER_PAGE;
+  const startIdx = currentPage * getBookmakersPerPage();
   const visibleBookmakers = processedData.bookmakers.slice(
     startIdx,
-    startIdx + BOOKMAKERS_PER_PAGE
+    startIdx + getBookmakersPerPage()
   );
 
   const formatDateTime = (dateStr: string) => {
@@ -106,14 +117,14 @@ const EVBetCard = ({
           className="cursor-pointer bg-secondary-bg hover:bg-secondary-bg-hover transition-all"
           onClick={() => setIsExpanded(!isExpanded)}
         >
-          <div className="flex items-center justify-between p-4">
-            <div className="flex items-center space-x-6">
-              <div className="text-accent-green w-20 text-center">
+          <div className="flex flex-col md:flex-row md:items-center justify-between p-4 gap-4">
+            <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
+              <div className="text-accent-green w-full md:w-20 text-center">
                 <p className="text-secondary-text text-sm">Profit</p>+
                 {bet.ev_percentage?.toFixed(2)}%
               </div>
-              <div>
-                <div className="text-secondary-text text-sm whitespace-nowrap">
+              <div className="text-center md:text-left">
+                <div className="text-secondary-text text-sm break-words md:whitespace-nowrap">
                   {formatDateTime(bet.commence_time)}
                 </div>
                 <div className="text-primary-text">{bet.game}</div>
@@ -121,8 +132,8 @@ const EVBetCard = ({
               </div>
             </div>
 
-            <div className="flex items-center space-x-8">
-              <div className="text-right">
+            <div className="flex flex-col md:flex-row items-center md:items-center gap-4 md:gap-8">
+              <div className="text-center md:text-right w-full md:w-auto">
                 <div className="text-market-purple">{bet.market_type}</div>
                 <div className="text-primary-text">
                   {bet.team} {bet.market_point && `(${bet.market_point})`}
@@ -136,7 +147,7 @@ const EVBetCard = ({
                 </div>
               </div>
 
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center justify-between md:justify-start w-full md:w-auto gap-4">
                 <Image
                   src={
                     BookmakerLogos[bet.bookmaker?.toLowerCase()] ||
@@ -145,9 +156,9 @@ const EVBetCard = ({
                   alt={bet.bookmaker || "Bookmaker"}
                   width={24}
                   height={24}
-                  className="rounded"
+                  className="rounded mr-[36.81px] md:mr-0"
                 />
-                <span className="text-primary-text">$100</span>
+                <p className="text-primary-text text-center justify-center">$100</p>
                 <a
                   href={formatLink(bet.link)}
                   target="_blank"
@@ -164,7 +175,7 @@ const EVBetCard = ({
 
         {isExpanded && processedData && (
           <div className="p-4">
-            <div className="grid grid-cols-4 gap-4 text-center mb-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-center mb-4">
               <div className="text-secondary-text">Selection</div>
               {visibleBookmakers.map((bookie) => (
                 <div
@@ -193,9 +204,9 @@ const EVBetCard = ({
               return (
                 <div
                   key={key}
-                  className="grid grid-cols-4 gap-4 text-center mt-3"
+                  className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-center mt-3"
                 >
-                  <div className="text-primary-text">
+                  <div className="text-primary-text break-words">
                     {name} {point !== "None" && point && `(${point})`}
                   </div>
                   {visibleBookmakers.map((bookie) => {
