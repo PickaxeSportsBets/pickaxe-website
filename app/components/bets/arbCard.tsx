@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import Image from "next/image";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { Calculator } from "lucide-react";
 import betmgm from "@/public/images/betmgm-logo.png";
 import betRivers from "@/public/images/betrivers-logo.png";
 import caesars from "@/public/images/caesars-logo.png";
@@ -23,6 +23,7 @@ const BookmakerLogos: { [key: string]: any } = {
   pinnacle: pinnacle,
   underdog: underDog,
 };
+
 const MarketTypeMapping: { [key: string]: string } = {
   h2h: "Head to Head",
   h2h_q1: "Quarter 1 Head to Head",
@@ -52,7 +53,6 @@ const MarketTypeMapping: { [key: string]: string } = {
   player_prop: "Player Prop",
 };
 
-//Add expansion
 const ArbBetCard = ({
   bet,
   userState = "NY",
@@ -81,13 +81,7 @@ const ArbBetCard = ({
     if (!link) return "#";
     return link.replace(/{state}/g, userState.toLowerCase());
   };
-  const handleCardClick = (e: React.MouseEvent) => {
-    const target = e.target as HTMLElement;
-    if (target.tagName === "A" || target.closest("a")) {
-      return;
-    }
-    setIsModalOpen(true);
-  };
+
   const calculateResults = () => {
     const stake1 = bet.team1_stake;
     const stake2 = bet.team2_stake;
@@ -115,7 +109,6 @@ const ArbBetCard = ({
       MarketTypeMapping[bet.market_type] ||
       bet.market_type;
 
-    // If it's a total points market and has a market point, include the total
     if (
       (bet.market_type.includes("total") ||
         bet.market_type.includes("Total")) &&
@@ -127,8 +120,13 @@ const ArbBetCard = ({
     return baseDesc;
   };
 
-  const formatProfitPercentage = (percentage: number) => {
-    if (percentage === 0) return "No Hold";
+  const formatProfitPercentage = (
+    percentage: number,
+    hold_percentage: number
+  ) => {
+    if (percentage === 0) {
+      return `-${hold_percentage.toFixed(2)}%`;
+    }
     return `+${percentage.toFixed(2)}%`;
   };
 
@@ -139,16 +137,35 @@ const ArbBetCard = ({
 
   return (
     <div className="w-full py-4">
-      <div
-        className="bg-secondary-bg rounded-lg overflow-hidden cursor-pointer"
-        onClick={handleCardClick}
-      >
+      <div className="bg-secondary-bg rounded-lg overflow-hidden">
         <div className="py-4 md:px-8 px-2">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-0">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6 w-full md:w-auto px-4 md:px-0">
-              <div className="text-accent-green w-24 text-left">
-                <p className="text-secondary-text text-sm">Profit</p>
-                {formatProfitPercentage(Number(bet.profit_percentage))}
+              <div className="flex items-center gap-2">
+                {Number(bet.profit_percentage) > 0 ? (
+                  <div className="text-accent-green w-24 text-left">
+                    <p className="text-secondary-text text-sm">Profit</p>
+                    {formatProfitPercentage(
+                      Number(bet.profit_percentage),
+                      Number(bet.hold_percentage)
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-negative-red w-24 text-left">
+                    <p className="text-secondary-text text-sm">Profit</p>
+                    {formatProfitPercentage(
+                      Number(bet.profit_percentage),
+                      Number(bet.hold_percentage)
+                    )}
+                  </div>
+                )}
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="p-2 hover:bg-gray-700 rounded-full transition-colors"
+                  aria-label="Open calculator"
+                >
+                  <Calculator className="w-8 h-8 text-gray-400" />
+                </button>
               </div>
               <div>
                 <div className="text-secondary-text text-sm break-words md:whitespace-nowrap">

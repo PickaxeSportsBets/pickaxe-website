@@ -86,7 +86,7 @@ const EVBetCard = ({
       hour12: true,
       timeZoneName: "short",
     });
-    return `${dayOfWeek}, ${month} ${day}, ${year} at ${time}`;
+    return `${dayOfWeek}, ${month} ${day}, ${year} @ ${time}`;
   };
 
   // Split bookmakers into rows of 3 (or less for smaller screens)
@@ -112,7 +112,7 @@ const EVBetCard = ({
   const bookmakerRows = splitIntoRows(processedData.bookmakers);
 
   return (
-    <div className="w-full py-4">
+    <div className="w-full py-2">
       <div className="rounded-lg overflow-hidden">
         <div
           className="cursor-pointer bg-secondary-bg hover:bg-secondary-bg-hover transition-all"
@@ -139,13 +139,13 @@ const EVBetCard = ({
                 <div className="text-primary-text">
                   {bet.team} {bet.market_point && `(${bet.market_point})`}
                 </div>
-                <div
-                  className={
-                    bet.odds >= 0 ? "text-accent-green" : "text-negative-red"
-                  }
-                >
-                  {bet.odds >= 0 ? `+${bet.odds}` : bet.odds}
-                </div>
+              </div>
+              <div
+                className={
+                  bet.odds >= 0 ? "text-accent-green" : "text-negative-red"
+                }
+              >
+                {bet.odds >= 0 ? `+${bet.odds}` : bet.odds}
               </div>
 
               <div className="flex items-center justify-between md:justify-start w-full md:w-auto gap-4">

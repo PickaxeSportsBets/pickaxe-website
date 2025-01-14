@@ -38,6 +38,12 @@ const CalculatorModal: React.FC<ModalProps> = ({
   const [stake1, setStake1] = useState("");
   const [stake2, setStake2] = useState("");
 
+  const calculatePayout = (stake: number, odds: number): number => {
+    if (!stake || !odds) return 0;
+    const decimalOdds = odds > 0 ? odds / 100 + 1 : 100 / Math.abs(odds) + 1;
+    return stake * decimalOdds;
+  };
+
   const calculateFromTotal = (total: number) => {
     if (type === "bonus") {
       const stake1 = result.bet1Amount || 0;
@@ -48,7 +54,6 @@ const CalculatorModal: React.FC<ModalProps> = ({
         stake2: (total * (1 - ratio)).toFixed(2),
       };
     }
-    // For risk-free bets
     const totalAmount = (result.bet1Amount || 0) + (result.bet2Amount || 0);
     const ratio = (result.bet1Amount || 0) / totalAmount;
     return {
@@ -66,6 +71,35 @@ const CalculatorModal: React.FC<ModalProps> = ({
     }
   };
 
+  const getPayout = (stake: any, odds: any) => {
+    const numericOdds = parseInt(odds.replace("+", ""));
+    const decimalOdds =
+      numericOdds > 0 ? 1 + numericOdds / 100 : 1 + 100 / Math.abs(numericOdds);
+    return (parseFloat(stake) * decimalOdds).toFixed(2);
+  };
+
+  // Calculate current stakes and profits
+  const currentStake1 = parseFloat(stake1) || result.bet1Amount || 0;
+  const currentStake2 = parseFloat(stake2) || result.bet2Amount || 0;
+  const totalCurrentStake = currentStake1 + currentStake2;
+
+  const payout1 = getPayout(currentStake1, result.bet1Odds);
+  const payout2 = getPayout(currentStake2, result.bet2Odds);
+
+  // Calculate guaranteed profit (minimum of the two scenarios)
+  const profit1 = parseFloat(payout1) - totalCurrentStake;
+  const profit2 = parseFloat(payout2) - totalCurrentStake;
+  const guaranteedProfit = Math.min(profit1, profit2);
+  const getColorClass = (value: number) => {
+    if (value > 0) return "text-accent-green";
+    if (value === 0) return "text-yellow-500";
+    return "text-negative-red";
+  };
+
+  // Calculate ROI
+  const roi =
+    totalCurrentStake > 0 ? (guaranteedProfit / totalCurrentStake) * 100 : 0;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl bg-secondary-bg text-primary-text">
@@ -77,10 +111,7 @@ const CalculatorModal: React.FC<ModalProps> = ({
 
         <Tabs defaultValue="total" className="w-full">
           <TabsList className="grid w-full grid-cols-2 bg-primary-bg">
-            <TabsTrigger
-              value="total"
-              onClick={() => setActiveTab("total")}
-            >
+            <TabsTrigger value="total" onClick={() => setActiveTab("total")}>
               Total Stake
             </TabsTrigger>
             <TabsTrigger
@@ -158,12 +189,7 @@ const CalculatorModal: React.FC<ModalProps> = ({
               </div>
               <div className="flex justify-between">
                 <span className="text-secondary-text">Payout:</span>
-                <span>
-                  $
-                  {((parseFloat(stake1) || result.bet1Amount || 0) * 2).toFixed(
-                    2
-                  )}
-                </span>
+                <span>${payout1}</span>
               </div>
             </div>
           </div>
@@ -190,12 +216,7 @@ const CalculatorModal: React.FC<ModalProps> = ({
               </div>
               <div className="flex justify-between">
                 <span className="text-secondary-text">Payout:</span>
-                <span>
-                  $
-                  {((parseFloat(stake2) || result.bet2Amount || 0) * 2).toFixed(
-                    2
-                  )}
-                </span>
+                <span>${payout2}</span>
               </div>
             </div>
           </div>
@@ -205,29 +226,17 @@ const CalculatorModal: React.FC<ModalProps> = ({
           <div className="space-y-2">
             <div className="flex justify-between">
               <span className="text-secondary-text">Total Stake:</span>
-              <span>
-                $
-                {(
-                  parseFloat(stake1 || "0") + parseFloat(stake2 || "0")
-                ).toFixed(2)}
-              </span>
+              <span>${totalCurrentStake.toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-secondary-text">Guaranteed Profit:</span>
-              <span className="text-accent-green">
-                ${result.guaranteedProfit?.toFixed(2)}
+              <span className={getColorClass(guaranteedProfit)}>
+                ${guaranteedProfit.toFixed(2)}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-secondary-text">ROI:</span>
-              <span className="text-accent-green">
-                {(
-                  ((result.guaranteedProfit || 0) /
-                    (parseFloat(totalStake) || 100)) *
-                  100
-                ).toFixed(2)}
-                %
-              </span>
+              <span className={getColorClass(roi)}>{roi.toFixed(2)}%</span>
             </div>
           </div>
         </div>

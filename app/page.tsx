@@ -10,10 +10,9 @@ import ArbBetCard from "./components/bets/arbCard";
 import { createClient } from "./utils/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 import PromosCalculator from "./components/promos/promo";
-import { Skeleton } from "@/components/ui/skeleton";
-
+import LoadingSkeleton from "./components/loadingSkeleton";
+import SearchAndControls from "./components/filter";
 const supabase = createClient();
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 enum Page {
   EV = "EV",
@@ -21,49 +20,10 @@ enum Page {
   PROMOS = "PROMOS",
 }
 
-const LoadingSkeleton = () => {
-  return Array(10)
-    .fill(0)
-    .map((_, index) => (
-      <div key={index} className="w-full py-4">
-        <div className="rounded-lg overflow-hidden">
-          <div className="bg-secondary-bg p-4">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              {/* Left side */}
-              <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
-                <div className="w-full md:w-20 text-center">
-                  <Skeleton className="h-4 w-16 mx-auto mb-1" />
-                  <Skeleton className="h-5 w-20 mx-auto" />
-                </div>
-                <div className="text-center md:text-left">
-                  <Skeleton className="h-4 w-48 mb-2" />
-                  <Skeleton className="h-5 w-32 mb-1" />
-                  <Skeleton className="h-4 w-24" />
-                </div>
-              </div>
-
-              {/* Right side */}
-              <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8">
-                <div className="text-center md:text-right w-full md:w-auto">
-                  <Skeleton className="h-4 w-24 mb-2" />
-                  <Skeleton className="h-5 w-32 mb-1" />
-                  <Skeleton className="h-4 w-16" />
-                </div>
-                <div className="flex items-center justify-between md:justify-start w-full md:w-auto gap-4">
-                  <Skeleton className="h-6 w-6 rounded" />
-                  <Skeleton className="h-6 w-12" />
-                  <Skeleton className="h-8 w-16 rounded" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    ));
-};
-
 export default function Home() {
   const [bets, setBets] = useState<any>();
+  const [filteredEVBets, setFilteredEVBets] = useState<any>();
+  const [filteredArbBets, setFilteredArbBets] = useState<any>();
   const [arbBets, setArbBets] = useState<any>();
   const [userState, setUserState] = useState("NY");
   const [currPage, setCurrPage] = useState<Page>(Page.EV);
@@ -71,7 +31,46 @@ export default function Home() {
   const [evLastUpdated, setEvLastUpdated] = useState("");
   const [arbLastUpdated, setArbLastUpdated] = useState("");
   const [loading, setLoading] = useState(true);
+  const [dateFilter, setDateFilter] = useState("all");
+  const [marketFilter, setMarketFilter] = useState("all");
+  const [bookieFilter, setBookieFilter] = useState("all");
   const itemsPerPage = 100;
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const { data: evBets } = await supabase
+        .from("plus_ev")
+        .select()
+        .order("timestamp", { ascending: false });
+      const { data: arbBetsData } = await supabase
+        .from("arbitrage")
+        .select()
+        .order("timestamp", { ascending: false });
+
+      if (evBets) {
+        setEvLastUpdated(evBets[0]?.timestamp);
+        const sortedBets = [...evBets].sort(
+          (a, b) => (b.ev_percentage || 0) - (a.ev_percentage || 0)
+        );
+        setBets(sortedBets);
+        setFilteredEVBets(sortedBets);
+      }
+
+      if (arbBetsData) {
+        setArbLastUpdated(arbBetsData[0]?.timestamp);
+        const sortedArbBets = [...arbBetsData].sort(
+          (a, b) => (b.profit_percentage || 0) - (a.profit_percentage || 0)
+        );
+        setArbBets(sortedArbBets);
+        setFilteredArbBets(sortedArbBets);
+      }
+    } catch (error) {
+      console.error("Error fetching bets:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     const fetchUserState = async () => {
@@ -87,43 +86,85 @@ export default function Home() {
       }
     };
 
-    const fetchBets = async () => {
-      try {
-        setLoading(true);
-        const { data: evBets } = await supabase
-          .from("plus_ev")
-          .select()
-          .order("timestamp", { ascending: false });
-        const { data: arbBetsData } = await supabase
-          .from("arbitrage")
-          .select()
-          .order("timestamp", { ascending: false });
-
-        if (evBets) {
-          setEvLastUpdated(evBets[0]?.timestamp);
-          const sortedBets = [...evBets].sort(
-            (a, b) => (b.ev_percentage || 0) - (a.ev_percentage || 0)
-          );
-          setBets(sortedBets);
-        }
-
-        if (arbBetsData) {
-          setArbLastUpdated(arbBetsData[0]?.timestamp);
-          const sortedArbBets = [...arbBetsData].sort(
-            (a, b) => (b.profit_percentage || 0) - (a.profit_percentage || 0)
-          );
-          setArbBets(sortedArbBets);
-        }
-      } catch (error) {
-        console.error("Error fetching bets:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchUserState();
-    fetchBets();
+    fetchData();
   }, []);
+
+  const handleSearch = (searchTerm: string) => {
+    const currentBets = currPage === Page.EV ? bets : arbBets;
+    if (!currentBets) return;
+
+    const filtered = currentBets.filter((bet: any) => {
+      return (
+        bet.game?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        bet.market_type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        bet.team?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    });
+
+    if (currPage === Page.EV) {
+      setFilteredEVBets(filtered);
+    } else {
+      setFilteredArbBets(filtered);
+    }
+    setCurrentPageNumber(1);
+  };
+
+  const applyFilters = () => {
+    const currentBets = currPage === Page.EV ? bets : arbBets;
+    if (!currentBets) return;
+
+    let filtered = [...currentBets];
+
+    // Date filtering
+    if (dateFilter !== "all") {
+      const now = new Date();
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const weekLater = new Date(now);
+      weekLater.setDate(weekLater.getDate() + 7);
+
+      filtered = filtered.filter((bet: any) => {
+        const betDate = new Date(bet.commence_time);
+        switch (dateFilter) {
+          case "today":
+            return betDate.toDateString() === now.toDateString();
+          case "tomorrow":
+            return betDate.toDateString() === tomorrow.toDateString();
+          case "week":
+            return betDate <= weekLater;
+          default:
+            return true;
+        }
+      });
+    }
+
+    // Market type filtering
+    if (marketFilter !== "all") {
+      filtered = filtered.filter(
+        (bet: any) =>
+          bet.market_type.toLowerCase() === marketFilter.toLowerCase()
+      );
+    }
+
+    // Bookmaker filtering
+    if (bookieFilter !== "all") {
+      filtered = filtered.filter(
+        (bet: any) => bet.bookmaker.toLowerCase() === bookieFilter.toLowerCase()
+      );
+    }
+
+    if (currPage === Page.EV) {
+      setFilteredEVBets(filtered);
+    } else {
+      setFilteredArbBets(filtered);
+    }
+    setCurrentPageNumber(1);
+  };
+
+  useEffect(() => {
+    applyFilters();
+  }, [dateFilter, marketFilter, bookieFilter, currPage]);
 
   const getCurrentPageItems = (items: any[]) => {
     if (!Array.isArray(items) || items.length === 0) {
@@ -175,10 +216,10 @@ export default function Home() {
         }
         return (
           <>
-            {getCurrentPageItems(bets).map((bet: any) => (
+            {getCurrentPageItems(filteredEVBets).map((bet: any) => (
               <EVBetCard key={bet.id} bet={bet} userState={userState} />
             ))}
-            {renderPagination(bets)}
+            {renderPagination(filteredEVBets)}
           </>
         );
       case Page.ARB:
@@ -194,10 +235,10 @@ export default function Home() {
         }
         return (
           <>
-            {getCurrentPageItems(arbBets).map((bet: any) => (
+            {getCurrentPageItems(filteredArbBets).map((bet: any) => (
               <ArbBetCard key={bet.id} bet={bet} userState={userState} />
             ))}
-            {renderPagination(arbBets)}
+            {renderPagination(filteredArbBets)}
           </>
         );
       case Page.PROMOS:
@@ -220,13 +261,26 @@ export default function Home() {
     <>
       <Header />
       <div className="min-h-screen bg-primary-bg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[90%] mx-auto px-2 sm:px-4 lg:px-6">
           <NavButtons currPage={currPage} setCurrPage={setCurrPage} />
+
+          {currPage !== Page.PROMOS && (
+            <SearchAndControls
+              onSearch={handleSearch}
+              onRefresh={fetchData}
+              onDateFilter={setDateFilter}
+              onMarketFilter={setMarketFilter}
+              onBookieFilter={setBookieFilter}
+              loading={loading}
+            />
+          )}
+
           {currPage !== Page.PROMOS && !loading && getLastUpdated() && (
             <p className="text-secondary-text text-sm">
               Updated {formatDistanceToNow(getLastUpdated()!)} ago
             </p>
           )}
+
           <div className="py-4">{renderContent()}</div>
         </div>
       </div>
