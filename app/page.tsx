@@ -35,7 +35,6 @@ export default function Home() {
   const [marketFilter, setMarketFilter] = useState("all");
   const [bookieFilter, setBookieFilter] = useState("all");
   const itemsPerPage = 100;
-
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -60,11 +59,19 @@ export default function Home() {
 
       if (arbBetsData) {
         setArbLastUpdated(arbBetsData[0]?.timestamp);
-        const sortedArbBets = [...arbBetsData].sort(
-          (a, b) =>
-            (Number(b.profit_percentage) || 0) -
-            (Number(a.profit_percentage) || 0)
-        );
+        const sortedArbBets = [...arbBetsData].sort((a, b) => {
+          const profitA = Number(a.profit_percentage) || 0;
+          const profitB = Number(b.profit_percentage) || 0;
+
+          if (profitA === 0 && profitB === 0) {
+            const holdA = Number(a.hold_percentage) || 0;
+            const holdB = Number(b.hold_percentage) || 0;
+            return holdA - holdB; // Lower hold is better, so we want ascending order
+          }
+
+          return profitB - profitA;
+        });
+
         setArbBets(sortedArbBets);
         setFilteredArbBets(sortedArbBets);
       }
