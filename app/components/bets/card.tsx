@@ -1,7 +1,6 @@
 "use client";
 import React, { useState } from "react";
 import Image from "next/image";
-import { ChevronDown, ChevronUp } from "lucide-react";
 import betmgm from "@/public/images/betmgm-logo.png";
 import betRivers from "@/public/images/betrivers-logo.png";
 import caesars from "@/public/images/caesars-logo.png";
@@ -110,25 +109,25 @@ const EVBetCard = ({
   const bookmakerRows = splitIntoRows(processedData.bookmakers);
 
   return (
-    <div className="w-full py-2">
-      <div className="rounded-lg overflow-hidden">
+    <div className="w-full py-4">
+      <div className="rounded-lg overflow-hidden shadow-sm">
         <div
           className="cursor-pointer bg-secondary-bg-light dark:bg-secondary-bg-dark hover:bg-secondary-bg-hover-light dark:hover:bg-secondary-bg-hover-dark transition-all"
           onClick={() => setIsExpanded(!isExpanded)}
         >
-          <div className="flex flex-col md:flex-row md:items-center justify-between p-4 gap-4">
-            <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
-              <div className="text-accent-green-light dark:text-accent-green-dark w-full md:w-20 text-center">
-                <p className="text-secondary-text-light dark:text-secondary-text-dark text-sm">
+          <div className="flex flex-col md:flex-row md:items-center justify-between p-6 gap-6">
+            <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-8">
+              <div className="text-accent-green-light dark:text-accent-green-dark w-full md:w-24 text-center">
+                <p className="text-secondary-text-light dark:text-secondary-text-dark text-sm mb-1">
                   Profit
                 </p>
                 +{bet.ev_percentage?.toFixed(2)}%
               </div>
-              <div className="text-center md:text-left">
+              <div className="text-center md:text-left space-y-1">
                 <div className="text-secondary-text-light dark:text-secondary-text-dark text-sm break-words md:whitespace-nowrap">
                   {formatDateTime(bet.commence_time)}
                 </div>
-                <div className="text-primary-text-light dark:text-primary-text-dark">
+                <div className="text-primary-text-light dark:text-primary-text-dark font-medium">
                   {bet.game}
                 </div>
                 <div className="text-secondary-text-light dark:text-secondary-text-dark text-sm">
@@ -137,9 +136,9 @@ const EVBetCard = ({
               </div>
             </div>
 
-            <div className="flex flex-col md:flex-row items-center md:items-center gap-4 md:gap-8">
-              <div className="text-center md:text-right w-full md:w-auto">
-                <div className="text-market-purple-light dark:text-market-purple-dark">
+            <div className="flex flex-col md:flex-row items-center md:items-center gap-6 md:gap-8">
+              <div className="text-center md:text-right w-full md:w-auto space-y-1">
+                <div className="text-market-purple-light dark:text-market-purple-dark font-medium">
                   {bet.market_type}
                 </div>
                 <div className="text-primary-text-light dark:text-primary-text-dark">
@@ -147,52 +146,68 @@ const EVBetCard = ({
                 </div>
               </div>
               <div
-                className={
+                className={`text-lg font-medium ${
                   bet.odds >= 0
                     ? "text-accent-green-light dark:text-accent-green-dark"
                     : "text-negative-red-light dark:text-negative-red-dark"
-                }
+                }`}
               >
                 {bet.odds >= 0 ? `+${bet.odds}` : bet.odds}
               </div>
 
-              <div className="flex items-center justify-between md:justify-start w-full md:w-auto gap-4">
+              <div className="flex items-center justify-between md:justify-start w-full md:w-auto gap-6">
                 <Image
                   src={
                     BookmakerLogos[bet.bookmaker?.toLowerCase()] ||
                     "/images/placeholder.png"
                   }
                   alt={bet.bookmaker || "Bookmaker"}
-                  width={24}
-                  height={24}
+                  width={28}
+                  height={28}
                   className="rounded mr-[36.81px] md:mr-0"
                 />
-                <a
-                  href={formatLink(bet.link)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="bg-button-green-light dark:bg-button-green-dark hover:bg-button-green-hover-light dark:hover:bg-button-green-hover-dark transition-all px-4 py-1 rounded text-primary-text-light dark:text-primary-text-dark flex items-center"
-                >
-                  BET
-                </a>
+                <div className="flex items-center gap-2">
+                  <a
+                    href={formatLink(bet.link)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="bg-button-green-light dark:bg-button-green-dark hover:bg-button-green-hover-light dark:hover:bg-button-green-hover-dark transition-all px-6 py-2 rounded text-primary-text-light dark:text-primary-text-dark flex items-center font-medium"
+                  >
+                    BET
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="ml-2 text-primary-text-light dark:text-primary-text-dark"
+                    >
+                      <line x1="7" y1="17" x2="17" y2="7" />
+                      <polyline points="7 7 17 7 17 17" />
+                    </svg>
+                  </a>
+                </div>
               </div>
             </div>
           </div>
         </div>
-
         {isExpanded && processedData && (
-          <div className="p-4 bg-secondary-bg-light dark:bg-secondary-bg-dark">
-            {bookmakerRows.map((bookmakerRow, rowIndex) => (
-              <div key={rowIndex} className={rowIndex > 0 ? "mt-8" : ""}>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-center mb-4">
-                  <div className="text-secondary-text-light dark:text-secondary-text-dark">
+          <div className="p-6 bg-secondary-bg-light dark:bg-secondary-bg-dark border-t border-gray-200 dark:border-gray-700">
+            <div className="">
+              <div className="min-w-max">
+                {/* Header row */}
+                <div className="grid grid-cols-[200px_repeat(auto-fit,minmax(100px,1fr))] text-center h-16">
+                  <div className="text-secondary-text-light dark:text-secondary-text-dark font-medium flex items-center justify-center">
                     Selection
                   </div>
-                  {bookmakerRow.map((bookie) => (
+                  {processedData.bookmakers.map((bookie) => (
                     <div
                       key={bookie}
-                      className="flex flex-col items-center justify-center gap-2"
+                      className="flex items-center justify-center"
                     >
                       <Image
                         src={
@@ -200,54 +215,64 @@ const EVBetCard = ({
                           "/images/placeholder.png"
                         }
                         alt={bookie}
-                        width={24}
-                        height={24}
+                        width={28}
+                        height={28}
                         className="rounded"
                       />
-                      <div className="text-secondary-text-light dark:text-secondary-text-dark capitalize text-sm">
-                        {bookie}
-                      </div>
                     </div>
                   ))}
                 </div>
 
-                {processedData.entries.map(([key, data]: [string, any]) => {
-                  const [name, point] = key.split("_");
-                  return (
-                    <div
-                      key={`${key}-${rowIndex}`}
-                      className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-center mt-3"
-                    >
-                      <div className="text-primary-text-light dark:text-primary-text-dark break-words">
-                        {`${name} ${
-                          point !== "None" && point ? `(${point})` : ""
+                <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {processedData.entries.map(([key, data]: [string, any]) => {
+                    const [name, point] = key.split("_");
+
+                    const validOdds = processedData.bookmakers
+                      .map((bookie) => data.odds[bookie]?.american)
+                      .filter((odds) => odds !== undefined)
+                      .map((odds) => parseInt(odds));
+                    const highestOdds = Math.max(...validOdds);
+
+                    return (
+                      <div
+                        key={key}
+                        className="grid grid-cols-[200px_repeat(auto-fit,minmax(100px,1fr))] text-center h-12"
+                      >
+                        <div className="text-primary-text-light dark:text-primary-text-dark break-words font-medium flex items-center justify-center px-4">
+                          {`${name} ${
+                            point !== "None" && point ? `(${point})` : ""
+                          }`}
+                        </div>
+                        {processedData.bookmakers.map((bookie) => {
+                          const odds = data.odds[bookie]?.american;
+                          const link = data.odds[bookie]?.link;
+                          const isHighest = parseInt(odds) === highestOdds;
+
+                          return (
+                            <a
+                              key={bookie}
+                              href={formatLink(link)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className={`cursor-pointer transition-all font-medium flex items-center justify-center
+                        ${isHighest ? "bg-green-100 dark:bg-green-900/20" : ""}
+                        ${
+                          odds >= 0
+                            ? "text-accent-green-light dark:text-accent-green-dark hover:text-accent-green-hover-light dark:hover:text-accent-green-hover-dark"
+                            : "text-negative-red-light dark:text-negative-red-dark hover:text-negative-red-hover-light dark:hover:text-negative-red-hover-dark"
                         }`}
+                            >
+                              {odds ? (odds >= 0 ? `+${odds}` : odds) : "-"}
+                            </a>
+                          );
+                        })}
                       </div>
-                      {bookmakerRow.map((bookie) => {
-                        const odds = data.odds[bookie]?.american;
-                        const link = data.odds[bookie]?.link;
-                        return (
-                          <a
-                            key={bookie}
-                            href={formatLink(link)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className={`cursor-pointer transition-all ${
-                              odds >= 0
-                                ? "text-accent-green-light dark:text-accent-green-dark hover:text-accent-green-hover-light dark:hover:text-accent-green-hover-dark"
-                                : "text-negative-red-light dark:text-negative-red-dark hover:text-negative-red-hover-light dark:hover:text-negative-red-hover-dark"
-                            }`}
-                          >
-                            {odds ? (odds >= 0 ? `+${odds}` : odds) : "-"}
-                          </a>
-                        );
-                      })}
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
-            ))}
+            </div>
           </div>
         )}
       </div>

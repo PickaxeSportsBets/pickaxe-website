@@ -229,6 +229,20 @@ const ArbBetCard = ({
                     className="bg-button-green-light dark:bg-button-green-dark hover:bg-button-green-hover-light dark:hover:bg-button-green-hover-dark px-4 py-1 rounded text-primary-text-light dark:text-primary-text-dark flex items-center transition-colors"
                   >
                     BET
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="ml-2 text-primary-text-light dark:text-primary-text-dark"
+                    >
+                      <line x1="7" y1="17" x2="17" y2="7" />
+                      <polyline points="7 7 17 7 17 17" />
+                    </svg>
                   </a>
                 </div>
               </div>
@@ -273,6 +287,20 @@ const ArbBetCard = ({
                     className="bg-button-green-light dark:bg-button-green-dark hover:bg-button-green-hover-light dark:hover:bg-button-green-hover-dark px-4 py-1 rounded text-primary-text-light dark:text-primary-text-dark flex items-center transition-colors"
                   >
                     BET
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="ml-2 text-primary-text-light dark:text-primary-text-dark"
+                    >
+                      <line x1="7" y1="17" x2="17" y2="7" />
+                      <polyline points="7 7 17 7 17 17" />
+                    </svg>
                   </a>
                 </div>
               </div>

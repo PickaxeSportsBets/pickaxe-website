@@ -99,6 +99,65 @@ const CalculatorModal: React.FC<ModalProps> = ({
   // Calculate ROI
   const roi =
     totalCurrentStake > 0 ? (guaranteedProfit / totalCurrentStake) * 100 : 0;
+  const toDecimalOdds = (americanOdds: string) => {
+    const odds = parseInt(americanOdds.replace("+", ""));
+    return odds > 0 ? 1 + odds / 100 : 1 + 100 / Math.abs(odds);
+  };
+  const calculateArbitrageStakes = (
+    stake: number,
+    isFirstBet: boolean,
+    odds1: string,
+    odds2: string
+  ) => {
+    const decimal1 = toDecimalOdds(odds1);
+    const decimal2 = toDecimalOdds(odds2);
+
+    if (isFirstBet) {
+      // If stake1 is provided, calculate stake2
+      const calculatedStake2 = (stake * decimal1) / decimal2;
+      return {
+        stake1: stake,
+        stake2: calculatedStake2,
+      };
+    } else {
+      // If stake2 is provided, calculate stake1
+      const calculatedStake1 = (stake * decimal2) / decimal1;
+      return {
+        stake1: calculatedStake1,
+        stake2: stake,
+      };
+    }
+  };
+
+  const handleStake1Change = (value: string) => {
+    setStake1(value);
+    if (!isNaN(parseFloat(value)) && value !== "") {
+      const stakes = calculateArbitrageStakes(
+        parseFloat(value),
+        true,
+        result.bet1Odds || "",
+        result.bet2Odds || ""
+      );
+      setStake2(stakes.stake2.toFixed(2));
+    } else {
+      setStake2("");
+    }
+  };
+
+  const handleStake2Change = (value: string) => {
+    setStake2(value);
+    if (!isNaN(parseFloat(value)) && value !== "") {
+      const stakes = calculateArbitrageStakes(
+        parseFloat(value),
+        false,
+        result.bet1Odds || "",
+        result.bet2Odds || ""
+      );
+      setStake1(stakes.stake1.toFixed(2));
+    } else {
+      setStake1("");
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -147,7 +206,7 @@ const CalculatorModal: React.FC<ModalProps> = ({
                 <input
                   type="number"
                   value={stake1}
-                  onChange={(e) => setStake1(e.target.value)}
+                  onChange={(e) => handleStake1Change(e.target.value)}
                   className="w-full bg-primary-bg-light dark:bg-primary-bg-dark text-primary-text-light dark:text-primary-text-dark px-4 py-2 rounded border border-secondary-text-light dark:border-secondary-text-dark"
                 />
               </div>
@@ -158,7 +217,7 @@ const CalculatorModal: React.FC<ModalProps> = ({
                 <input
                   type="number"
                   value={stake2}
-                  onChange={(e) => setStake2(e.target.value)}
+                  onChange={(e) => handleStake2Change(e.target.value)}
                   className="w-full bg-primary-bg-light dark:bg-primary-bg-dark text-primary-text-light dark:text-primary-text-dark px-4 py-2 rounded border border-secondary-text-light dark:border-secondary-text-dark"
                 />
               </div>
@@ -335,235 +394,5 @@ const ResultRow = ({ label, value }: { label: string; value: string }) => (
     </span>
   </div>
 );
-
-const PromosCalculator = () => {
-  const [modalOpen, setModalOpen] = useState(false);
-  const [currentCalculator, setCurrentCalculator] = useState<
-    "risk-free" | "bonus"
-  >("risk-free");
-  const [currentResults, setCurrentResults] = useState<CalculatorResult>({});
-
-  // Risk-Free Calculator State
-  const [riskFreeInputs, setRiskFreeInputs] = useState({
-    odds1: "",
-    odds2: "",
-    bonusAmount: "",
-    estimatedBonusValue: "",
-  });
-
-  // Bonus Calculator State
-  const [bonusInputs, setBonusInputs] = useState({
-    bonusOddsPlus: "",
-    bonusOddsMinus: "",
-    bonusBetSize: "",
-  });
-
-  const calculateRiskFree = () => {
-    const odds1 = parseFloat(riskFreeInputs.odds1);
-    const odds2 = parseFloat(riskFreeInputs.odds2);
-    const bonusAmount = parseFloat(riskFreeInputs.bonusAmount);
-    const estimatedBonusValue = parseFloat(riskFreeInputs.estimatedBonusValue);
-
-    if (!odds1 || !odds2 || !bonusAmount || !estimatedBonusValue) return;
-
-    const bonusValueDollars = (bonusAmount * estimatedBonusValue) / 100;
-    const bet1Amount = bonusAmount;
-    const bet1Payout = bet1Amount * (1 + odds1 / 100);
-    const bet2Amount = (bet1Payout - bonusValueDollars) / (1 - 100 / odds2);
-    const bet2TotalPayout = bet2Amount * (1 - 100 / odds2);
-    const profitIfBet1Wins = bet1Payout - bet1Amount - bet2Amount;
-    const profitIfBet2Wins =
-      bet2TotalPayout - bet2Amount - bet1Amount + bonusValueDollars;
-
-    const results = {
-      bonusValue: bonusValueDollars,
-      bet1Amount,
-      bet2Amount,
-      profitBet1Wins: profitIfBet1Wins,
-      profitBet2Wins: profitIfBet2Wins,
-      guaranteedProfit: Math.min(profitIfBet1Wins, profitIfBet2Wins),
-      bet1Odds: `${odds1 >= 0 ? "+" : ""}${odds1}`,
-      bet2Odds: `${odds2}`,
-    };
-
-    setCurrentResults(results);
-    setCurrentCalculator("risk-free");
-    setModalOpen(true);
-  };
-
-  const calculateBonus = () => {
-    const plusOdds = parseFloat(bonusInputs.bonusOddsPlus);
-    const minusOdds = parseFloat(bonusInputs.bonusOddsMinus);
-    const bonusSize = parseFloat(bonusInputs.bonusBetSize);
-
-    if (
-      !plusOdds ||
-      !minusOdds ||
-      !bonusSize ||
-      plusOdds <= 0 ||
-      minusOdds >= 0
-    )
-      return;
-
-    const plusOddsDecimal = 1 + plusOdds / 100;
-    const minusOddsDecimal = 1 - 100 / minusOdds;
-    const bonusBetProfit = bonusSize * plusOddsDecimal - bonusSize;
-    const hedgeBet = bonusBetProfit / minusOddsDecimal;
-    const guaranteedProfit = bonusSize * plusOddsDecimal - bonusSize - hedgeBet;
-
-    const results = {
-      bet1Amount: bonusSize,
-      bet2Amount: hedgeBet,
-      guaranteedProfit,
-      bet1Odds: `+${plusOdds}`,
-      bet2Odds: `${minusOdds}`,
-    };
-
-    setCurrentResults(results);
-    setCurrentCalculator("bonus");
-    setModalOpen(true);
-  };
-
-  return (
-    <div className="max-w-7xl mx-auto px-4">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 py-6">
-        {/* Initial Risk-Free Bet Calculator */}
-        <CalculatorCard
-          title="Initial Risk-Free Bet Hedge"
-          description="Calculate optimal hedge for risk-free bet promotions"
-          onClick={() => {
-            if (Object.keys(currentResults).length > 0) {
-              setCurrentCalculator("risk-free");
-              setModalOpen(true);
-            }
-          }}
-        >
-          <div className="space-y-4">
-            <Input
-              label="Odds 1 (+)"
-              type="number"
-              placeholder="e.g., 200"
-              value={riskFreeInputs.odds1}
-              onChange={(e) =>
-                setRiskFreeInputs((prev) => ({
-                  ...prev,
-                  odds1: e.target.value,
-                }))
-              }
-            />
-            <Input
-              label="Odds 2 (-)"
-              type="number"
-              placeholder="e.g., -200"
-              value={riskFreeInputs.odds2}
-              onChange={(e) =>
-                setRiskFreeInputs((prev) => ({
-                  ...prev,
-                  odds2: e.target.value,
-                }))
-              }
-            />
-            <Input
-              label="Bonus Amount ($)"
-              type="number"
-              placeholder="e.g., 500"
-              value={riskFreeInputs.bonusAmount}
-              onChange={(e) =>
-                setRiskFreeInputs((prev) => ({
-                  ...prev,
-                  bonusAmount: e.target.value,
-                }))
-              }
-            />
-            <Input
-              label="Estimated Bonus Value (%)"
-              type="number"
-              placeholder="e.g., 60"
-              value={riskFreeInputs.estimatedBonusValue}
-              onChange={(e) =>
-                setRiskFreeInputs((prev) => ({
-                  ...prev,
-                  estimatedBonusValue: e.target.value,
-                }))
-              }
-            />
-
-            <button
-              onClick={calculateRiskFree}
-              className="w-full bg-button-green-light dark:bg-button-green-dark hover:bg-button-green-hover-light dark:hover:bg-button-green-hover-dark text-primary-text-light dark:text-primary-text-dark py-3 px-4 rounded transition-colors"
-            >
-              Calculate Initial Hedge
-            </button>
-          </div>
-        </CalculatorCard>
-
-        {/* Bonus Bet Calculator */}
-        <CalculatorCard
-          title="Bonus Bet Hedge"
-          description="Calculate optimal hedge for bonus bet promotions"
-          onClick={() => {
-            if (Object.keys(currentResults).length > 0) {
-              setCurrentCalculator("bonus");
-              setModalOpen(true);
-            }
-          }}
-        >
-          <div className="space-y-4">
-            <Input
-              label="Odds 1 (+)"
-              type="number"
-              placeholder="e.g., 200"
-              value={bonusInputs.bonusOddsPlus}
-              onChange={(e) =>
-                setBonusInputs((prev) => ({
-                  ...prev,
-                  bonusOddsPlus: e.target.value,
-                }))
-              }
-            />
-            <Input
-              label="Odds 2 (-)"
-              type="number"
-              placeholder="e.g., -200"
-              value={bonusInputs.bonusOddsMinus}
-              onChange={(e) =>
-                setBonusInputs((prev) => ({
-                  ...prev,
-                  bonusOddsMinus: e.target.value,
-                }))
-              }
-            />
-            <Input
-              label="Bonus Bet Size ($)"
-              type="number"
-              placeholder="e.g., 500"
-              value={bonusInputs.bonusBetSize}
-              onChange={(e) =>
-                setBonusInputs((prev) => ({
-                  ...prev,
-                  bonusBetSize: e.target.value,
-                }))
-              }
-            />
-
-            <button
-              onClick={calculateBonus}
-              className="w-full bg-button-green-light dark:bg-button-green-dark hover:bg-button-green-hover-light dark:hover:bg-button-green-hover-dark text-primary-text-light dark:text-primary-text-dark py-3 px-4 rounded transition-colors"
-            >
-              Calculate Bonus Bet Hedge
-            </button>
-          </div>
-        </CalculatorCard>
-      </div>
-
-      <CalculatorModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        result={currentResults}
-        type={currentCalculator}
-      />
-    </div>
-  );
-};
 
 export default CalculatorModal;
