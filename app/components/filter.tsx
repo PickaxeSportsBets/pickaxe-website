@@ -1,5 +1,5 @@
-// components/filter/index.tsx
-import { useState } from "react";
+"use client";
+import { useState, useEffect } from "react";
 import { Search, RefreshCw, Filter } from "lucide-react";
 
 export const BookmakerLogos: { [key: string]: any } = {
@@ -41,18 +41,25 @@ export const MarketTypeMapping: { [key: string]: string } = {
   alternate_totals: "Alternate Total",
   alternate_totals_q1: "Quarter 1 Alternate Total",
   player_prop: "Player Prop",
+  "Player Prop - Receptions": "Player Prop - Receptions",
 };
+
+// Create a reverse mapping for market types
+const ReverseMarketMapping: { [key: string]: string } = Object.entries(
+  MarketTypeMapping
+).reduce((acc, [key, value]) => ({ ...acc, [value.toLowerCase()]: key }), {});
 
 interface FilterControlsProps {
   onDateFilter: (value: string) => void;
   onMarketFilter: (value: string) => void;
   onBookieFilter: (value: string) => void;
+  isArbPage: boolean;
 }
-
 export const FilterControls = ({
   onDateFilter,
   onMarketFilter,
   onBookieFilter,
+  isArbPage,
 }: FilterControlsProps) => {
   const dateOptions = [
     { label: "All", value: "all" },
@@ -61,11 +68,14 @@ export const FilterControls = ({
     { label: "This Week", value: "week" },
   ];
 
+  const selectClassName =
+    "bg-secondary-bg-light dark:bg-secondary-bg-dark text-primary-text-light dark:text-primary-text-dark px-3 py-2 rounded-md";
+
   return (
     <div className="flex flex-wrap gap-4 mb-4">
       <select
         onChange={(e) => onDateFilter(e.target.value)}
-        className="bg-secondary-bg text-primary-text px-3 py-2 rounded-md"
+        className={selectClassName}
       >
         {dateOptions.map((option) => (
           <option key={option.value} value={option.value}>
@@ -74,9 +84,9 @@ export const FilterControls = ({
         ))}
       </select>
 
-      {/* <select
+      <select
         onChange={(e) => onMarketFilter(e.target.value)}
-        className="bg-secondary-bg text-primary-text px-3 py-2 rounded-md"
+        className={selectClassName}
       >
         <option value="all">All Markets</option>
         {Object.entries(MarketTypeMapping).map(([key, label]) => (
@@ -84,11 +94,11 @@ export const FilterControls = ({
             {label}
           </option>
         ))}
-      </select> */}
+      </select>
 
       <select
         onChange={(e) => onBookieFilter(e.target.value)}
-        className="bg-secondary-bg text-primary-text px-3 py-2 rounded-md"
+        className={selectClassName}
       >
         <option value="all">All Bookmakers</option>
         {Object.keys(BookmakerLogos).map((bookie) => (
@@ -108,6 +118,7 @@ interface SearchAndControlsProps {
   onMarketFilter: (value: string) => void;
   onBookieFilter: (value: string) => void;
   loading: boolean;
+  isArbPage: boolean;
 }
 
 const SearchAndControls = ({
@@ -117,11 +128,12 @@ const SearchAndControls = ({
   onMarketFilter,
   onBookieFilter,
   loading,
+  isArbPage,
 }: SearchAndControlsProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
 
-  const handleSearch = (e: any) => {
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchTerm(value);
     onSearch(value);
@@ -136,15 +148,15 @@ const SearchAndControls = ({
             placeholder="Search..."
             value={searchTerm}
             onChange={handleSearch}
-            className="w-full bg-secondary-bg text-primary-text px-4 py-2 rounded-md pl-10"
+            className="w-full bg-secondary-bg-light dark:bg-secondary-bg-dark text-primary-text-light dark:text-primary-text-dark px-4 py-2 rounded-md pl-10"
           />
-          <Search className="absolute left-3 top-2.5 w-5 h-5 text-secondary-text" />
+          <Search className="absolute left-3 top-2.5 w-5 h-5 text-secondary-text-light dark:text-secondary-text-dark" />
         </div>
 
         <button
           onClick={onRefresh}
           disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 bg-secondary-bg text-primary-text rounded-md hover:bg-opacity-80 disabled:opacity-50"
+          className="flex items-center gap-2 px-4 py-2 bg-secondary-bg-light dark:bg-secondary-bg-dark text-primary-text-light dark:text-primary-text-dark rounded-md hover:bg-secondary-bg-hover-light dark:hover:bg-secondary-bg-hover-dark disabled:opacity-50"
         >
           <RefreshCw className={`w-5 h-5 ${loading ? "animate-spin" : ""}`} />
           Refresh
@@ -152,7 +164,7 @@ const SearchAndControls = ({
 
         <button
           onClick={() => setShowFilters(!showFilters)}
-          className="flex items-center gap-2 px-4 py-2 bg-secondary-bg text-primary-text rounded-md hover:bg-opacity-80"
+          className="flex items-center gap-2 px-4 py-2 bg-secondary-bg-light dark:bg-secondary-bg-dark text-primary-text-light dark:text-primary-text-dark rounded-md hover:bg-secondary-bg-hover-light dark:hover:bg-secondary-bg-hover-dark"
         >
           <Filter className="w-5 h-5" />
           Filters
@@ -164,6 +176,7 @@ const SearchAndControls = ({
           onDateFilter={onDateFilter}
           onMarketFilter={onMarketFilter}
           onBookieFilter={onBookieFilter}
+          isArbPage={isArbPage}
         />
       )}
     </div>

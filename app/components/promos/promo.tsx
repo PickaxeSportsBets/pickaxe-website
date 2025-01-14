@@ -22,11 +22,17 @@ const CalculatorCard: React.FC<React.PropsWithChildren<CalculatorProps>> = ({
   children,
   className,
 }) => (
-  <div className={`bg-secondary-bg rounded-lg p-6 ${className}`}>
+  <div
+    className={`bg-secondary-bg-light dark:bg-secondary-bg-dark rounded-lg p-6 ${className}`}
+  >
     <div className="mb-6">
-      <h2 className="text-primary-text text-xl font-medium mb-2">{title}</h2>
+      <h2 className="text-primary-text-light dark:text-primary-text-dark text-xl font-medium mb-2">
+        {title}
+      </h2>
       {description && (
-        <p className="text-secondary-text text-sm">{description}</p>
+        <p className="text-secondary-text-light dark:text-secondary-text-dark text-sm">
+          {description}
+        </p>
       )}
     </div>
     {children}
@@ -38,22 +44,30 @@ const Input = ({
   ...props
 }: { label: string } & React.InputHTMLAttributes<HTMLInputElement>) => (
   <div className="mb-4">
-    <label className="block text-secondary-text text-sm mb-2">{label}</label>
+    <label className="block text-secondary-text-light dark:text-secondary-text-dark text-sm mb-2">
+      {label}
+    </label>
     <input
-      className="w-full bg-primary-bg text-primary-text px-4 py-2 rounded border border-secondary-text focus:outline-none focus:border-accent-green"
+      className="w-full bg-primary-bg-light dark:bg-primary-bg-dark text-primary-text-light dark:text-primary-text-dark px-4 py-2 rounded border border-secondary-text-light dark:border-secondary-text-dark focus:outline-none focus:border-accent-green-light dark:focus:border-accent-green-dark"
       {...props}
     />
   </div>
 );
 
 const ResultsPanel = ({ children }: { children: React.ReactNode }) => (
-  <div className="mt-6 p-4 bg-primary-bg rounded-lg space-y-3">{children}</div>
+  <div className="mt-6 p-4 bg-primary-bg-light dark:bg-primary-bg-dark rounded-lg space-y-3">
+    {children}
+  </div>
 );
 
 const ResultRow = ({ label, value }: { label: string; value: string }) => (
   <div className="flex justify-between items-center">
-    <span className="text-secondary-text">{label}</span>
-    <span className="text-primary-text">{value}</span>
+    <span className="text-secondary-text-light dark:text-secondary-text-dark">
+      {label}
+    </span>
+    <span className="text-primary-text-light dark:text-primary-text-dark">
+      {value}
+    </span>
   </div>
 );
 
@@ -188,7 +202,7 @@ const PromosCalculator = () => {
 
             <button
               onClick={calculateRiskFree}
-              className="w-full bg-button-green hover:bg-button-green-hover text-primary-text py-3 px-4 rounded-md transition-colors"
+              className="w-full bg-button-green-light dark:bg-button-green-dark hover:bg-button-green-hover-light dark:hover:bg-button-green-hover-dark text-primary-text-light dark:text-primary-text-dark py-3 px-4 rounded transition-colors"
             >
               Calculate Initial Hedge
             </button>
@@ -207,8 +221,8 @@ const PromosCalculator = () => {
                   label="Bet Amount 2"
                   value={`$${riskFreeResults.bet2Amount?.toFixed(2)}`}
                 />
-                <div className="mt-4 pt-4 border-t border-secondary-text">
-                  <div className="text-primary-text font-medium mb-3">
+                <div className="mt-4 pt-4 border-t border-secondary-text-light dark:border-secondary-text-dark">
+                  <div className="text-primary-text-light dark:text-primary-text-dark font-medium mb-3">
                     Profit Scenarios
                   </div>
                   <ResultRow
@@ -270,7 +284,7 @@ const PromosCalculator = () => {
 
             <button
               onClick={calculateBonus}
-              className="w-full bg-button-green hover:bg-button-green-hover text-primary-text py-3 px-4 rounded transition-colors"
+              className="w-full bg-button-green-light dark:bg-button-green-dark hover:bg-button-green-hover-light dark:hover:bg-button-green-hover-dark text-primary-text-light dark:text-primary-text-dark py-3 px-4 rounded transition-colors"
             >
               Calculate Bonus Bet Hedge
             </button>
@@ -285,7 +299,7 @@ const PromosCalculator = () => {
                   label={`Place hedge bet of (${bonusInputs.bonusOddsMinus})`}
                   value={`$${bonusResults.bet2Amount?.toFixed(2)}`}
                 />
-                <div className="mt-4 pt-4 border-t border-secondary-text">
+                <div className="mt-4 pt-4 border-t border-secondary-text-light dark:border-secondary-text-dark">
                   <ResultRow
                     label="Guaranteed Profit"
                     value={`$${bonusResults.guaranteedProfit?.toFixed(2)}`}

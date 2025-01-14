@@ -137,22 +137,26 @@ const ArbBetCard = ({
 
   return (
     <div className="w-full py-4">
-      <div className="bg-secondary-bg rounded-lg overflow-hidden">
+      <div className="bg-secondary-bg-light dark:bg-secondary-bg-dark rounded-lg overflow-hidden">
         <div className="py-4 md:px-8 px-2">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-0">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6 w-full md:w-auto px-4 md:px-0">
               <div className="flex items-center gap-2">
                 {Number(bet.profit_percentage) > 0 ? (
-                  <div className="text-accent-green w-24 text-left">
-                    <p className="text-secondary-text text-sm">Profit</p>
+                  <div className="text-accent-green-light dark:text-accent-green-dark w-24 text-left">
+                    <p className="text-secondary-text-light dark:text-secondary-text-dark text-sm">
+                      Profit
+                    </p>
                     {formatProfitPercentage(
                       Number(bet.profit_percentage),
                       Number(bet.hold_percentage)
                     )}
                   </div>
                 ) : (
-                  <div className="text-negative-red w-24 text-left">
-                    <p className="text-secondary-text text-sm">Profit</p>
+                  <div className="text-negative-red-light dark:text-negative-red-dark w-24 text-left">
+                    <p className="text-secondary-text-light dark:text-secondary-text-dark text-sm">
+                      Profit
+                    </p>
                     {formatProfitPercentage(
                       Number(bet.profit_percentage),
                       Number(bet.hold_percentage)
@@ -161,22 +165,26 @@ const ArbBetCard = ({
                 )}
                 <button
                   onClick={() => setIsModalOpen(true)}
-                  className="p-2 hover:bg-gray-700 rounded-full transition-colors"
+                  className="p-2 hover:bg-secondary-bg-hover-light dark:hover:bg-secondary-bg-hover-dark rounded-full transition-colors"
                   aria-label="Open calculator"
                 >
-                  <Calculator className="w-8 h-8 text-gray-400" />
+                  <Calculator className="w-8 h-8 text-secondary-text-light dark:text-secondary-text-dark" />
                 </button>
               </div>
               <div>
-                <div className="text-secondary-text text-sm break-words md:whitespace-nowrap">
+                <div className="text-secondary-text-light dark:text-secondary-text-dark text-sm break-words md:whitespace-nowrap">
                   {formatDateTime(bet.commence_time)}
                 </div>
-                <div className="text-primary-text">{bet.game}</div>
-                <div className="text-secondary-text text-sm">{bet.sport}</div>
+                <div className="text-primary-text-light dark:text-primary-text-dark">
+                  {bet.game}
+                </div>
+                <div className="text-secondary-text-light dark:text-secondary-text-dark text-sm">
+                  {bet.sport}
+                </div>
               </div>
             </div>
 
-            <div className="text-market-purple font-medium px-4 md:px-0 text-left md:text-center w-full md:w-auto">
+            <div className="text-market-purple-light dark:text-market-purple-dark font-medium px-4 md:px-0 text-left md:text-center w-full md:w-auto">
               {getMarketDescription()}
             </div>
 
@@ -184,14 +192,14 @@ const ArbBetCard = ({
               {/* Bet 1 */}
               <div className="flex items-center justify-between md:justify-end px-4 md:px-0 md:space-x-8">
                 <div className="text-left md:text-right">
-                  <div className="text-primary-text">
+                  <div className="text-primary-text-light dark:text-primary-text-dark">
                     {formatTeamName(bet.team1_name, bet.team1_point)}
                   </div>
                   <div
                     className={
                       bet.team1_odds >= 0
-                        ? "text-accent-green"
-                        : "text-negative-red"
+                        ? "text-accent-green-light dark:text-accent-green-dark"
+                        : "text-negative-red-light dark:text-negative-red-dark"
                     }
                   >
                     {bet.team1_odds >= 0
@@ -211,14 +219,14 @@ const ArbBetCard = ({
                     height={24}
                     className="rounded"
                   />
-                  <span className="text-primary-text">
+                  <span className="text-primary-text-light dark:text-primary-text-dark">
                     {bet.team1_stake.toFixed(1)}%
                   </span>
                   <a
                     href={formatLink(bet.team1_link)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="bg-button-green hover:bg-opacity-90 px-4 py-1 rounded text-primary-text flex items-center"
+                    className="bg-button-green-light dark:bg-button-green-dark hover:bg-button-green-hover-light dark:hover:bg-button-green-hover-dark px-4 py-1 rounded text-primary-text-light dark:text-primary-text-dark flex items-center transition-colors"
                   >
                     BET
                   </a>
@@ -228,14 +236,14 @@ const ArbBetCard = ({
               {/* Bet 2 */}
               <div className="flex items-center justify-between md:justify-end px-4 md:px-0 md:space-x-8">
                 <div className="text-left md:text-right">
-                  <div className="text-primary-text">
+                  <div className="text-primary-text-light dark:text-primary-text-dark">
                     {formatTeamName(bet.team2_name, bet.team2_point)}
                   </div>
                   <div
                     className={
                       bet.team2_odds >= 0
-                        ? "text-accent-green"
-                        : "text-negative-red"
+                        ? "text-accent-green-light dark:text-accent-green-dark"
+                        : "text-negative-red-light dark:text-negative-red-dark"
                     }
                   >
                     {bet.team2_odds >= 0
@@ -255,14 +263,14 @@ const ArbBetCard = ({
                     height={24}
                     className="rounded"
                   />
-                  <span className="text-primary-text">
+                  <span className="text-primary-text-light dark:text-primary-text-dark">
                     {bet.team2_stake.toFixed(1)}%
                   </span>
                   <a
                     href={formatLink(bet.team2_link)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="bg-button-green hover:bg-opacity-90 px-4 py-1 rounded text-primary-text flex items-center"
+                    className="bg-button-green-light dark:bg-button-green-dark hover:bg-button-green-hover-light dark:hover:bg-button-green-hover-dark px-4 py-1 rounded text-primary-text-light dark:text-primary-text-dark flex items-center transition-colors"
                   >
                     BET
                   </a>

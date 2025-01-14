@@ -24,7 +24,6 @@ const BookmakerLogos: { [key: string]: any } = {
   underdog: underDog,
 };
 
-// Number of bookmakers to show per row
 const BOOKMAKERS_PER_ROW = {
   sm: 1,
   md: 2,
@@ -89,7 +88,6 @@ const EVBetCard = ({
     return `${dayOfWeek}, ${month} ${day}, ${year} @ ${time}`;
   };
 
-  // Split bookmakers into rows of 3 (or less for smaller screens)
   const splitIntoRows = (bookmakers: string[]) => {
     const rows: string[][] = [];
     let currentRow: string[] = [];
@@ -115,34 +113,44 @@ const EVBetCard = ({
     <div className="w-full py-2">
       <div className="rounded-lg overflow-hidden">
         <div
-          className="cursor-pointer bg-secondary-bg hover:bg-secondary-bg-hover transition-all"
+          className="cursor-pointer bg-secondary-bg-light dark:bg-secondary-bg-dark hover:bg-secondary-bg-hover-light dark:hover:bg-secondary-bg-hover-dark transition-all"
           onClick={() => setIsExpanded(!isExpanded)}
         >
           <div className="flex flex-col md:flex-row md:items-center justify-between p-4 gap-4">
             <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
-              <div className="text-accent-green w-full md:w-20 text-center">
-                <p className="text-secondary-text text-sm">Profit</p>+
-                {bet.ev_percentage?.toFixed(2)}%
+              <div className="text-accent-green-light dark:text-accent-green-dark w-full md:w-20 text-center">
+                <p className="text-secondary-text-light dark:text-secondary-text-dark text-sm">
+                  Profit
+                </p>
+                +{bet.ev_percentage?.toFixed(2)}%
               </div>
               <div className="text-center md:text-left">
-                <div className="text-secondary-text text-sm break-words md:whitespace-nowrap">
+                <div className="text-secondary-text-light dark:text-secondary-text-dark text-sm break-words md:whitespace-nowrap">
                   {formatDateTime(bet.commence_time)}
                 </div>
-                <div className="text-primary-text">{bet.game}</div>
-                <div className="text-secondary-text text-sm">{bet.sport}</div>
+                <div className="text-primary-text-light dark:text-primary-text-dark">
+                  {bet.game}
+                </div>
+                <div className="text-secondary-text-light dark:text-secondary-text-dark text-sm">
+                  {bet.sport}
+                </div>
               </div>
             </div>
 
             <div className="flex flex-col md:flex-row items-center md:items-center gap-4 md:gap-8">
               <div className="text-center md:text-right w-full md:w-auto">
-                <div className="text-market-purple">{bet.market_type}</div>
-                <div className="text-primary-text">
+                <div className="text-market-purple-light dark:text-market-purple-dark">
+                  {bet.market_type}
+                </div>
+                <div className="text-primary-text-light dark:text-primary-text-dark">
                   {bet.team} {bet.market_point && `(${bet.market_point})`}
                 </div>
               </div>
               <div
                 className={
-                  bet.odds >= 0 ? "text-accent-green" : "text-negative-red"
+                  bet.odds >= 0
+                    ? "text-accent-green-light dark:text-accent-green-dark"
+                    : "text-negative-red-light dark:text-negative-red-dark"
                 }
               >
                 {bet.odds >= 0 ? `+${bet.odds}` : bet.odds}
@@ -159,15 +167,12 @@ const EVBetCard = ({
                   height={24}
                   className="rounded mr-[36.81px] md:mr-0"
                 />
-                <p className="text-primary-text text-center justify-center">
-                  $100
-                </p>
                 <a
                   href={formatLink(bet.link)}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
-                  className="bg-button-green hover:bg-button-green-hover transition-all px-4 py-1 rounded text-primary-text flex items-center"
+                  className="bg-button-green-light dark:bg-button-green-dark hover:bg-button-green-hover-light dark:hover:bg-button-green-hover-dark transition-all px-4 py-1 rounded text-primary-text-light dark:text-primary-text-dark flex items-center"
                 >
                   BET
                 </a>
@@ -177,11 +182,13 @@ const EVBetCard = ({
         </div>
 
         {isExpanded && processedData && (
-          <div className="p-4">
+          <div className="p-4 bg-secondary-bg-light dark:bg-secondary-bg-dark">
             {bookmakerRows.map((bookmakerRow, rowIndex) => (
               <div key={rowIndex} className={rowIndex > 0 ? "mt-8" : ""}>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-center mb-4">
-                  <div className="text-secondary-text">Selection</div>
+                  <div className="text-secondary-text-light dark:text-secondary-text-dark">
+                    Selection
+                  </div>
                   {bookmakerRow.map((bookie) => (
                     <div
                       key={bookie}
@@ -197,7 +204,7 @@ const EVBetCard = ({
                         height={24}
                         className="rounded"
                       />
-                      <div className="text-secondary-text capitalize text-sm">
+                      <div className="text-secondary-text-light dark:text-secondary-text-dark capitalize text-sm">
                         {bookie}
                       </div>
                     </div>
@@ -211,7 +218,7 @@ const EVBetCard = ({
                       key={`${key}-${rowIndex}`}
                       className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-center mt-3"
                     >
-                      <div className="text-primary-text break-words">
+                      <div className="text-primary-text-light dark:text-primary-text-dark break-words">
                         {`${name} ${
                           point !== "None" && point ? `(${point})` : ""
                         }`}
@@ -228,8 +235,8 @@ const EVBetCard = ({
                             onClick={(e) => e.stopPropagation()}
                             className={`cursor-pointer transition-all ${
                               odds >= 0
-                                ? "text-accent-green hover:text-accent-green-hover"
-                                : "text-negative-red hover:text-negative-red-hover"
+                                ? "text-accent-green-light dark:text-accent-green-dark hover:text-accent-green-hover-light dark:hover:text-accent-green-hover-dark"
+                                : "text-negative-red-light dark:text-negative-red-dark hover:text-negative-red-hover-light dark:hover:text-negative-red-hover-dark"
                             }`}
                           >
                             {odds ? (odds >= 0 ? `+${odds}` : odds) : "-"}

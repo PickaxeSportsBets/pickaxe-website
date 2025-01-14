@@ -51,7 +51,8 @@ export default function Home() {
       if (evBets) {
         setEvLastUpdated(evBets[0]?.timestamp);
         const sortedBets = [...evBets].sort(
-          (a, b) => (b.ev_percentage || 0) - (a.ev_percentage || 0)
+          (a, b) =>
+            (Number(b.ev_percentage) || 0) - (Number(a.ev_percentage) || 0)
         );
         setBets(sortedBets);
         setFilteredEVBets(sortedBets);
@@ -60,7 +61,9 @@ export default function Home() {
       if (arbBetsData) {
         setArbLastUpdated(arbBetsData[0]?.timestamp);
         const sortedArbBets = [...arbBetsData].sort(
-          (a, b) => (b.profit_percentage || 0) - (a.profit_percentage || 0)
+          (a, b) =>
+            (Number(b.profit_percentage) || 0) -
+            (Number(a.profit_percentage) || 0)
         );
         setArbBets(sortedArbBets);
         setFilteredArbBets(sortedArbBets);
@@ -78,7 +81,6 @@ export default function Home() {
         const response = await fetch("https://ipapi.co/json/");
         const data = await response.json();
         if (data.region_code) {
-          console.log("User State:", data.region_code);
           setUserState(data.region_code);
         }
       } catch (error) {
@@ -95,11 +97,27 @@ export default function Home() {
     if (!currentBets) return;
 
     const filtered = currentBets.filter((bet: any) => {
-      return (
-        bet.game?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        bet.market_type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        bet.team?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      const searchTermLower = searchTerm.toLowerCase();
+      const gameMatch =
+        bet.game?.toLowerCase().includes(searchTermLower) || false;
+      const marketMatch =
+        bet.market_type?.toLowerCase().includes(searchTermLower) || false;
+      const propMatch =
+        bet.prop_description?.toLowerCase().includes(searchTermLower) || false;
+
+      if (currPage === Page.EV) {
+        const teamMatch =
+          bet.team?.toLowerCase().includes(searchTermLower) || false;
+        return gameMatch || marketMatch || teamMatch || propMatch;
+      } else {
+        const team1Match =
+          bet.team1_name?.toLowerCase().includes(searchTermLower) || false;
+        const team2Match =
+          bet.team2_name?.toLowerCase().includes(searchTermLower) || false;
+        return (
+          gameMatch || marketMatch || team1Match || team2Match || propMatch
+        );
+      }
     });
 
     if (currPage === Page.EV) {
@@ -141,17 +159,37 @@ export default function Home() {
 
     // Market type filtering
     if (marketFilter !== "all") {
-      filtered = filtered.filter(
-        (bet: any) =>
-          bet.market_type.toLowerCase() === marketFilter.toLowerCase()
-      );
+      filtered = filtered.filter((bet: any) => {
+        const betMarketType = bet.market_type?.toLowerCase() || "";
+        return betMarketType === marketFilter.toLowerCase();
+      });
     }
 
     // Bookmaker filtering
     if (bookieFilter !== "all") {
-      filtered = filtered.filter(
-        (bet: any) => bet.bookmaker.toLowerCase() === bookieFilter.toLowerCase()
-      );
+      filtered = filtered.filter((bet: any) => {
+        const bookieFilterLower = bookieFilter.toLowerCase();
+
+        if (currPage === Page.EV) {
+          const mainBookmaker = bet.bookmaker?.toLowerCase() || "";
+          if (mainBookmaker === bookieFilterLower) return true;
+
+          // Check in market_data
+          const marketData = bet.market_data || {};
+          return Object.values(marketData).some((side: any) => {
+            const odds = side?.odds || {};
+            return Object.keys(odds).some(
+              (bookie) => bookie.toLowerCase() === bookieFilterLower
+            );
+          });
+        } else {
+          const team1Book = bet.team1_book?.toLowerCase() || "";
+          const team2Book = bet.team2_book?.toLowerCase() || "";
+          return (
+            team1Book === bookieFilterLower || team2Book === bookieFilterLower
+          );
+        }
+      });
     }
 
     if (currPage === Page.EV) {
@@ -164,11 +202,11 @@ export default function Home() {
 
   useEffect(() => {
     applyFilters();
-  }, [dateFilter, marketFilter, bookieFilter, currPage]);
+  }, [dateFilter, marketFilter, bookieFilter, currPage, bets, arbBets]);
 
   const getCurrentPageItems = (items: any[]) => {
     if (!Array.isArray(items) || items.length === 0) {
-      return items;
+      return [];
     }
     const startIndex = (currentPageNumber - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -178,6 +216,15 @@ export default function Home() {
   const totalPages = (items: any[]) =>
     Math.ceil((items?.length || 0) / itemsPerPage) || 1;
 
+  const getLastUpdated = () => {
+    if (currPage === Page.EV) {
+      return evLastUpdated ? new Date(evLastUpdated) : null;
+    } else if (currPage === Page.ARB) {
+      return arbLastUpdated ? new Date(arbLastUpdated) : null;
+    }
+    return null;
+  };
+
   const renderPagination = (items: any[]) => {
     const total = totalPages(items);
     return (
@@ -185,11 +232,11 @@ export default function Home() {
         <button
           onClick={() => setCurrentPageNumber((curr) => Math.max(1, curr - 1))}
           disabled={currentPageNumber === 1}
-          className="px-4 py-2 rounded bg-secondary-bg text-primary-text disabled:opacity-50"
+          className="px-4 py-2 rounded bg-secondary-bg-light dark:bg-secondary-bg-dark text-primary-text-light dark:text-primary-text-dark disabled:opacity-50 hover:bg-secondary-bg-hover-light dark:hover:bg-secondary-bg-hover-dark"
         >
           Previous
         </button>
-        <span className="px-4 py-2 text-primary-text">
+        <span className="px-4 py-2 text-primary-text-light dark:text-primary-text-dark">
           Page {currentPageNumber} of {total}
         </span>
         <button
@@ -197,7 +244,7 @@ export default function Home() {
             setCurrentPageNumber((curr) => Math.min(total, curr + 1))
           }
           disabled={currentPageNumber === total}
-          className="px-4 py-2 rounded bg-secondary-bg text-primary-text disabled:opacity-50"
+          className="px-4 py-2 rounded bg-secondary-bg-light dark:bg-secondary-bg-dark text-primary-text-light dark:text-primary-text-dark disabled:opacity-50 hover:bg-secondary-bg-hover-light dark:hover:bg-secondary-bg-hover-dark"
         >
           Next
         </button>
@@ -212,12 +259,20 @@ export default function Home() {
           return <LoadingSkeleton />;
         }
         if ((!bets || bets.length === 0) && !loading) {
-          return <div className="text-secondary-text">No bets found.</div>;
+          return (
+            <div className="text-secondary-text-light dark:text-secondary-text-dark">
+              No bets found.
+            </div>
+          );
         }
         return (
           <>
             {getCurrentPageItems(filteredEVBets).map((bet: any) => (
-              <EVBetCard key={bet.id} bet={bet} userState={userState} />
+              <EVBetCard
+                key={bet.primary_key || bet.id}
+                bet={bet}
+                userState={userState}
+              />
             ))}
             {renderPagination(filteredEVBets)}
           </>
@@ -228,7 +283,7 @@ export default function Home() {
         }
         if ((!arbBets || arbBets.length === 0) && !loading) {
           return (
-            <div className="text-secondary-text">
+            <div className="text-secondary-text-light dark:text-secondary-text-dark">
               No arbitrage opportunities found.
             </div>
           );
@@ -236,7 +291,11 @@ export default function Home() {
         return (
           <>
             {getCurrentPageItems(filteredArbBets).map((bet: any) => (
-              <ArbBetCard key={bet.id} bet={bet} userState={userState} />
+              <ArbBetCard
+                key={bet.primary_key || bet.id}
+                bet={bet}
+                userState={userState}
+              />
             ))}
             {renderPagination(filteredArbBets)}
           </>
@@ -248,19 +307,10 @@ export default function Home() {
     }
   };
 
-  const getLastUpdated = () => {
-    if (currPage === Page.EV) {
-      return evLastUpdated ? new Date(evLastUpdated) : null;
-    } else if (currPage === Page.ARB) {
-      return arbLastUpdated ? new Date(arbLastUpdated) : null;
-    }
-    return null;
-  };
-
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-primary-bg">
+      <div className="min-h-screen bg-primary-bg-light dark:bg-primary-bg-dark">
         <div className="max-w-[90%] mx-auto px-2 sm:px-4 lg:px-6">
           <NavButtons currPage={currPage} setCurrPage={setCurrPage} />
 
@@ -272,11 +322,12 @@ export default function Home() {
               onMarketFilter={setMarketFilter}
               onBookieFilter={setBookieFilter}
               loading={loading}
+              isArbPage={currPage === Page.ARB}
             />
           )}
 
           {currPage !== Page.PROMOS && !loading && getLastUpdated() && (
-            <p className="text-secondary-text text-sm">
+            <p className="text-secondary-text-light dark:text-secondary-text-dark text-sm">
               Updated {formatDistanceToNow(getLastUpdated()!)} ago
             </p>
           )}

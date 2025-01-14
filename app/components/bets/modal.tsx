@@ -91,9 +91,9 @@ const CalculatorModal: React.FC<ModalProps> = ({
   const profit2 = parseFloat(payout2) - totalCurrentStake;
   const guaranteedProfit = Math.min(profit1, profit2);
   const getColorClass = (value: number) => {
-    if (value > 0) return "text-accent-green";
+    if (value > 0) return "text-accent-green-light dark:text-accent-green-dark";
     if (value === 0) return "text-yellow-500";
-    return "text-negative-red";
+    return "text-negative-red-light dark:text-negative-red-dark";
   };
 
   // Calculate ROI
@@ -102,15 +102,15 @@ const CalculatorModal: React.FC<ModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl bg-secondary-bg text-primary-text">
+      <DialogContent className="max-w-2xl bg-secondary-bg-light dark:bg-secondary-bg-dark text-primary-text-light dark:text-primary-text-dark">
         <DialogHeader>
-          <DialogTitle className="text-xl font-medium">
+          <DialogTitle className="text-xl font-medium text-primary-text-light dark:text-primary-text-dark">
             {gameTitle || "Calculator"}
           </DialogTitle>
         </DialogHeader>
 
         <Tabs defaultValue="total" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 bg-primary-bg">
+          <TabsList className="grid w-full grid-cols-2 bg-primary-bg-light dark:bg-primary-bg-dark">
             <TabsTrigger value="total" onClick={() => setActiveTab("total")}>
               Total Stake
             </TabsTrigger>
@@ -125,14 +125,14 @@ const CalculatorModal: React.FC<ModalProps> = ({
           <TabsContent value="total" className="mt-4">
             <div className="space-y-4">
               <div>
-                <label className="block text-secondary-text text-sm mb-2">
+                <label className="block text-secondary-text-light dark:text-secondary-text-dark text-sm mb-2">
                   Total Stake ($)
                 </label>
                 <input
                   type="number"
                   value={totalStake}
                   onChange={(e) => handleTotalStakeChange(e.target.value)}
-                  className="w-full bg-primary-bg text-primary-text px-4 py-2 rounded border border-secondary-text"
+                  className="w-full bg-primary-bg-light dark:bg-primary-bg-dark text-primary-text-light dark:text-primary-text-dark px-4 py-2 rounded border border-secondary-text-light dark:border-secondary-text-dark"
                 />
               </div>
             </div>
@@ -141,25 +141,25 @@ const CalculatorModal: React.FC<ModalProps> = ({
           <TabsContent value="individual" className="mt-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-secondary-text text-sm mb-2">
+                <label className="block text-secondary-text-light dark:text-secondary-text-dark text-sm mb-2">
                   Bet 1 Stake ($)
                 </label>
                 <input
                   type="number"
                   value={stake1}
                   onChange={(e) => setStake1(e.target.value)}
-                  className="w-full bg-primary-bg text-primary-text px-4 py-2 rounded border border-secondary-text"
+                  className="w-full bg-primary-bg-light dark:bg-primary-bg-dark text-primary-text-light dark:text-primary-text-dark px-4 py-2 rounded border border-secondary-text-light dark:border-secondary-text-dark"
                 />
               </div>
               <div>
-                <label className="block text-secondary-text text-sm mb-2">
+                <label className="block text-secondary-text-light dark:text-secondary-text-dark text-sm mb-2">
                   Bet 2 Stake ($)
                 </label>
                 <input
                   type="number"
                   value={stake2}
                   onChange={(e) => setStake2(e.target.value)}
-                  className="w-full bg-primary-bg text-primary-text px-4 py-2 rounded border border-secondary-text"
+                  className="w-full bg-primary-bg-light dark:bg-primary-bg-dark text-primary-text-light dark:text-primary-text-dark px-4 py-2 rounded border border-secondary-text-light dark:border-secondary-text-dark"
                 />
               </div>
             </div>
@@ -168,74 +168,106 @@ const CalculatorModal: React.FC<ModalProps> = ({
 
         <div className="mt-6 grid grid-cols-2 gap-6">
           {/* Bet 1 */}
-          <div className="bg-primary-bg p-4 rounded-lg">
-            <h3 className="text-lg font-medium mb-4">Bet 1</h3>
+          <div className="bg-primary-bg-light dark:bg-primary-bg-dark p-4 rounded-lg">
+            <h3 className="text-lg font-medium mb-4 text-primary-text-light dark:text-primary-text-dark">
+              Bet 1
+            </h3>
             <div className="space-y-2">
               <div className="flex justify-between">
-                <span className="text-secondary-text">Odds:</span>
+                <span className="text-secondary-text-light dark:text-secondary-text-dark">
+                  Odds:
+                </span>
                 <span
                   className={
                     result.bet1Odds && parseInt(result.bet1Odds) >= 0
-                      ? "text-accent-green"
-                      : "text-negative-red"
+                      ? "text-accent-green-light dark:text-accent-green-dark"
+                      : "text-negative-red-light dark:text-negative-red-dark"
                   }
                 >
                   {result.bet1Odds}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-secondary-text">Stake:</span>
-                <span>${stake1 || result.bet1Amount?.toFixed(2)}</span>
+                <span className="text-secondary-text-light dark:text-secondary-text-dark">
+                  Stake:
+                </span>
+                <span className="text-primary-text-light dark:text-primary-text-dark">
+                  ${stake1 || result.bet1Amount?.toFixed(2)}
+                </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-secondary-text">Payout:</span>
-                <span>${payout1}</span>
+                <span className="text-secondary-text-light dark:text-secondary-text-dark">
+                  Payout:
+                </span>
+                <span className="text-primary-text-light dark:text-primary-text-dark">
+                  ${payout1}
+                </span>
               </div>
             </div>
           </div>
 
           {/* Bet 2 */}
-          <div className="bg-primary-bg p-4 rounded-lg">
-            <h3 className="text-lg font-medium mb-4">Bet 2</h3>
+          <div className="bg-primary-bg-light dark:bg-primary-bg-dark p-4 rounded-lg">
+            <h3 className="text-lg font-medium mb-4 text-primary-text-light dark:text-primary-text-dark">
+              Bet 2
+            </h3>
             <div className="space-y-2">
               <div className="flex justify-between">
-                <span className="text-secondary-text">Odds:</span>
+                <span className="text-secondary-text-light dark:text-secondary-text-dark">
+                  Odds:
+                </span>
                 <span
                   className={
                     result.bet2Odds && parseInt(result.bet2Odds) >= 0
-                      ? "text-accent-green"
-                      : "text-negative-red"
+                      ? "text-accent-green-light dark:text-accent-green-dark"
+                      : "text-negative-red-light dark:text-negative-red-dark"
                   }
                 >
                   {result.bet2Odds}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-secondary-text">Stake:</span>
-                <span>${stake2 || result.bet2Amount?.toFixed(2)}</span>
+                <span className="text-secondary-text-light dark:text-secondary-text-dark">
+                  Stake:
+                </span>
+                <span className="text-primary-text-light dark:text-primary-text-dark">
+                  ${stake2 || result.bet2Amount?.toFixed(2)}
+                </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-secondary-text">Payout:</span>
-                <span>${payout2}</span>
+                <span className="text-secondary-text-light dark:text-secondary-text-dark">
+                  Payout:
+                </span>
+                <span className="text-primary-text-light dark:text-primary-text-dark">
+                  ${payout2}
+                </span>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="mt-6 bg-accent-green bg-opacity-10 p-4 rounded-lg">
+        <div className="mt-6 bg-profit-green-light bg-opacity-10 p-4 rounded-lg">
           <div className="space-y-2">
             <div className="flex justify-between">
-              <span className="text-secondary-text">Total Stake:</span>
-              <span>${totalCurrentStake.toFixed(2)}</span>
+              <span className="text-secondary-text-light dark:text-secondary-text-dark">
+                Total Stake:
+              </span>
+              <span className="text-primary-text-light dark:text-primary-text-dark">
+                ${totalCurrentStake.toFixed(2)}
+              </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-secondary-text">Guaranteed Profit:</span>
+              <span className="text-secondary-text-light dark:text-secondary-text-dark">
+                Guaranteed Profit:
+              </span>
               <span className={getColorClass(guaranteedProfit)}>
                 ${guaranteedProfit.toFixed(2)}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-secondary-text">ROI:</span>
+              <span className="text-secondary-text-light dark:text-secondary-text-dark">
+                ROI:
+              </span>
               <span className={getColorClass(roi)}>{roi.toFixed(2)}%</span>
             </div>
           </div>
@@ -255,15 +287,17 @@ const CalculatorCard = ({
   onClick?: () => void;
 }>) => (
   <div
-    className={`bg-secondary-bg rounded-lg p-6 ${props.className} cursor-pointer hover:bg-opacity-90`}
+    className={`bg-secondary-bg-light dark:bg-secondary-bg-dark rounded-lg p-6 ${props.className} cursor-pointer hover:bg-opacity-90`}
     onClick={props.onClick}
   >
     <div className="mb-6">
-      <h2 className="text-primary-text text-xl font-medium mb-2">
+      <h2 className="text-primary-text-light dark:text-primary-text-dark text-xl font-medium mb-2">
         {props.title}
       </h2>
       {props.description && (
-        <p className="text-secondary-text text-sm">{props.description}</p>
+        <p className="text-secondary-text-light dark:text-secondary-text-dark text-sm">
+          {props.description}
+        </p>
       )}
     </div>
     {children}
@@ -275,22 +309,30 @@ const Input = ({
   ...props
 }: { label: string } & React.InputHTMLAttributes<HTMLInputElement>) => (
   <div className="mb-4">
-    <label className="block text-secondary-text text-sm mb-2">{label}</label>
+    <label className="block text-secondary-text-light dark:text-secondary-text-dark text-sm mb-2">
+      {label}
+    </label>
     <input
-      className="w-full bg-primary-bg text-primary-text px-4 py-2 rounded border border-secondary-text focus:outline-none focus:border-accent-green"
+      className="w-full bg-primary-bg-light dark:bg-primary-bg-dark text-primary-text-light dark:text-primary-text-dark px-4 py-2 rounded border border-secondary-text-light dark:border-secondary-text-dark focus:outline-none focus:border-accent-green-light dark:focus:border-accent-green-dark"
       {...props}
     />
   </div>
 );
 
 const ResultsPanel = ({ children }: { children: React.ReactNode }) => (
-  <div className="mt-6 p-4 bg-primary-bg rounded-lg space-y-3">{children}</div>
+  <div className="mt-6 p-4 bg-primary-bg-light dark:bg-primary-bg-dark rounded-lg space-y-3">
+    {children}
+  </div>
 );
 
 const ResultRow = ({ label, value }: { label: string; value: string }) => (
   <div className="flex justify-between items-center">
-    <span className="text-secondary-text">{label}</span>
-    <span className="text-primary-text">{value}</span>
+    <span className="text-secondary-text-light dark:text-secondary-text-dark">
+      {label}
+    </span>
+    <span className="text-primary-text-light dark:text-primary-text-dark">
+      {value}
+    </span>
   </div>
 );
 
@@ -441,42 +483,6 @@ const PromosCalculator = () => {
               onChange={(e) =>
                 setRiskFreeInputs((prev) => ({
                   ...prev,
-                  odds1: e.target.value,
-                }))
-              }
-            />
-            <Input
-              label="Odds 2 (-)"
-              type="number"
-              placeholder="e.g., -200"
-              value={riskFreeInputs.odds2}
-              onChange={(e) =>
-                setRiskFreeInputs((prev) => ({
-                  ...prev,
-                  odds2: e.target.value,
-                }))
-              }
-            />
-            <Input
-              label="Bonus Amount ($)"
-              type="number"
-              placeholder="e.g., 500"
-              value={riskFreeInputs.bonusAmount}
-              onChange={(e) =>
-                setRiskFreeInputs((prev) => ({
-                  ...prev,
-                  bonusAmount: e.target.value,
-                }))
-              }
-            />
-            <Input
-              label="Estimated Bonus Value (%)"
-              type="number"
-              placeholder="e.g., 60"
-              value={riskFreeInputs.estimatedBonusValue}
-              onChange={(e) =>
-                setRiskFreeInputs((prev) => ({
-                  ...prev,
                   estimatedBonusValue: e.target.value,
                 }))
               }
@@ -484,7 +490,7 @@ const PromosCalculator = () => {
 
             <button
               onClick={calculateRiskFree}
-              className="w-full bg-button-green hover:bg-opacity-80 text-primary-text py-3 px-4 rounded transition-colors"
+              className="w-full bg-button-green-light dark:bg-button-green-dark hover:bg-button-green-hover-light dark:hover:bg-button-green-hover-dark text-primary-text-light dark:text-primary-text-dark py-3 px-4 rounded transition-colors"
             >
               Calculate Initial Hedge
             </button>
@@ -542,7 +548,7 @@ const PromosCalculator = () => {
 
             <button
               onClick={calculateBonus}
-              className="w-full bg-button-green hover:bg-opacity-80 text-primary-text py-3 px-4 rounded transition-colors"
+              className="w-full bg-button-green-light dark:bg-button-green-dark hover:bg-button-green-hover-light dark:hover:bg-button-green-hover-dark text-primary-text-light dark:text-primary-text-dark py-3 px-4 rounded transition-colors"
             >
               Calculate Bonus Bet Hedge
             </button>
