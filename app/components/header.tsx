@@ -1,8 +1,17 @@
 import { useClerk, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 import { ThemeToggle } from "./themeprovider";
+import { useRouter } from "next/navigation";
+
 export default function Header() {
   const { signOut } = useClerk();
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.push("/sign-in");
+  };
+
   return (
     <header className="bg-secondary-bg-light dark:bg-secondary-bg-dark shadow-md">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -23,7 +32,9 @@ export default function Header() {
                   avatarBox: "h-10 w-10",
                 },
               }}
+              afterSignOutUrl="/sign-in"
             />
+            <button onClick={handleSignOut}>Sign Out</button>
           </div>
         </div>
       </nav>
