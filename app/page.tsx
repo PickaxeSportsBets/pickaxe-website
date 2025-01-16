@@ -57,9 +57,12 @@ export default function Home() {
     setLoading(true);
 
     try {
-      await fetch(API_URL + "/api/v1/db/update_dbV2", {
-        method: "POST",
-      });
+      await fetch(
+        "https://backend-production-adcb.up.railway.app/api/v1/db/update_dbV2",
+        {
+          method: "POST",
+        }
+      );
       await fetchData();
       toast({
         title: "Update Complete",
