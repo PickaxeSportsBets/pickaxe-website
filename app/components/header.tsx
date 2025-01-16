@@ -34,7 +34,6 @@ export default function Header() {
               }}
               afterSignOutUrl="/sign-in"
             />
-            <button onClick={handleSignOut}>Sign Out</button>
           </div>
         </div>
       </nav>
