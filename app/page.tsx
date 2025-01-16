@@ -12,8 +12,16 @@ import { formatDistanceToNow } from "date-fns";
 import PromosCalculator from "./components/promos/promo";
 import LoadingSkeleton from "./components/loadingSkeleton";
 import SearchAndControls from "./components/filter";
+import { useToast } from "@/hooks/use-toast";
+import { Toaster } from "@/components/ui/toaster";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const supabase = createClient();
-
+import {
+  initialFilterState,
+  filterArbBets,
+  filterEvBets,
+} from "./components/filterFuncs";
+import { FilterState } from "./components/filterFuncs";
 enum Page {
   EV = "EV",
   ARB = "ARB",
@@ -32,9 +40,47 @@ export default function Home() {
   const [arbLastUpdated, setArbLastUpdated] = useState("");
   const [loading, setLoading] = useState(true);
   const [dateFilter, setDateFilter] = useState("all");
-  const [marketFilter, setMarketFilter] = useState("all");
-  const [bookieFilter, setBookieFilter] = useState("all");
+  const [marketFilters, setMarketFilters] = useState<string[]>([]);
+  const [bookieFilters, setBookieFilters] = useState<string[]>([]);
+  const [filters, setFilters] = useState<FilterState>(initialFilterState);
+
   const itemsPerPage = 100;
+  const { toast } = useToast();
+
+  const onRefresh = async () => {
+    toast({
+      title: "Updating Data",
+      description: "Fetching the latest betting information...",
+      className:
+        "bg-secondary-bg-light dark:bg-secondary-bg-dark text-primary-text-light dark:text-primary-text-dark",
+    });
+    setLoading(true);
+
+    try {
+      await fetch(API_URL + "/api/v1/db/update_dbV2", {
+        method: "POST",
+      });
+      await fetchData();
+      toast({
+        title: "Update Complete",
+        description: "Betting data has been successfully updated",
+        className:
+          "bg-button-green-light dark:bg-button-green-dark text-primary-text-light dark:text-primary-text-dark",
+      });
+    } catch (e) {
+      console.log(e);
+      toast({
+        title: "Update Failed",
+        description: "There was an error updating the betting data",
+        variant: "destructive",
+        className:
+          "bg-negative-red-light dark:bg-negative-red-dark text-primary-text-light dark:text-primary-text-dark",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -54,6 +100,7 @@ export default function Home() {
             (Number(b.ev_percentage) || 0) - (Number(a.ev_percentage) || 0)
         );
         setBets(sortedBets);
+        console.log(sortedBets.slice(0, 50));
         setFilteredEVBets(sortedBets);
       }
 
@@ -66,13 +113,14 @@ export default function Home() {
           if (profitA === 0 && profitB === 0) {
             const holdA = Number(a.hold_percentage) || 0;
             const holdB = Number(b.hold_percentage) || 0;
-            return holdA - holdB; // Lower hold is better, so we want ascending order
+            return holdA - holdB;
           }
 
           return profitB - profitA;
         });
 
         setArbBets(sortedArbBets);
+        console.log(sortedArbBets.slice(0, 50));
         setFilteredArbBets(sortedArbBets);
       }
     } catch (error) {
@@ -98,6 +146,20 @@ export default function Home() {
     fetchUserState();
     fetchData();
   }, []);
+  const updateFilters = (newFilters: Partial<FilterState>) => {
+    setFilters((prev) => ({ ...prev, ...newFilters }));
+  };
+
+  // Apply filters effect
+  useEffect(() => {
+    if (currPage === Page.EV) {
+      const filteredBets = filterEvBets(bets || [], filters);
+      setFilteredEVBets(filteredBets);
+    } else {
+      const filteredBets = filterArbBets(arbBets || [], filters);
+      setFilteredArbBets(filteredBets);
+    }
+  }, [filters, currPage, bets, arbBets]);
 
   const handleSearch = (searchTerm: string) => {
     const currentBets = currPage === Page.EV ? bets : arbBets;
@@ -134,82 +196,6 @@ export default function Home() {
     }
     setCurrentPageNumber(1);
   };
-
-  const applyFilters = () => {
-    const currentBets = currPage === Page.EV ? bets : arbBets;
-    if (!currentBets) return;
-
-    let filtered = [...currentBets];
-
-    // Date filtering
-    if (dateFilter !== "all") {
-      const now = new Date();
-      const tomorrow = new Date(now);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const weekLater = new Date(now);
-      weekLater.setDate(weekLater.getDate() + 7);
-
-      filtered = filtered.filter((bet: any) => {
-        const betDate = new Date(bet.commence_time);
-        switch (dateFilter) {
-          case "today":
-            return betDate.toDateString() === now.toDateString();
-          case "tomorrow":
-            return betDate.toDateString() === tomorrow.toDateString();
-          case "week":
-            return betDate <= weekLater;
-          default:
-            return true;
-        }
-      });
-    }
-
-    // Market type filtering
-    if (marketFilter !== "all") {
-      filtered = filtered.filter((bet: any) => {
-        const betMarketType = bet.market_type?.toLowerCase() || "";
-        return betMarketType === marketFilter.toLowerCase();
-      });
-    }
-
-    // Bookmaker filtering
-    if (bookieFilter !== "all") {
-      filtered = filtered.filter((bet: any) => {
-        const bookieFilterLower = bookieFilter.toLowerCase();
-
-        if (currPage === Page.EV) {
-          const mainBookmaker = bet.bookmaker?.toLowerCase() || "";
-          if (mainBookmaker === bookieFilterLower) return true;
-
-          // Check in market_data
-          const marketData = bet.market_data || {};
-          return Object.values(marketData).some((side: any) => {
-            const odds = side?.odds || {};
-            return Object.keys(odds).some(
-              (bookie) => bookie.toLowerCase() === bookieFilterLower
-            );
-          });
-        } else {
-          const team1Book = bet.team1_book?.toLowerCase() || "";
-          const team2Book = bet.team2_book?.toLowerCase() || "";
-          return (
-            team1Book === bookieFilterLower || team2Book === bookieFilterLower
-          );
-        }
-      });
-    }
-
-    if (currPage === Page.EV) {
-      setFilteredEVBets(filtered);
-    } else {
-      setFilteredArbBets(filtered);
-    }
-    setCurrentPageNumber(1);
-  };
-
-  useEffect(() => {
-    applyFilters();
-  }, [dateFilter, marketFilter, bookieFilter, currPage, bets, arbBets]);
 
   const getCurrentPageItems = (items: any[]) => {
     if (!Array.isArray(items) || items.length === 0) {
@@ -324,10 +310,9 @@ export default function Home() {
           {currPage !== Page.PROMOS && (
             <SearchAndControls
               onSearch={handleSearch}
-              onRefresh={fetchData}
-              onDateFilter={setDateFilter}
-              onMarketFilter={setMarketFilter}
-              onBookieFilter={setBookieFilter}
+              onRefresh={onRefresh}
+              filters={filters}
+              updateFilters={updateFilters}
               loading={loading}
               isArbPage={currPage === Page.ARB}
             />
@@ -342,6 +327,7 @@ export default function Home() {
           <div className="py-4">{renderContent()}</div>
         </div>
       </div>
+      <Toaster />
     </>
   );
 }
