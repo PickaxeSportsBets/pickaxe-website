@@ -10,6 +10,14 @@ import fanduel from "@/public/images/fanduel-logo.png";
 import hardrockBet from "@/public/images/hardrockbet-logo.png";
 import pinnacle from "@/public/images/pinnacle-logo.png";
 import underDog from "@/public/images/underdog-logo.png";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const BookmakerLogos: { [key: string]: any } = {
   betmgm: betmgm,
@@ -107,7 +115,6 @@ const EVBetCard = ({
   };
 
   const bookmakerRows = splitIntoRows(processedData.bookmakers);
-
   return (
     <div className="w-full py-4">
       <div className="rounded-lg overflow-hidden shadow-sm">
@@ -115,6 +122,7 @@ const EVBetCard = ({
           className="cursor-pointer bg-secondary-bg-light dark:bg-secondary-bg-dark hover:bg-secondary-bg-hover-light dark:hover:bg-secondary-bg-hover-dark transition-all"
           onClick={() => setIsExpanded(!isExpanded)}
         >
+          {/* Existing card header - unchanged */}
           <div className="flex flex-col md:flex-row md:items-center justify-between p-6 gap-6">
             <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-8">
               <div className="text-accent-green-light dark:text-accent-green-dark w-full md:w-24 text-center">
@@ -195,11 +203,12 @@ const EVBetCard = ({
             </div>
           </div>
         </div>
+
+        {/* Desktop expanded view - unchanged */}
         {isExpanded && processedData && (
-          <div className="p-6 bg-secondary-bg-light dark:bg-secondary-bg-dark border-t border-gray-200 dark:border-gray-700">
+          <div className="hidden md:block p-6 bg-secondary-bg-light dark:bg-secondary-bg-dark border-t border-gray-200 dark:border-gray-700">
             <div className="">
               <div className="min-w-max">
-                {/* Header row */}
                 <div className="grid grid-cols-[200px_repeat(auto-fit,minmax(100px,1fr))] text-center h-16">
                   <div className="text-secondary-text-light dark:text-secondary-text-dark font-medium flex items-center justify-center">
                     Selection
@@ -226,7 +235,6 @@ const EVBetCard = ({
                 <div className="divide-y divide-gray-200 dark:divide-gray-700">
                   {processedData.entries.map(([key, data]: [string, any]) => {
                     const [name, point] = key.split("_");
-
                     const validOdds = processedData.bookmakers
                       .map((bookie) => data.odds[bookie]?.american)
                       .filter((odds) => odds !== undefined)
@@ -256,12 +264,16 @@ const EVBetCard = ({
                               rel="noopener noreferrer"
                               onClick={(e) => e.stopPropagation()}
                               className={`cursor-pointer transition-all font-medium flex items-center justify-center
-                        ${isHighest ? "bg-green-100 dark:bg-green-900/20" : ""}
-                        ${
-                          odds >= 0
-                            ? "text-accent-green-light dark:text-accent-green-dark hover:text-accent-green-hover-light dark:hover:text-accent-green-hover-dark"
-                            : "text-negative-red-light dark:text-negative-red-dark hover:text-negative-red-hover-light dark:hover:text-negative-red-hover-dark"
-                        }`}
+                                ${
+                                  isHighest
+                                    ? "bg-green-100 dark:bg-green-900/20"
+                                    : ""
+                                }
+                                ${
+                                  odds >= 0
+                                    ? "text-accent-green-light dark:text-accent-green-dark hover:text-accent-green-hover-light dark:hover:text-accent-green-hover-dark"
+                                    : "text-negative-red-light dark:text-negative-red-dark hover:text-negative-red-hover-light dark:hover:text-negative-red-hover-dark"
+                                }`}
                             >
                               {odds ? (odds >= 0 ? `+${odds}` : odds) : "-"}
                             </a>
@@ -274,6 +286,113 @@ const EVBetCard = ({
               </div>
             </div>
           </div>
+        )}
+
+        {/* Mobile Modal */}
+        {isExpanded && processedData && (
+          <AlertDialog open={isExpanded && window.innerWidth < 768}>
+            <AlertDialogContent className="w-screen h-[90vh] max-w-full max-h-full m-0 rounded-t-xl p-0 bg-background">
+              <AlertDialogHeader className="px-4 py-3 border-b">
+                <AlertDialogTitle className="text-base font-semibold">
+                  {bet.game}
+                </AlertDialogTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Available Odds Comparison
+                </p>
+              </AlertDialogHeader>
+
+              <div className="overflow-x-auto flex-1 h-[calc(90vh-8rem)]">
+                <div className="min-w-[600px]">
+                  {/* Mobile Table Header */}
+                  <div className="sticky top-0 bg-background z-10">
+                    <div className="grid grid-cols-[150px_repeat(auto-fill,minmax(80px,1fr))] text-center border-b">
+                      <div className="text-secondary-text-light dark:text-secondary-text-dark text-sm font-medium flex items-center justify-center p-3">
+                        Selection
+                      </div>
+                      {processedData.bookmakers.map((bookie) => (
+                        <div
+                          key={bookie}
+                          className="flex items-center justify-center p-3"
+                        >
+                          <Image
+                            src={
+                              BookmakerLogos[bookie.toLowerCase()] ||
+                              "/images/placeholder.png"
+                            }
+                            alt={bookie}
+                            width={24}
+                            height={24}
+                            className="rounded"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Mobile Table Content */}
+                  <div className="divide-y">
+                    {processedData.entries.map(([key, data]: [string, any]) => {
+                      const [name, point] = key.split("_");
+                      const validOdds = processedData.bookmakers
+                        .map((bookie) => data.odds[bookie]?.american)
+                        .filter((odds) => odds !== undefined)
+                        .map((odds) => parseInt(odds));
+                      const highestOdds = Math.max(...validOdds);
+
+                      return (
+                        <div
+                          key={key}
+                          className="grid grid-cols-[150px_repeat(auto-fill,minmax(80px,1fr))] text-center bg-card hover:bg-accent/10 transition-colors"
+                        >
+                          <div className="text-primary-text-light dark:text-primary-text-dark text-sm font-medium flex items-center justify-center p-4">
+                            {`${name} ${
+                              point !== "None" && point ? `(${point})` : ""
+                            }`}
+                          </div>
+                          {processedData.bookmakers.map((bookie) => {
+                            const odds = data.odds[bookie]?.american;
+                            const link = data.odds[bookie]?.link;
+                            const isHighest = parseInt(odds) === highestOdds;
+
+                            return (
+                              <a
+                                key={bookie}
+                                href={formatLink(link)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={`text-sm p-4 font-medium flex items-center justify-center
+                                  ${
+                                    isHighest
+                                      ? "bg-green-100 dark:bg-green-900/20"
+                                      : ""
+                                  }
+                                  ${
+                                    odds >= 0
+                                      ? "text-accent-green-light dark:text-accent-green-dark"
+                                      : "text-negative-red-light dark:text-negative-red-dark"
+                                  }`}
+                              >
+                                {odds ? (odds >= 0 ? `+${odds}` : odds) : "-"}
+                              </a>
+                            );
+                          })}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              <AlertDialogFooter className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t">
+                <AlertDialogAction
+                  onClick={() => setIsExpanded(false)}
+                  className="w-full bg-button-green-light dark:bg-button-green-dark hover:bg-button-green-hover-light dark:hover:bg-button-green-hover-dark rounded-full h-12"
+                >
+                  Close
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         )}
       </div>
     </div>

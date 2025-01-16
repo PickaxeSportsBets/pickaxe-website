@@ -14,7 +14,7 @@ function ClerkProviderWithTheme({ children }: { children: React.ReactNode }) {
       appearance={{
         baseTheme: dark,
       }}
-      afterSignOutUrl={"/sign-in"}
+      afterSignOutUrl={"https://pickaxebets.com/sign-in"}
     >
       {children}
     </ClerkProvider>
