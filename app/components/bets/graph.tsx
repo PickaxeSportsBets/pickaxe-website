@@ -76,74 +76,6 @@ interface CustomLegendProps {
   visibleLines: VisibleLines;
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
-  if (!active || !payload || !payload.length) return null;
-
-  return (
-    <div className="bg-primary-bg-light dark:bg-primary-bg-dark border border-border rounded-lg shadow-lg p-3">
-      <p className="text-secondary-text-light dark:text-secondary-text-dark text-sm font-medium mb-2">
-        {label}
-      </p>
-      {payload
-        .sort((a: any, b: any) => (b.value || 0) - (a.value || 0))
-        .map((entry: any) => (
-          <div key={entry.name} className="flex items-center gap-2 py-1">
-            <span
-              className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: entry.color }}
-            />
-            <span className="text-sm capitalize text-secondary-text-light dark:text-secondary-text-dark">
-              {entry.name}:
-            </span>
-            <span
-              className={`text-sm font-medium ${
-                entry.value >= 0
-                  ? "text-accent-green-light dark:text-accent-green-dark"
-                  : "text-negative-red-light dark:text-negative-red-dark"
-              }`}
-            >
-              {entry.value >= 0 ? "+" : ""}
-              {entry.value}
-            </span>
-          </div>
-        ))}
-    </div>
-  );
-};
-
-const CustomLegend: React.FC<CustomLegendProps> = ({
-  payload,
-  onLegendClick,
-  visibleLines,
-}) => {
-  if (!payload) return null;
-
-  return (
-    <div className="flex flex-wrap gap-4 justify-center py-6">
-      {payload.map((entry) => (
-        <button
-          key={entry.dataKey}
-          onClick={() => onLegendClick(entry)}
-          className={`flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-200 
-            ${
-              visibleLines[entry.dataKey]
-                ? "bg-secondary-bg-light dark:bg-secondary-bg-dark hover:bg-secondary-bg-hover-light dark:hover:bg-secondary-bg-hover-dark"
-                : "opacity-50 hover:opacity-75 bg-muted"
-            }`}
-        >
-          <span
-            className="inline-block w-3 h-3 rounded"
-            style={{ backgroundColor: entry.color }}
-          />
-          <span className="text-sm font-medium capitalize text-primary-text-light dark:text-primary-text-dark">
-            {entry.dataKey}
-          </span>
-        </button>
-      ))}
-    </div>
-  );
-};
-
 const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
   data: rawData,
   isOpen,
@@ -151,15 +83,24 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
   side = "over",
 }) => {
   const [visibleLines, setVisibleLines] = useState<VisibleLines>({});
-  const marketPoint = useMemo(() => {
-    const firstEntry = rawData[0];
-    return firstEntry?.market_point ?? 0;
+
+  // Data validation and early returns
+  const isValidData = useMemo(() => {
+    return Array.isArray(rawData) && rawData.length > 0;
   }, [rawData]);
-  const processData = (
-    historyData: HistoricalDataEntry[]
-  ): ProcessedDataEntry[] => {
+
+  // Calculate market point
+  const marketPoint = useMemo(() => {
+    if (!isValidData) return 0;
+    return rawData[0]?.market_point ?? 0;
+  }, [rawData, isValidData]);
+
+  // Process data
+  const processedData = useMemo(() => {
+    if (!isValidData) return [];
+
     try {
-      return historyData.map((entry) => {
+      return rawData.map((entry) => {
         if (!entry?.timestamp) {
           throw new Error("Invalid entry: missing timestamp");
         }
@@ -193,11 +134,12 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
       console.error("Error processing odds data:", error);
       return [];
     }
-  };
+  }, [rawData, side, isValidData, visibleLines]);
 
-  const processedData = processData(rawData);
-
+  // Calculate Y-axis domain
   const yAxisDomain = useMemo(() => {
+    if (!processedData.length) return [-130, -100];
+
     try {
       let min = Infinity;
       let max = -Infinity;
@@ -212,56 +154,22 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
       });
 
       if (min === Infinity || max === -Infinity) {
-        return [-130, -100]; // Fallback range if no valid data
+        return [-130, -100];
       }
 
-      // Add 10% padding on both ends
       const padding = (max - min) * 0.1;
       return [Math.floor(min - padding), Math.ceil(max + padding)];
     } catch (error) {
       console.error("Error calculating axis domain:", error);
-      return [-130, -100]; // Fallback range if calculation fails
+      return [-130, -100];
     }
   }, [processedData]);
 
-  // Early return if data is invalid
-  if (!Array.isArray(rawData) || rawData.length === 0) {
-    return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>No Data Available</DialogTitle>
-            <DialogDescription>
-              There is no historical odds data available for this selection.
-            </DialogDescription>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
-    );
-  }
+  // Get available lines
+  const availableLines = useMemo(() => {
+    if (!processedData.length) return [];
 
-  // Safely extract market point and initial data
-
-  // If no processed data is available after processing, show error
-  if (processedData.length === 0) {
-    return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Data Processing Error</DialogTitle>
-            <DialogDescription>
-              Unable to process the odds data. Please try again later.
-            </DialogDescription>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
-  const getLines = (): string[] => {
     try {
-      if (!processedData.length) return [];
-
       const lines = new Set<string>();
       const firstEntry = processedData[0];
 
@@ -278,7 +186,38 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
       console.error("Error getting lines:", error);
       return [];
     }
-  };
+  }, [processedData]);
+
+  // Handle invalid data cases
+  if (!isValidData) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>No Data Available</DialogTitle>
+            <DialogDescription>
+              There is no historical odds data available for this selection.
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  if (processedData.length === 0) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Data Processing Error</DialogTitle>
+            <DialogDescription>
+              Unable to process the odds data. Please try again later.
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   const getLineColor = (bookmaker: string): string => {
     const colors: { [key: string]: string } = {
@@ -303,6 +242,74 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
     } catch (error) {
       console.error("Error handling legend click:", error);
     }
+  };
+
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (!active || !payload || !payload.length) return null;
+
+    return (
+      <div className="bg-primary-bg-light dark:bg-primary-bg-dark border border-border rounded-lg shadow-lg p-3">
+        <p className="text-secondary-text-light dark:text-secondary-text-dark text-sm font-medium mb-2">
+          {label}
+        </p>
+        {payload
+          .sort((a: any, b: any) => (b.value || 0) - (a.value || 0))
+          .map((entry: any) => (
+            <div key={entry.name} className="flex items-center gap-2 py-1">
+              <span
+                className="w-2 h-2 rounded-full"
+                style={{ backgroundColor: entry.color }}
+              />
+              <span className="text-sm capitalize text-secondary-text-light dark:text-secondary-text-dark">
+                {entry.name}:
+              </span>
+              <span
+                className={`text-sm font-medium ${
+                  entry.value >= 0
+                    ? "text-accent-green-light dark:text-accent-green-dark"
+                    : "text-negative-red-light dark:text-negative-red-dark"
+                }`}
+              >
+                {entry.value >= 0 ? "+" : ""}
+                {entry.value}
+              </span>
+            </div>
+          ))}
+      </div>
+    );
+  };
+
+  const CustomLegend: React.FC<CustomLegendProps> = ({
+    payload,
+    onLegendClick,
+    visibleLines,
+  }) => {
+    if (!payload) return null;
+
+    return (
+      <div className="flex flex-wrap gap-4 justify-center py-6">
+        {payload.map((entry) => (
+          <button
+            key={entry.dataKey}
+            onClick={() => onLegendClick(entry)}
+            className={`flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-200 
+              ${
+                visibleLines[entry.dataKey]
+                  ? "bg-secondary-bg-light dark:bg-secondary-bg-dark hover:bg-secondary-bg-hover-light dark:hover:bg-secondary-bg-hover-dark"
+                  : "opacity-50 hover:opacity-75 bg-muted"
+              }`}
+          >
+            <span
+              className="inline-block w-3 h-3 rounded"
+              style={{ backgroundColor: entry.color }}
+            />
+            <span className="text-sm font-medium capitalize text-primary-text-light dark:text-primary-text-dark">
+              {entry.dataKey}
+            </span>
+          </button>
+        ))}
+      </div>
+    );
   };
 
   return (
@@ -354,7 +361,7 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
                 verticalAlign="bottom"
                 height={120}
               />
-              {getLines().map((bookmaker) => (
+              {availableLines.map((bookmaker) => (
                 <Line
                   key={bookmaker}
                   type="monotone"
