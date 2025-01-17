@@ -59,7 +59,6 @@ const EVBetCard = ({
     if (error) {
       console.error("Error fetching historical data:", error);
     } else {
-      console.log("data", data);
       setHistoricalData(data);
     }
   };

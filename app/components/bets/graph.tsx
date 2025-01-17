@@ -88,6 +88,11 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
   const isValidData = useMemo(() => {
     return Array.isArray(rawData) && rawData.length > 0;
   }, [rawData]);
+  const determinedSide = useMemo(() => {
+    if (!isValidData) return "over";
+    const teamName = rawData[0]?.team || "";
+    return teamName.toLowerCase().includes("under") ? "under" : "over";
+  }, [rawData, isValidData]);
 
   // Calculate market point
   const marketPoint = useMemo(() => {
@@ -115,8 +120,9 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
         const processedEntry: ProcessedDataEntry = {
           timestamp: formattedTime,
         };
+        console.log(determinedSide);
 
-        const oddsData = entry.market_data?.[side]?.odds;
+        const oddsData = entry.market_data?.[determinedSide]?.odds;
         if (oddsData) {
           Object.entries(oddsData).forEach(([bookmaker, data]) => {
             if (data?.american !== undefined) {
@@ -135,7 +141,11 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
       return [];
     }
   }, [rawData, side, isValidData, visibleLines]);
-
+  const playerName = useMemo(() => {
+    if (!isValidData) return "";
+    const teamName = rawData[0]?.team || "";
+    return teamName.replace(/ Over| Under/g, "").trim();
+  }, [rawData, isValidData]);
   // Calculate Y-axis domain
   const yAxisDomain = useMemo(() => {
     if (!processedData.length) return [-130, -100];
@@ -317,9 +327,9 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
       <DialogContent className="max-w-6xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
-            {`Historical Odds Movement - ${
-              side.charAt(0).toUpperCase() + side.slice(1)
-            } ${marketPoint}`}
+            {`${playerName} ${
+              determinedSide.charAt(0).toUpperCase() + determinedSide.slice(1)
+            } ${marketPoint} Historical Odds Movement`}{" "}
           </DialogTitle>
         </DialogHeader>
 
