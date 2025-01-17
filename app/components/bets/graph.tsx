@@ -151,29 +151,10 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
   side = "over",
 }) => {
   const [visibleLines, setVisibleLines] = useState<VisibleLines>({});
-
-  // Early return if data is invalid
-  if (!Array.isArray(rawData) || rawData.length === 0) {
-    return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>No Data Available</DialogTitle>
-            <DialogDescription>
-              There is no historical odds data available for this selection.
-            </DialogDescription>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
-  // Safely extract market point and initial data
   const marketPoint = useMemo(() => {
     const firstEntry = rawData[0];
     return firstEntry?.market_point ?? 0;
   }, [rawData]);
-
   const processData = (
     historyData: HistoricalDataEntry[]
   ): ProcessedDataEntry[] => {
@@ -216,22 +197,6 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
 
   const processedData = processData(rawData);
 
-  // If no processed data is available after processing, show error
-  if (processedData.length === 0) {
-    return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Data Processing Error</DialogTitle>
-            <DialogDescription>
-              Unable to process the odds data. Please try again later.
-            </DialogDescription>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
   const yAxisDomain = useMemo(() => {
     try {
       let min = Infinity;
@@ -258,6 +223,40 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
       return [-130, -100]; // Fallback range if calculation fails
     }
   }, [processedData]);
+
+  // Early return if data is invalid
+  if (!Array.isArray(rawData) || rawData.length === 0) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>No Data Available</DialogTitle>
+            <DialogDescription>
+              There is no historical odds data available for this selection.
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // Safely extract market point and initial data
+
+  // If no processed data is available after processing, show error
+  if (processedData.length === 0) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Data Processing Error</DialogTitle>
+            <DialogDescription>
+              Unable to process the odds data. Please try again later.
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   const getLines = (): string[] => {
     try {
