@@ -150,6 +150,8 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
   onClose,
   side = "over",
 }) => {
+  const [visibleLines, setVisibleLines] = useState<VisibleLines>({});
+
   // Early return if data is invalid
   if (!Array.isArray(rawData) || rawData.length === 0) {
     return (
@@ -165,8 +167,6 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
       </Dialog>
     );
   }
-
-  const [visibleLines, setVisibleLines] = useState<VisibleLines>({});
 
   // Safely extract market point and initial data
   const marketPoint = useMemo(() => {
