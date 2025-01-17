@@ -65,7 +65,7 @@ const EVBetCard = ({
   };
   useEffect(() => {
     fetchData();
-  }, [bet.primary_key]);
+  }, []);
 
   const processMarketData = (data: any) => {
     if (!data) return null;
