@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import betmgm from "@/public/images/betmgm-logo.png";
 import betRivers from "@/public/images/betrivers-logo.png";
@@ -10,6 +10,10 @@ import fanduel from "@/public/images/fanduel-logo.png";
 import hardrockBet from "@/public/images/hardrockbet-logo.png";
 import pinnacle from "@/public/images/pinnacle-logo.png";
 import underDog from "@/public/images/underdog-logo.png";
+import { createClient } from "@/app/utils/supabase/client";
+import OddsHistoryGraph from "./graph";
+import { LineChart } from "lucide-react";
+const supabase = createClient();
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,6 +49,23 @@ const EVBetCard = ({
   userState?: string;
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isOpen, setIsGraphOpen] = useState(false);
+  const [historicalData, setHistoricalData] = useState<any>(null);
+  const fetchData = async () => {
+    const { data, error } = await supabase
+      .from("ev_graph")
+      .select("*")
+      .eq("primary_key", bet.primary_key);
+    if (error) {
+      console.error("Error fetching historical data:", error);
+    } else {
+      console.log("data", data);
+      setHistoricalData(data);
+    }
+  };
+  useEffect(() => {
+    fetchData();
+  }, [bet.primary_key]);
 
   const processMarketData = (data: any) => {
     if (!data) return null;
@@ -122,8 +143,9 @@ const EVBetCard = ({
           className="cursor-pointer bg-secondary-bg-light dark:bg-secondary-bg-dark hover:bg-secondary-bg-hover-light dark:hover:bg-secondary-bg-hover-dark transition-all"
           onClick={() => setIsExpanded(!isExpanded)}
         >
-          {/* Existing card header - unchanged */}
+          {/* Card header */}
           <div className="flex flex-col md:flex-row md:items-center justify-between p-6 gap-6">
+            {/* Left side content stays the same */}
             <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-8">
               <div className="text-accent-green-light dark:text-accent-green-dark w-full md:w-24 text-center">
                 <p className="text-secondary-text-light dark:text-secondary-text-dark text-sm mb-1">
@@ -144,6 +166,7 @@ const EVBetCard = ({
               </div>
             </div>
 
+            {/* Right side with buttons */}
             <div className="flex flex-col md:flex-row items-center md:items-center gap-6 md:gap-8">
               <div className="text-center md:text-right w-full md:w-auto space-y-1">
                 <div className="text-market-purple-light dark:text-market-purple-dark font-medium">
@@ -175,6 +198,18 @@ const EVBetCard = ({
                   className="rounded mr-[36.81px] md:mr-0"
                 />
                 <div className="flex items-center gap-2">
+                  {/* Graph Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsGraphOpen(true);
+                    }}
+                    className="bg-secondary-bg-light dark:bg-secondary-bg-dark hover:bg-secondary-bg-hover-light dark:hover:bg-secondary-bg-hover-dark transition-all px-4 py-2 rounded text-primary-text-light dark:text-primary-text-dark flex items-center font-medium"
+                  >
+                    <LineChart className="h-4 w-4" />
+                  </button>
+
+                  {/* Bet Button */}
                   <a
                     href={formatLink(bet.link)}
                     target="_blank"
@@ -395,6 +430,12 @@ const EVBetCard = ({
           </AlertDialog>
         )}
       </div>
+      {/* Add this just before the final closing div */}
+      <OddsHistoryGraph
+        data={historicalData}
+        isOpen={isOpen}
+        onClose={() => setIsGraphOpen(false)}
+      />
     </div>
   );
 };
