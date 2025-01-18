@@ -14,7 +14,7 @@ export default function Header() {
 
   return (
     <header className="bg-secondary-bg-light dark:bg-secondary-bg-dark shadow-md">
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav className="max-w-[90%] mx-auto px-2 sm:px-4 lg:px-6">
         <div className="flex justify-between h-16 items-center">
           <div className="flex-1 text-center items-center justify-center">
             <Link
