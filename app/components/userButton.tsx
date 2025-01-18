@@ -6,12 +6,18 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { CreditCard, Package, User, LogOut } from "lucide-react";
-
+import { useEffect, useState } from "react";
+import { getUserSubscription } from "../utils/stripe/getSubscription";
 export const CustomUserButton = () => {
   const { isLoaded, user } = useUser();
   const { signOut, openUserProfile } = useClerk();
   const router = useRouter();
-  console.log(user);
+  const [subscription, setSubscription] = useState<any>(null);
+  useEffect(() => {
+    if (user?.id) {
+      getUserSubscription(user.id).then(setSubscription);
+    }
+  }, [user?.id]);
 
   const handlePortalAccess = async () => {
     try {
@@ -79,9 +85,7 @@ export const CustomUserButton = () => {
                 {user?.primaryEmailAddress?.emailAddress}
               </p>
               <p className="text-xs text-secondary-text-light dark:text-secondary-text-dark">
-                {user?.publicMetadata?.subscription_status === "active"
-                  ? "Active Subscriber"
-                  : "Free Plan"}
+                {subscription?.isValid ? "Active Subscriber" : "Free Plan"}
               </p>
             </div>
 
@@ -107,14 +111,14 @@ export const CustomUserButton = () => {
               </Link>
             </DropdownMenu.Item>
 
-            {user?.publicMetadata?.subscription_status === "active" && (
+            {subscription?.isValid && (
               <DropdownMenu.Item asChild>
                 <button
                   onClick={handlePortalAccess}
-                  className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm text-primary-text-light dark:text-primary-text-dark hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm text-primary-text-light dark:text-primary-text-dark hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" /*...props*/
                 >
                   <CreditCard className="h-4 w-4" />
-                  Manage Subscription
+                  Manage Subscriptions
                 </button>
               </DropdownMenu.Item>
             )}
