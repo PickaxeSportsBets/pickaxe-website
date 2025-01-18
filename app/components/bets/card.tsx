@@ -22,6 +22,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import Link from "next/link";
 
 const BookmakerLogos: { [key: string]: any } = {
   betmgm: betmgm,
@@ -205,11 +206,11 @@ const EVBetCard = ({
                     }}
                     className="bg-tertiary-bg-light dark:bg-tertiary-bg-dark hover:bg-tertiary-bg-hover-light dark:hover:bg-tertiary-bg-hover-dark transition-all px-4 py-2 rounded text-primary-text-light dark:text-primary-text-dark flex items-center font-medium"
                   >
-                    <LineChart className="h-4 w-4" />
+                    <LineChart className="h-5 w-5" />
                   </button>
 
                   {/* Bet Button */}
-                  <a
+                  <Link
                     href={formatLink(bet.link)}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -231,7 +232,7 @@ const EVBetCard = ({
                       <line x1="7" y1="17" x2="17" y2="7" />
                       <polyline points="7 7 17 7 17 17" />
                     </svg>
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>
