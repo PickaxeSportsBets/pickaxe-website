@@ -203,7 +203,7 @@ const EVBetCard = ({
                       e.stopPropagation();
                       setIsGraphOpen(true);
                     }}
-                    className="bg-secondary-bg-light dark:bg-secondary-bg-dark hover:bg-secondary-bg-hover-light dark:hover:bg-secondary-bg-hover-dark transition-all px-4 py-2 rounded text-primary-text-light dark:text-primary-text-dark flex items-center font-medium"
+                    className="bg-tertiary-bg-light dark:bg-tertiary-bg-dark hover:bg-tertiary-bg-hover-light dark:hover:bg-tertiary-bg-hover-dark transition-all px-4 py-2 rounded text-primary-text-light dark:text-primary-text-dark flex items-center font-medium"
                   >
                     <LineChart className="h-4 w-4" />
                   </button>
@@ -300,7 +300,7 @@ const EVBetCard = ({
                               className={`cursor-pointer transition-all font-medium flex items-center justify-center
                                 ${
                                   isHighest
-                                    ? "bg-green-100 dark:bg-green-900/20"
+                                    ? "bg-button-green-light dark:bg-green-900/20"
                                     : ""
                                 }
                                 ${
