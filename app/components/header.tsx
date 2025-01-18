@@ -1,8 +1,8 @@
-import { useClerk, UserButton } from "@clerk/nextjs";
+import { useClerk } from "@clerk/nextjs";
 import Link from "next/link";
 import { ThemeToggle } from "./themeprovider";
 import { useRouter } from "next/navigation";
-
+import { CustomUserButton } from "./userButton";
 export default function Header() {
   const { signOut } = useClerk();
   const router = useRouter();
@@ -26,14 +26,7 @@ export default function Header() {
           </div>
           <div className="flex items-center gap-4">
             <ThemeToggle />
-            <UserButton
-              appearance={{
-                elements: {
-                  avatarBox: "h-10 w-10",
-                },
-              }}
-              afterSignOutUrl="/sign-in"
-            />
+            <CustomUserButton />
           </div>
         </div>
       </nav>

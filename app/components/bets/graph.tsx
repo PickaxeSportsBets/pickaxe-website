@@ -120,7 +120,6 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
         const processedEntry: ProcessedDataEntry = {
           timestamp: formattedTime,
         };
-        console.log(determinedSide);
 
         const oddsData = entry.market_data?.[determinedSide]?.odds;
         if (oddsData) {

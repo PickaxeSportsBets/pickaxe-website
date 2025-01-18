@@ -104,7 +104,6 @@ export default function Home() {
             (Number(b.ev_percentage) || 0) - (Number(a.ev_percentage) || 0)
         );
         setBets(sortedBets);
-        console.log(sortedBets.slice(0, 50));
         setFilteredEVBets(sortedBets);
       }
 
@@ -124,7 +123,6 @@ export default function Home() {
         });
 
         setArbBets(sortedArbBets);
-        console.log(sortedArbBets.slice(0, 50));
         setFilteredArbBets(sortedArbBets);
       }
     } catch (error) {
