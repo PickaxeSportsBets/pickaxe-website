@@ -72,7 +72,6 @@ export default function Home() {
           "bg-button-green-light dark:bg-button-green-dark text-primary-text-light dark:text-primary-text-dark",
       });
     } catch (e) {
-      console.log(e);
       toast({
         title: "Update Failed",
         description: "There was an error updating the betting data",

@@ -4,7 +4,6 @@ export const createCheckoutSession = async (
   email: string
 ) => {
   try {
-    console.log(user_id, priceId, email);
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/api/create-checkout-session`,
       {
@@ -21,7 +20,6 @@ export const createCheckoutSession = async (
     );
 
     const data = await response.json();
-    console.log(data);
     window.open(data.url, "_blank");
   } catch (error) {
     console.error("Error:", error);

@@ -22,9 +22,8 @@ export const CustomUserButton = () => {
   const handlePortalAccess = async () => {
     try {
       // Use the stripe_customer_id from Clerk metadata
-      console.log(user);
       const stripeCustomerId = user?.publicMetadata?.stripe_customer_id;
-      console.log(stripeCustomerId);
+      const stripeCustomerIDV2 = subscription?.subscriptions[0]?.customer_id;
 
       if (!stripeCustomerId) {
         console.log("No Stripe customer ID found");
@@ -38,7 +37,7 @@ export const CustomUserButton = () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            customer_id: stripeCustomerId,
+            customer_id: stripeCustomerIDV2,
             return_url: window.location.origin,
             email: user?.primaryEmailAddress?.emailAddress,
           }),

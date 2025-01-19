@@ -1,4 +1,3 @@
-import { cookies } from "next/headers";
 import { createClient } from "../supabase/client";
 const supabase = createClient();
 
@@ -11,7 +10,13 @@ export const getUserSubscription = async (user_id: string) => {
 
     if (error) throw error;
 
-    if (!subscriptions || subscriptions.length === 0) return null;
+    if (!subscriptions || subscriptions.length === 0) {
+      return {
+        subscriptions: [],
+        isValid: true, // Free user is considered valid
+        plan: "free",
+      };
+    }
 
     // Check if any subscription is valid
     const validSubscription = subscriptions.find((subscription) => {
@@ -22,8 +27,9 @@ export const getUserSubscription = async (user_id: string) => {
     });
 
     return {
-      subscriptions,
+      subscriptions: validSubscription ? [validSubscription] : [],
       isValid: !!validSubscription,
+      plan: validSubscription ? validSubscription.plan : "free",
     };
   } catch (error) {
     console.error("Error getting subscription:", error);

@@ -75,7 +75,6 @@ export default clerkMiddleware(async (auth: ClerkMiddlewareAuth, request) => {
     const session = await auth.protect();
     if (session?.userId) {
       const subscription = await checkSubscription(session.userId);
-      console.log("Subscription:", subscription);
       const requestHeaders = new Headers(request.headers);
       requestHeaders.set(
         "x-subscription-valid",
