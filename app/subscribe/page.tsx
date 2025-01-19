@@ -205,7 +205,7 @@
 
 // export default PricingPage;
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Card,
   CardHeader,
@@ -224,13 +224,16 @@ import {
   EmbeddedCheckoutProvider,
   EmbeddedCheckout,
 } from "@stripe/react-stripe-js";
+import { getUserSubscription } from "../utils/stripe/getSubscription";
+import { CreditCard } from "lucide-react";
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 );
-
 const PricingPage = () => {
   const { user } = useUser();
+  const [subscription, setSubscription] = useState<any>(null);
+
   const fetchClientSecret = useCallback(() => {
     // Create a Checkout Session
     return fetch("/api/checkout_sessions", {
@@ -257,7 +260,62 @@ const PricingPage = () => {
     { price: "$25", period: "week", priceId: "price_1QiMqJIs3FmBtaECNFFaiPIR" },
     { price: "$10", period: "day", priceId: "price_1QiMqJIs3FmBtaECfoHWZm3h" },
   ];
+  const softwareFeatures = [
+    "Full platform access",
+    "Unlimited opportunities",
+    "Real-time alerts",
+    "Advanced filtering",
+    "Personalized dashboard",
+  ];
+  const softwarePrices = [
+    {
+      priceId: "price_1QiMqKIs3FmBtaECt8QXCPjE",
+      price: "$75",
+      period: "month",
+    },
+  ];
+  useEffect(() => {
+    if (user?.id) {
+      getUserSubscription(user.id).then(setSubscription);
+    }
+  }, [user?.id]);
 
+  const handlePortalAccess = async () => {
+    try {
+      // Use the stripe_customer_id from Clerk metadata
+      const stripeCustomerId = user?.publicMetadata?.stripe_customer_id;
+      const stripeCustomerIDV2 = subscription?.subscriptions[0]?.customer_id;
+
+      if (!stripeCustomerId) {
+        console.log("No Stripe customer ID found");
+      }
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/create-portal-session`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            customer_id: stripeCustomerIDV2,
+            return_url: window.location.origin,
+            email: user?.primaryEmailAddress?.emailAddress,
+          }),
+        }
+      );
+
+      const { url } = await response.json();
+      if (url) {
+        window.location.href = url;
+      }
+    } catch (error) {
+      console.error("Error accessing portal:", error);
+    }
+  };
+  useEffect(() => {
+    console.log(subscription);
+  }, [subscription]);
   const handleSubscribe = async (priceId: string) => {
     if (!user) {
       return;
@@ -269,19 +327,39 @@ const PricingPage = () => {
     );
   };
 
-  const softwareFeatures = [
-    "Full platform access",
-    "Unlimited opportunities",
-    "Real-time alerts",
-    "Advanced filtering",
-    "Personalized dashboard",
-  ];
-
   return (
     <>
       <Header />
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {subscription?.isValid && (
+            <div className="mb-8 rounded-lg bg-white/90 dark:bg-gray-800/90 border border-indigo-100 dark:border-indigo-900 p-6 shadow-sm">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="rounded-full bg-indigo-50 dark:bg-indigo-900/50 p-2">
+                    <CreditCard className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-medium text-gray-900 dark:text-white">
+                      Active Subscription
+                    </h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      You're currently subscribed. Review the plans below if
+                      you'd like to make changes to your subscription.
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  onClick={handlePortalAccess}
+                  variant="outline"
+                  className="border-indigo-200 dark:border-indigo-800 hover:bg-indigo-50 dark:hover:bg-indigo-900/50"
+                >
+                  Manage Subscription
+                </Button>
+              </div>
+            </div>
+          )}
+
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 inline-block text-transparent bg-clip-text mb-4">
               Choose Your Plan
@@ -332,10 +410,14 @@ const PricingPage = () => {
                         </span>
                       </div>
                       <Button
-                        onClick={() => handleSubscribe(plan.priceId)}
+                        onClick={
+                          subscription?.isValid
+                            ? handlePortalAccess
+                            : () => handleSubscribe(plan.priceId)
+                        }
                         className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
                       >
-                        Subscribe {plan.period}ly
+                        Subscribe
                       </Button>
                     </div>
                   ))}
@@ -368,24 +450,31 @@ const PricingPage = () => {
                     </div>
                   ))}
                 </div>
-                <div className="p-4 rounded-lg bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-700 shadow-sm">
-                  <div className="flex items-end gap-2 mb-3">
-                    <span className="text-2xl font-bold text-gray-900 dark:text-white">
-                      $75
-                    </span>
-                    <span className="text-gray-600 dark:text-gray-400">
-                      /month
-                    </span>
-                  </div>
-                  <Button
-                    onClick={() =>
-                      handleSubscribe("price_1QiMqKIs3FmBtaECt8QXCPjE")
-                    }
-                    className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white"
+                {softwarePrices.map((plan) => (
+                  <div
+                    key={plan.period}
+                    className="p-4 rounded-lg bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-700 shadow-sm"
                   >
-                    Subscribe
-                  </Button>
-                </div>
+                    <div className="flex items-end gap-2 mb-3">
+                      <span className="text-2xl font-bold text-gray-900 dark:text-white">
+                        {plan.price}
+                      </span>
+                      <span className="text-gray-600 dark:text-gray-400">
+                        /{plan.period}
+                      </span>
+                    </div>
+                    <Button
+                      onClick={
+                        subscription?.isValid
+                          ? handlePortalAccess
+                          : () => handleSubscribe(plan.priceId)
+                      }
+                      className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
+                    >
+                      Subscribe
+                    </Button>
+                  </div>
+                ))}
               </CardContent>
             </Card>
           </div>
