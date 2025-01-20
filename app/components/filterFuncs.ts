@@ -1,13 +1,42 @@
+// filterFuncs.ts
 export interface FilterState {
   date: "all" | "today" | "tomorrow" | "week";
   bookmakers: string[];
   marketTypes: string[];
+  betTypes: string[];
 }
 
 const initialFilterState: FilterState = {
   date: "all",
   bookmakers: [],
   marketTypes: [],
+  betTypes: [],
+};
+
+export const BetTypes = {
+  PLAYER_PROPS: "Player Props",
+  TEAM_TOTALS: "Team Totals",
+  MONEY_LINES: "Money Lines",
+  ALT_LINES: "Alternate Lines",
+  SPREADS: "Spreads",
+} as const;
+
+const matchesMarketType = (marketType: string, betType: string): boolean => {
+  const marketTypeLower = marketType.toLowerCase();
+  switch (betType) {
+    case BetTypes.PLAYER_PROPS:
+      return marketTypeLower.includes("player prop");
+    case BetTypes.TEAM_TOTALS:
+      return marketTypeLower.includes("team_totals");
+    case BetTypes.MONEY_LINES:
+      return marketTypeLower.includes("h2h");
+    case BetTypes.ALT_LINES:
+      return marketTypeLower.includes("alternate");
+    case BetTypes.SPREADS:
+      return marketTypeLower.includes("spreads");
+    default:
+      return false;
+  }
 };
 
 // Filter functions
@@ -39,19 +68,22 @@ const filterEvBets = (bets: any[], filters: FilterState) => {
       }
     }
 
-    // Market type filtering
-    if (
-      filters.marketTypes.length > 0 &&
-      !filters.marketTypes.includes(bet.market_type)
-    ) {
-      return false;
+    // Bet type filtering
+    if (filters.betTypes.length > 0) {
+      const marketType = bet.market_type || "";
+      if (
+        !filters.betTypes.some((betType) =>
+          matchesMarketType(marketType, betType)
+        )
+      ) {
+        return false;
+      }
     }
 
     // Bookmaker filtering
     if (filters.bookmakers.length > 0) {
       const mainBookmaker = bet.bookmaker?.toLowerCase();
       if (!filters.bookmakers.includes(mainBookmaker)) {
-        // Check market_data for other bookmakers
         const marketData = bet.market_data || {};
         const hasMatchingBookmaker = Object.values(marketData).some(
           (side: any) => {
@@ -99,12 +131,16 @@ const filterArbBets = (bets: any[], filters: FilterState) => {
       }
     }
 
-    // Market type filtering
-    if (
-      filters.marketTypes.length > 0 &&
-      !filters.marketTypes.includes(bet.market_type)
-    ) {
-      return false;
+    // Bet type filtering
+    if (filters.betTypes.length > 0) {
+      const marketType = bet.market_type || "";
+      if (
+        !filters.betTypes.some((betType) =>
+          matchesMarketType(marketType, betType)
+        )
+      ) {
+        return false;
+      }
     }
 
     // Bookmaker filtering

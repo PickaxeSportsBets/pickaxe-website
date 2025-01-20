@@ -1,9 +1,6 @@
 "use client";
-import Image from "next/image";
-import Link from "next/link";
 import Header from "./components/header";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import EVBetCard from "./components/bets/card";
 import NavButtons from "./components/navButtons";
 import ArbBetCard from "./components/bets/arbCard";
@@ -11,17 +8,17 @@ import { createClient } from "./utils/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 import PromosCalculator from "./components/promos/promo";
 import LoadingSkeleton from "./components/loadingSkeleton";
-import SearchAndControls from "./components/filter";
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-const supabase = createClient();
+import SearchAndControls from "./components/filter";
 import {
   initialFilterState,
   filterArbBets,
   filterEvBets,
+  FilterState,
 } from "./components/filterFuncs";
-import { FilterState } from "./components/filterFuncs";
+const supabase = createClient();
+
 enum Page {
   EV = "EV",
   ARB = "ARB",
@@ -39,9 +36,6 @@ export default function Home() {
   const [evLastUpdated, setEvLastUpdated] = useState("");
   const [arbLastUpdated, setArbLastUpdated] = useState("");
   const [loading, setLoading] = useState(true);
-  const [dateFilter, setDateFilter] = useState("all");
-  const [marketFilters, setMarketFilters] = useState<string[]>([]);
-  const [bookieFilters, setBookieFilters] = useState<string[]>([]);
   const [filters, setFilters] = useState<FilterState>(initialFilterState);
 
   const itemsPerPage = 100;
@@ -103,7 +97,6 @@ export default function Home() {
             (Number(b.ev_percentage) || 0) - (Number(a.ev_percentage) || 0)
         );
         setBets(sortedBets);
-        console.log(sortedBets.slice(0, 50));
         setFilteredEVBets(sortedBets);
       }
 
@@ -123,7 +116,6 @@ export default function Home() {
         });
 
         setArbBets(sortedArbBets);
-        console.log(sortedArbBets.slice(0, 50));
         setFilteredArbBets(sortedArbBets);
       }
     } catch (error) {
@@ -149,11 +141,11 @@ export default function Home() {
     fetchUserState();
     fetchData();
   }, []);
+
   const updateFilters = (newFilters: Partial<FilterState>) => {
     setFilters((prev) => ({ ...prev, ...newFilters }));
   };
 
-  // Apply filters effect
   useEffect(() => {
     if (currPage === Page.EV) {
       const filteredBets = filterEvBets(bets || [], filters);
