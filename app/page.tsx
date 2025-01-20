@@ -298,7 +298,7 @@ export default function Home() {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-primary-bg-light dark:bg-primary-bg-dark">
+      <div className="min-h-screen flex-grow bg-primary-bg-light dark:bg-primary-bg-dark">
         <div className="max-w-[90%] mx-auto px-2 sm:px-4 lg:px-6">
           <NavButtons currPage={currPage} setCurrPage={setCurrPage} />
 
