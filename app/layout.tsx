@@ -1,6 +1,6 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
-import { ThemeProvider } from "./components/themeprovider";
+import { ThemeProvider } from "./components/utilities/themeprovider";
 import "./globals.css";
 
 export const metadata = {

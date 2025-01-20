@@ -1,22 +1,22 @@
 "use client";
-import Header from "./components/header";
+import Header from "./components/utilities/header";
 import { useState, useEffect } from "react";
 import EVBetCard from "./components/bets/card";
-import NavButtons from "./components/navButtons";
+import NavButtons from "./components/utilities/navButtons";
 import ArbBetCard from "./components/bets/arbCard";
 import { createClient } from "./utils/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 import PromosCalculator from "./components/promos/promo";
-import LoadingSkeleton from "./components/loadingSkeleton";
+import LoadingSkeleton from "./components/utilities/loadingSkeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
-import SearchAndControls from "./components/filter";
+import SearchAndControls from "./components/filters/filter";
 import {
   initialFilterState,
   filterArbBets,
   filterEvBets,
   FilterState,
-} from "./components/filterFuncs";
+} from "./components/filters/filterFuncs";
 const supabase = createClient();
 
 enum Page {
