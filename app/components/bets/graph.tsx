@@ -120,7 +120,6 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
         const processedEntry: ProcessedDataEntry = {
           timestamp: formattedTime,
         };
-        console.log(determinedSide);
 
         const oddsData = entry.market_data?.[determinedSide]?.odds;
         if (oddsData) {
@@ -329,7 +328,7 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
           <DialogTitle className="text-xl font-semibold">
             {`${playerName} ${
               determinedSide.charAt(0).toUpperCase() + determinedSide.slice(1)
-            } ${marketPoint} Historical Odds Movement`}{" "}
+            } ${marketPoint} Odds Movement`}{" "}
           </DialogTitle>
         </DialogHeader>
 

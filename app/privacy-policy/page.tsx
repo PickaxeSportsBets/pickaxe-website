@@ -1,6 +1,6 @@
 "use client";
 
-import Header from "../components/header";
+import Header from "../components/utilities/header";
 
 export default function PrivacyPolicy() {
   return (

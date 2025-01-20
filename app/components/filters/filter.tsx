@@ -1,3 +1,4 @@
+// filter.tsx
 "use client";
 import { useState } from "react";
 import { Search, RefreshCw, Filter } from "lucide-react";
@@ -11,6 +12,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { FilterState, BetTypes } from "./filterFuncs";
 
 export const BookmakerLogos: { [key: string]: any } = {
   betmgm: "betmgm",
@@ -23,52 +25,6 @@ export const BookmakerLogos: { [key: string]: any } = {
   pinnacle: "pinnacle",
   underdog: "underDog",
 };
-
-// Combined market types from both EV and Arb data
-const MarketTypes = [
-  "h2h",
-  "h2h_q1",
-  "h2h_q2",
-  "h2h_q3",
-  "h2h_q4",
-  "h2h_h1",
-  "h2h_h2",
-  "spreads",
-  "spreads_q1",
-  "spreads_q2",
-  "spreads_q3",
-  "spreads_q4",
-  "spreads_h1",
-  "spreads_h2",
-  "totals",
-  "totals_q1",
-  "totals_q2",
-  "totals_q3",
-  "totals_q4",
-  "totals_h1",
-  "totals_h2",
-  "player_prop",
-  "alternate_spreads",
-  "alternate_spreads_q1",
-  "alternate_totals",
-  "alternate_totals_q1",
-];
-
-const formatMarketType = (marketType: string) => {
-  return marketType
-    .split("_")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ")
-    .replace("H2h", "Head to Head")
-    .replace("Q", "Quarter ")
-    .replace("H", "Half ");
-};
-
-interface FilterState {
-  date: "all" | "today" | "tomorrow" | "week";
-  bookmakers: string[];
-  marketTypes: string[];
-}
 
 interface SearchAndControlsProps {
   onSearch: (value: string) => void;
@@ -162,6 +118,42 @@ const SearchAndControls = ({
                 </div>
               </div>
 
+              {/* Bet Types Filter */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <Label className="text-base">Bet Types</Label>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => updateFilters({ betTypes: [] })}
+                  >
+                    Reset
+                  </Button>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {Object.values(BetTypes).map((betType) => (
+                    <div key={betType} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`betType-${betType}`}
+                        checked={filters.betTypes.includes(betType)}
+                        onCheckedChange={(checked) => {
+                          const newBetTypes = checked
+                            ? [...filters.betTypes, betType]
+                            : filters.betTypes.filter((b) => b !== betType);
+                          updateFilters({ betTypes: newBetTypes });
+                        }}
+                      />
+                      <Label
+                        htmlFor={`betType-${betType}`}
+                        className="text-sm cursor-pointer"
+                      >
+                        {betType}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               {/* Bookmaker Filter */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
@@ -197,42 +189,6 @@ const SearchAndControls = ({
                   ))}
                 </div>
               </div>
-
-              {/* Market Type Filter REACTIVATE WHEN FIXED*/}
-              {/* <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <Label className="text-base">Market Types</Label>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => updateFilters({ marketTypes: [] })}
-                  >
-                    Reset
-                  </Button>
-                </div>
-                <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
-                  {MarketTypes.map((market) => (
-                    <div key={market} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`market-${market}`}
-                        checked={filters.marketTypes.includes(market)}
-                        onCheckedChange={(checked) => {
-                          const newMarkets = checked
-                            ? [...filters.marketTypes, market]
-                            : filters.marketTypes.filter((m) => m !== market);
-                          updateFilters({ marketTypes: newMarkets });
-                        }}
-                      />
-                      <Label
-                        htmlFor={`market-${market}`}
-                        className="text-sm cursor-pointer"
-                      >
-                        {formatMarketType(market)}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </div> */}
             </div>
           </DialogContent>
         </Dialog>
