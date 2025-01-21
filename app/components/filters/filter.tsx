@@ -1,4 +1,3 @@
-// filter.tsx
 "use client";
 import { useState } from "react";
 import { Search, RefreshCw, Filter } from "lucide-react";
@@ -19,11 +18,11 @@ export const BookmakerLogos: { [key: string]: any } = {
   betrivers: "betRivers",
   caesars: "caesars",
   draftkings: "dk",
-  espnbet: "espn",
+  // espnbet: "espn",
   fanduel: "fanduel",
-  hardrock: "hardrockBet",
+  // hardrock: "hardrockBet",
   pinnacle: "pinnacle",
-  underdog: "underDog",
+  // underdog: "underDog",
 };
 
 interface SearchAndControlsProps {
@@ -136,6 +135,7 @@ const SearchAndControls = ({
                       <Checkbox
                         id={`betType-${betType}`}
                         checked={filters.betTypes.includes(betType)}
+                        defaultChecked={true}
                         onCheckedChange={(checked) => {
                           const newBetTypes = checked
                             ? [...filters.betTypes, betType]
@@ -172,6 +172,7 @@ const SearchAndControls = ({
                       <Checkbox
                         id={`bookie-${bookie}`}
                         checked={filters.bookmakers.includes(bookie)}
+                        defaultChecked={true}
                         onCheckedChange={(checked) => {
                           const newBookmakers = checked
                             ? [...filters.bookmakers, bookie]
