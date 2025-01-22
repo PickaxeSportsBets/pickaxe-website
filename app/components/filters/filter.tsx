@@ -18,11 +18,8 @@ export const BookmakerLogos: { [key: string]: any } = {
   betrivers: "betRivers",
   caesars: "caesars",
   draftkings: "dk",
-  // espnbet: "espn",
   fanduel: "fanduel",
-  // hardrock: "hardrockBet",
   pinnacle: "pinnacle",
-  // underdog: "underDog",
 };
 
 interface SearchAndControlsProps {
@@ -57,6 +54,11 @@ const SearchAndControls = ({
     { label: "Tomorrow", value: "tomorrow" },
     { label: "This Week", value: "week" },
   ];
+
+  // Initialize all bet types as checked
+  const allBetTypes = Object.values(BetTypes);
+  // Initialize all bookmakers as checked
+  const allBookmakers = Object.keys(BookmakerLogos);
 
   return (
     <div className="mb-6">
@@ -124,13 +126,13 @@ const SearchAndControls = ({
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => updateFilters({ betTypes: [] })}
+                    onClick={() => updateFilters({ betTypes: allBetTypes })}
                   >
                     Reset
                   </Button>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  {Object.values(BetTypes).map((betType) => (
+                  {allBetTypes.map((betType) => (
                     <div key={betType} className="flex items-center space-x-2">
                       <Checkbox
                         id={`betType-${betType}`}
@@ -161,13 +163,13 @@ const SearchAndControls = ({
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => updateFilters({ bookmakers: [] })}
+                    onClick={() => updateFilters({ bookmakers: allBookmakers })}
                   >
                     Reset
                   </Button>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
-                  {Object.keys(BookmakerLogos).map((bookie) => (
+                  {allBookmakers.map((bookie) => (
                     <div key={bookie} className="flex items-center space-x-2">
                       <Checkbox
                         id={`bookie-${bookie}`}

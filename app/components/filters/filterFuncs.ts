@@ -2,45 +2,62 @@
 export interface FilterState {
   date: "all" | "today" | "tomorrow" | "week";
   bookmakers: string[];
-  marketTypes: string[];
   betTypes: string[];
 }
 
-const initialFilterState: FilterState = {
-  date: "all",
-  bookmakers: [],
-  marketTypes: [],
-  betTypes: [],
-};
-
 export const BetTypes = {
   PLAYER_PROPS: "Player Props",
-  TEAM_TOTALS: "Team Totals",
-  MONEY_LINES: "Money Lines",
-  ALT_LINES: "Alternate Lines",
+  MONEYLINES: "Moneylines",
   SPREADS: "Spreads",
+  TOTALS: "Totals",
+  ALTERNATE_LINES: "Alternate Lines",
 } as const;
+
+export const BookmakerLogos: { [key: string]: string } = {
+  betmgm: "betmgm",
+  betrivers: "betRivers",
+  caesars: "caesars",
+  draftkings: "dk",
+  fanduel: "fanduel",
+  pinnacle: "pinnacle",
+};
+
+// Initialize with all options selected
+export const initialFilterState: FilterState = {
+  date: "all",
+  bookmakers: Object.keys(BookmakerLogos),
+  betTypes: Object.values(BetTypes),
+};
 
 const matchesMarketType = (marketType: string, betType: string): boolean => {
   const marketTypeLower = marketType.toLowerCase();
+
   switch (betType) {
     case BetTypes.PLAYER_PROPS:
       return marketTypeLower.includes("player prop");
-    case BetTypes.TEAM_TOTALS:
-      return marketTypeLower.includes("team_totals");
-    case BetTypes.MONEY_LINES:
-      return marketTypeLower.includes("h2h");
-    case BetTypes.ALT_LINES:
-      return marketTypeLower.includes("alternate");
+
+    case BetTypes.MONEYLINES:
+      return marketTypeLower.includes("moneyline");
+
     case BetTypes.SPREADS:
-      return marketTypeLower.includes("spreads");
+      return marketTypeLower.includes("spread");
+
+    case BetTypes.TOTALS:
+      return (
+        marketTypeLower.includes("total") &&
+        !marketTypeLower.includes("alternate")
+      );
+
+    case BetTypes.ALTERNATE_LINES:
+      return marketTypeLower.includes("alternate");
+
     default:
       return false;
   }
 };
 
-// Filter functions
-const filterEvBets = (bets: any[], filters: FilterState) => {
+// Filter functions for EV bets
+export const filterEvBets = (bets: any[], filters: FilterState) => {
   return bets.filter((bet) => {
     // Date filtering
     if (filters.date !== "all") {
@@ -103,7 +120,8 @@ const filterEvBets = (bets: any[], filters: FilterState) => {
   });
 };
 
-const filterArbBets = (bets: any[], filters: FilterState) => {
+// Filter functions for arbitrage bets
+export const filterArbBets = (bets: any[], filters: FilterState) => {
   return bets.filter((bet) => {
     // Date filtering
     if (filters.date !== "all") {
@@ -158,5 +176,3 @@ const filterArbBets = (bets: any[], filters: FilterState) => {
     return true;
   });
 };
-
-export { initialFilterState, filterEvBets, filterArbBets };

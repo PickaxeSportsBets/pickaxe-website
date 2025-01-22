@@ -89,6 +89,8 @@ export default function Home() {
         .from("arbitrage")
         .select()
         .order("timestamp", { ascending: false });
+      console.log("EV BETS", evBets?.slice(0, 30));
+      console.log("ARB BETS", arbBetsData?.slice(0, 30));
 
       if (evBets) {
         setEvLastUpdated(evBets[0]?.timestamp);
@@ -97,6 +99,7 @@ export default function Home() {
             (Number(b.ev_percentage) || 0) - (Number(a.ev_percentage) || 0)
         );
         setBets(sortedBets);
+
         setFilteredEVBets(sortedBets);
       }
 
