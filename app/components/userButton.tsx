@@ -6,26 +6,80 @@ import Image from "next/image";
 import Link from "next/link";
 import { CreditCard, Package, User, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
-import { getUserSubscription } from "../utils/stripe/getSubscription";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+type SubscriptionStatus = {
+  isSubscribed: boolean;
+  subscriptionStatus: string;
+  activePlans: string[];
+  stripeCustomerId?: string;
+};
+
 export const CustomUserButton = () => {
   const { isLoaded, user } = useUser();
   const { signOut, openUserProfile } = useClerk();
   const router = useRouter();
-  const [subscription, setSubscription] = useState<any>(null);
+  const [subscriptionStatus, setSubscriptionStatus] =
+    useState<SubscriptionStatus | null>(null);
+
   useEffect(() => {
+    const checkSubscriptionStatus = async () => {
+      try {
+        const headers = new Headers();
+
+        const currentHeaders = await fetch("/api/headers").then(
+          (res) => res.headers
+        );
+        for (const [key, value] of currentHeaders.entries()) {
+          headers.set(key, value);
+        }
+
+        headers.set("Content-Type", "application/json");
+
+        const response = await fetch(`${API_URL}/protected`, {
+          method: "GET",
+          headers: headers,
+          credentials: "include", // Important for cookies and auth headers
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+
+          setSubscriptionStatus({
+            isSubscribed: data.isSubscribed,
+            subscriptionStatus: data.subscriptionStatus,
+            activePlans: data.activePlans || [],
+            stripeCustomerId: user?.publicMetadata
+              ?.stripe_customer_id as string,
+          });
+        } else {
+          console.error(
+            "Error response:",
+            response.status,
+            await response.text()
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching subscription status:", error);
+        setSubscriptionStatus({
+          isSubscribed: false,
+          subscriptionStatus: "inactive",
+          activePlans: [],
+        });
+      }
+    };
+
     if (user?.id) {
-      getUserSubscription(user.id).then(setSubscription);
+      checkSubscriptionStatus();
     }
   }, [user?.id]);
 
   const handlePortalAccess = async () => {
     try {
-      // Use the stripe_customer_id from Clerk metadata
-      const stripeCustomerId = user?.publicMetadata?.stripe_customer_id;
-      const stripeCustomerIDV2 = subscription?.subscriptions[0]?.customer_id;
+      const stripeCustomerId = subscriptionStatus?.stripeCustomerId;
 
       if (!stripeCustomerId) {
         console.log("No Stripe customer ID found");
+        return;
       }
 
       const response = await fetch(
@@ -36,7 +90,7 @@ export const CustomUserButton = () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            customer_id: stripeCustomerIDV2,
+            customer_id: stripeCustomerId,
             return_url: window.location.origin,
             email: user?.primaryEmailAddress?.emailAddress,
           }),
@@ -51,23 +105,26 @@ export const CustomUserButton = () => {
       console.error("Error accessing portal:", error);
     }
   };
-  if (!isLoaded) return null;
-  if (!user?.id) return null;
+
+  if (!isLoaded || !user?.id) return null;
+
+  const subscriptionText = (() => {
+    if (!subscriptionStatus) return "Loading...";
+    if (subscriptionStatus.isSubscribed) return "Active Subscriber";
+    return "Free Plan";
+  })();
 
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger asChild>
         <button className="flex items-center gap-2 rounded-lg border border-secondary-bg-light dark:border-secondary-bg-dark bg-white dark:bg-secondary-bg-dark px-3 py-2 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800">
           <Image
-            alt={user?.primaryEmailAddress?.emailAddress!}
-            src={user?.imageUrl}
+            alt={user.primaryEmailAddress?.emailAddress!}
+            src={user.imageUrl}
             width={32}
             height={32}
             className="rounded-full"
           />
-          {/* <span className="text-sm text-primary-text-light dark:text-primary-text-dark">
-            {user?.username || user?.primaryEmailAddress?.emailAddress}
-          </span> */}
         </button>
       </DropdownMenu.Trigger>
 
@@ -80,10 +137,10 @@ export const CustomUserButton = () => {
           <div className="flex flex-col gap-1 p-2">
             <div className="px-2 py-2">
               <p className="text-sm font-medium text-primary-text-light dark:text-primary-text-dark">
-                {user?.primaryEmailAddress?.emailAddress}
+                {user.primaryEmailAddress?.emailAddress}
               </p>
               <p className="text-xs text-secondary-text-light dark:text-secondary-text-dark">
-                {subscription?.isValid ? "Active Subscriber" : "Free Plan"}
+                {subscriptionText}
               </p>
             </div>
 
@@ -109,11 +166,11 @@ export const CustomUserButton = () => {
               </Link>
             </DropdownMenu.Item>
 
-            {subscription?.isValid && (
+            {subscriptionStatus?.isSubscribed && (
               <DropdownMenu.Item asChild>
                 <button
                   onClick={handlePortalAccess}
-                  className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm text-primary-text-light dark:text-primary-text-dark hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" /*...props*/
+                  className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm text-primary-text-light dark:text-primary-text-dark hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 >
                   <CreditCard className="h-4 w-4" />
                   Manage Subscriptions

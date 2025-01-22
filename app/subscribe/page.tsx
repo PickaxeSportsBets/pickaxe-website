@@ -226,13 +226,66 @@ import {
 } from "@stripe/react-stripe-js";
 import { getUserSubscription } from "../utils/stripe/getSubscription";
 import { CreditCard } from "lucide-react";
-
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 );
 const PricingPage = () => {
   const { user } = useUser();
   const [subscription, setSubscription] = useState<any>(null);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null);
+
+  useEffect(() => {
+    const checkSubscriptionStatus = async () => {
+      try {
+        const headers = new Headers();
+
+        const currentHeaders = await fetch("/api/headers").then(
+          (res) => res.headers
+        );
+        for (const [key, value] of currentHeaders.entries()) {
+          headers.set(key, value);
+        }
+
+        headers.set("Content-Type", "application/json");
+
+        const response = await fetch(`${API_URL}/protected`, {
+          method: "GET",
+          headers: headers,
+          credentials: "include", // Important for cookies and auth headers
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+
+          setSubscriptionStatus({
+            isSubscribed: data.isSubscribed,
+            subscriptionStatus: data.subscriptionStatus,
+            activePlans: data.activePlans || [],
+            stripeCustomerId: user?.publicMetadata
+              ?.stripe_customer_id as string,
+          });
+        } else {
+          console.error(
+            "Error response:",
+            response.status,
+            await response.text()
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching subscription status:", error);
+        setSubscriptionStatus({
+          isSubscribed: false,
+          subscriptionStatus: "inactive",
+          activePlans: [],
+        });
+      }
+    };
+
+    if (user?.id) {
+      checkSubscriptionStatus();
+    }
+  }, [user?.id]);
 
   const fetchClientSecret = useCallback(() => {
     // Create a Checkout Session
@@ -274,11 +327,6 @@ const PricingPage = () => {
       period: "month",
     },
   ];
-  useEffect(() => {
-    if (user?.id) {
-      getUserSubscription(user.id).then(setSubscription);
-    }
-  }, [user?.id]);
 
   const handlePortalAccess = async () => {
     try {
@@ -313,9 +361,7 @@ const PricingPage = () => {
       console.error("Error accessing portal:", error);
     }
   };
-  useEffect(() => {
-    console.log(subscription);
-  }, [subscription]);
+
   const handleSubscribe = async (priceId: string) => {
     if (!user) {
       return;
