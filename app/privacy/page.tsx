@@ -64,7 +64,7 @@ export default function PrivacyPolicy() {
                       {
                         term: "Company",
                         definition:
-                          '(referred to as either "the Company", "We", "Us" or "Our" in this Agreement) refers to Pickaxe LLC, 2821 Montclair Dr.',
+                          '(referred to as either "the Company", "We", "Us" or "Our" in this Agreement) refers to Pickaxe LLC.',
                       },
                       {
                         term: "Cookies",
