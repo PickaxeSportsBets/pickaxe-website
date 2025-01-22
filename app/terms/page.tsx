@@ -57,7 +57,7 @@ export default function TermsOfService() {
                   4. Compliance with Local Laws
                 </h2>
                 <p className="text-secondary-text-light dark:text-secondary-text-dark">
-                  It is the user`&apos;`s responsibility to ensure compliance
+                  It is the users responsibility to ensure compliance
                   with all applicable laws and regulations in their
                   jurisdiction. Some jurisdictions may prohibit or restrict
                   sports betting and arbitrage activities. We do not condone or
