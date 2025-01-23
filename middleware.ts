@@ -4,12 +4,13 @@ import { NextResponse } from "next/server";
 import { checkSubscription } from "./app/utils/token/subscription";
 import { generateToken, verifyToken, shouldRefreshToken } from "./app/utils/token/jwtService";
 
-const isPublicRoute = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)"]);
+const isPublicRoute = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)",
+  "/api(.*)"]);
 
 export default clerkMiddleware(async (auth: ClerkMiddlewareAuth, request) => {
-  if (isPublicRoute(request)) {
-    return NextResponse.next();
-  }
+    if (!isPublicRoute(request)) {
+      await auth.protect();
+    }
 
   try {
     const session = await auth.protect();

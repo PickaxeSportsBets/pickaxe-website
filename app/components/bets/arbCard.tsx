@@ -320,3 +320,4 @@ const ArbBetCard = ({
 };
 
 export default ArbBetCard;
+export { BookmakerLogos };
