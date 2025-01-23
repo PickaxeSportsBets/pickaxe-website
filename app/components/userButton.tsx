@@ -117,13 +117,13 @@ export const CustomUserButton = () => {
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger asChild>
-        <button className="flex items-center gap-2 rounded-lg border border-secondary-bg-light dark:border-secondary-bg-dark bg-white dark:bg-secondary-bg-dark px-3 py-2 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800">
+        <button className="flex items-center justify-center w-10 h-10 aspect-square rounded-full border border-secondary-bg-light dark:border-secondary-bg-dark bg-white dark:bg-secondary-bg-dark transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 overflow-hidden">
           <Image
             alt={user.primaryEmailAddress?.emailAddress!}
             src={user.imageUrl}
-            width={32}
-            height={32}
-            className="rounded-full"
+            width={40}
+            height={40}
+            className="w-full h-full object-cover rounded-full"
           />
         </button>
       </DropdownMenu.Trigger>

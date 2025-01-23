@@ -35,16 +35,9 @@ export default clerkMiddleware(async (auth: ClerkMiddlewareAuth, request) => {
       token = await generateToken(session.userId, subscription);
       
       // Debug logging
-      // console.log('=== New JWT Token Generated ===');
-      // console.log('Token:', token);
-      if (existingToken) {
-        console.log('Reason: Token refresh needed');
-      } else {
-        console.log('Reason: No existing token');
-      }
-      // console.log('Subscription Status:', subscription.status);
-      // console.log('Is Valid:', subscription.isValid);
-      // console.log('=============================');
+      console.log('=== New JWT Token Generated ===');
+      console.log('Token:', token);
+      console.log('=============================');
     }
 
     // Set headers
