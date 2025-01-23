@@ -22,8 +22,16 @@ module.exports = {
           dark: "#2A3247",
         },
         "secondary-bg-hover": {
-          light: "#e2e8f0",
+          light: "#EAF0F6",
           dark: "#313B53",
+        },
+        "tertiary-bg": {
+          light: "#DBE5F0",
+          dark: "#3E4C6F",
+        },
+        "tertiary-bg-hover": {
+          light: "#D0DDEB",
+          dark: "#394565",
         },
         "primary-text": {
           light: "#0f172a",
@@ -48,7 +56,7 @@ module.exports = {
           dark: "#1cb954",
         },
         "button-green": {
-          light: "#dcfce7",
+          light: "#D0F5DD",
           dark: "#2c4c3b",
         },
         "button-green-hover": {

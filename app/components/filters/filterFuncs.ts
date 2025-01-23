@@ -1,17 +1,63 @@
+// filterFuncs.ts
 export interface FilterState {
   date: "all" | "today" | "tomorrow" | "week";
   bookmakers: string[];
-  marketTypes: string[];
+  betTypes: string[];
 }
 
-const initialFilterState: FilterState = {
-  date: "all",
-  bookmakers: [],
-  marketTypes: [],
+export const BetTypes = {
+  PLAYER_PROPS: "Player Props",
+  MONEYLINES: "Moneylines",
+  SPREADS: "Spreads",
+  TOTALS: "Totals",
+  ALTERNATE_LINES: "Alternate Lines",
+} as const;
+
+export const BookmakerLogos: { [key: string]: string } = {
+  betmgm: "betmgm",
+  betrivers: "betRivers",
+  caesars: "caesars",
+  draftkings: "dk",
+  fanduel: "fanduel",
+  pinnacle: "pinnacle",
 };
 
-// Filter functions
-const filterEvBets = (bets: any[], filters: FilterState) => {
+// Initialize with all options selected
+export const initialFilterState: FilterState = {
+  date: "all",
+  bookmakers: Object.keys(BookmakerLogos),
+  betTypes: Object.values(BetTypes),
+};
+
+const matchesMarketType = (marketType: string, betType: string): boolean => {
+  const marketTypeLower = marketType.toLowerCase();
+
+  switch (betType) {
+    case BetTypes.PLAYER_PROPS:
+      return marketTypeLower.includes("player prop");
+
+    case BetTypes.MONEYLINES:
+      return marketTypeLower.includes("moneyline");
+
+    case BetTypes.SPREADS:
+      return marketTypeLower.includes("spread");
+
+    case BetTypes.TOTALS:
+      return (
+        marketTypeLower.includes("total") &&
+        !marketTypeLower.includes("alternate")
+      );
+
+    case BetTypes.ALTERNATE_LINES:
+      return marketTypeLower.includes("alternate");
+
+    default:
+      return false;
+  }
+};
+
+// Filter functions for EV bets
+export const filterEvBets = (bets: any[], filters: FilterState) => {
   return bets.filter((bet) => {
     // Date filtering
     if (filters.date !== "all") {
@@ -39,19 +85,22 @@ const filterEvBets = (bets: any[], filters: FilterState) => {
       }
     }
 
-    // Market type filtering
-    if (
-      filters.marketTypes.length > 0 &&
-      !filters.marketTypes.includes(bet.market_type)
-    ) {
-      return false;
+    // Bet type filtering
+    if (filters.betTypes.length > 0) {
+      const marketType = bet.market_type || "";
+      if (
+        !filters.betTypes.some((betType) =>
+          matchesMarketType(marketType, betType)
+        )
+      ) {
+        return false;
+      }
     }
 
     // Bookmaker filtering
     if (filters.bookmakers.length > 0) {
       const mainBookmaker = bet.bookmaker?.toLowerCase();
       if (!filters.bookmakers.includes(mainBookmaker)) {
-        // Check market_data for other bookmakers
         const marketData = bet.market_data || {};
         const hasMatchingBookmaker = Object.values(marketData).some(
           (side: any) => {
@@ -71,7 +120,8 @@ const filterEvBets = (bets: any[], filters: FilterState) => {
   });
 };
 
-const filterArbBets = (bets: any[], filters: FilterState) => {
+// Filter functions for arbitrage bets
+export const filterArbBets = (bets: any[], filters: FilterState) => {
   return bets.filter((bet) => {
     // Date filtering
     if (filters.date !== "all") {
@@ -99,12 +149,16 @@ const filterArbBets = (bets: any[], filters: FilterState) => {
       }
     }
 
-    // Market type filtering
-    if (
-      filters.marketTypes.length > 0 &&
-      !filters.marketTypes.includes(bet.market_type)
-    ) {
-      return false;
+    // Bet type filtering
+    if (filters.betTypes.length > 0) {
+      const marketType = bet.market_type || "";
+      if (
+        !filters.betTypes.some((betType) =>
+          matchesMarketType(marketType, betType)
+        )
+      ) {
+        return false;
+      }
     }
 
     // Bookmaker filtering
@@ -122,5 +176,3 @@ const filterArbBets = (bets: any[], filters: FilterState) => {
     return true;
   });
 };
-
-export { initialFilterState, filterEvBets, filterArbBets };

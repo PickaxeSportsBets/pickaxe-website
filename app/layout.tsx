@@ -1,7 +1,8 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
-import { ThemeProvider } from "./components/themeprovider";
+import { ThemeProvider } from "./components/utilities/themeprovider";
 import "./globals.css";
+import Footer from "./components/utilities/footer";
 
 export const metadata = {
   title: "Pickaxe",
@@ -25,6 +26,7 @@ export default function RootLayout({
             afterSignOutUrl={"/sign-in"}
           >
             {children}
+            <Footer />
           </ClerkProvider>
         </ThemeProvider>
       </body>
