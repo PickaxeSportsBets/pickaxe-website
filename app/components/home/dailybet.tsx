@@ -29,13 +29,24 @@ const FreeBetComponent = ({
 
   const fetchFreeBetStatus = async () => {
     try {
-      const response = await fetch("/api/free-bet", {
+      const headers = new Headers();
+
+      const currentHeaders = await fetch("/api/headers").then(
+        (res) => res.headers
+      );
+      for (const [key, value] of currentHeaders.entries()) {
+        headers.set(key, value);
+      }
+
+      headers.set("Content-Type", "application/json");
+
+      const response = await fetch("/api/redeem-bet", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
+        headers: headers,
+        credentials: "include",
       });
       const data = await response.json();
+      console.log("data", data);
       setFreeBetStatus(data);
       setLoading(false);
     } catch (error) {
@@ -110,70 +121,76 @@ const FreeBetComponent = ({
   if (loading || subscriptionStatus?.isSubscribed) return null;
 
   return (
-    <div className="mb-6">
-      <Card className="p-6 bg-secondary-bg-light dark:bg-secondary-bg-dark border border-tertiary-bg-light dark:border-tertiary-bg-dark">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <Gift className="h-6 w-6 text-accent-green-light dark:text-accent-green-dark" />
+    <div className="max-w-2xl mx-auto px-4 mb-6">
+      <Card className="bg-secondary-bg-light dark:bg-secondary-bg-dark border-none">
+        <div className="p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-button-green-light dark:bg-button-green-dark">
+              <Gift className="h-5 w-5 text-accent-green-light dark:text-accent-green-dark" />
+            </div>
             <div>
-              <h3 className="text-lg font-semibold text-primary-text-light dark:text-primary-text-dark">
-                Your Daily Free Bet
+              <h3 className="text-base font-medium text-primary-text-light dark:text-primary-text-dark">
+                Daily Free Bet
               </h3>
               <p className="text-sm text-secondary-text-light dark:text-secondary-text-dark">
                 {freeBetStatus?.allowed
                   ? "Available Now!"
-                  : `Next bet available in: ${timeRemaining}`}
+                  : `Next bet in: ${timeRemaining}`}
               </p>
             </div>
           </div>
           <Button
             onClick={handleShowBet}
             disabled={!freeBetStatus?.allowed}
-            className="bg-button-green-light dark:bg-button-green-dark hover:bg-button-green-hover-light dark:hover:bg-button-green-hover-dark text-primary-text-light dark:text-primary-text-dark"
+            size="sm"
+            className="bg-button-green-light dark:bg-button-green-dark hover:bg-button-green-hover-light dark:hover:bg-button-green-hover-dark text-primary-text-light dark:text-primary-text-dark border-none"
           >
-            View Free Bet
+            {freeBetStatus?.allowed ? "View Bet" : "Locked"}
           </Button>
         </div>
       </Card>
 
       <Dialog open={showBetDialog} onOpenChange={setShowBetDialog}>
-        <DialogContent className="bg-primary-bg-light dark:bg-primary-bg-dark">
+        <DialogContent className="bg-primary-bg-light dark:bg-primary-bg-dark max-w-md mx-auto">
           <DialogHeader>
             <DialogTitle className="text-primary-text-light dark:text-primary-text-dark">
               Your Free Arbitrage Bet
             </DialogTitle>
             <DialogDescription className="text-secondary-text-light dark:text-secondary-text-dark">
-              Here's your daily arbitrage opportunity
+              Today's arbitrage opportunity
             </DialogDescription>
           </DialogHeader>
 
           {freeBet && (
             <div className="space-y-4">
-              <div className="p-4 rounded-lg bg-secondary-bg-light dark:bg-secondary-bg-dark">
-                <h4 className="font-semibold text-primary-text-light dark:text-primary-text-dark mb-2">
+              <div className="rounded-lg bg-secondary-bg-light dark:bg-secondary-bg-dark p-4">
+                <h4 className="font-medium text-primary-text-light dark:text-primary-text-dark mb-3">
                   {freeBet.game}
                 </h4>
-                <div className="space-y-2">
-                  <p className="text-sm text-secondary-text-light dark:text-secondary-text-dark">
-                    <span className="font-medium">Book 1:</span> {freeBet.book1}{" "}
-                    ({freeBet.team1_name} @ {freeBet.odds1})
-                  </p>
-                  <p className="text-sm text-secondary-text-light dark:text-secondary-text-dark">
-                    <span className="font-medium">Book 2:</span> {freeBet.book2}{" "}
-                    ({freeBet.team2_name} @ {freeBet.odds2})
-                  </p>
-                  <p className="text-sm font-medium text-profit-green-light dark:text-profit-green-dark">
-                    Potential Profit: {freeBet.profit_percentage.toFixed(2)}%
-                  </p>
+                <div className="space-y-2.5">
+                  <div className="flex flex-col gap-1">
+                    <p className="text-sm text-secondary-text-light dark:text-secondary-text-dark">
+                      <span className="font-medium">{freeBet.book1}:</span>{" "}
+                      {freeBet.team1_name} @ {freeBet.odds1}
+                    </p>
+                    <p className="text-sm text-secondary-text-light dark:text-secondary-text-dark">
+                      <span className="font-medium">{freeBet.book2}:</span>{" "}
+                      {freeBet.team2_name} @ {freeBet.odds2}
+                    </p>
+                  </div>
+                  <div className="pt-2 border-t border-tertiary-bg-light dark:border-tertiary-bg-dark">
+                    <p className="text-sm font-medium text-profit-green-light dark:text-profit-green-dark">
+                      Potential Profit: {freeBet.profit_percentage.toFixed(2)}%
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              <Alert className="bg-tertiary-bg-light dark:bg-tertiary-bg-dark border-accent-green-light dark:border-accent-green-dark">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription className="text-sm text-secondary-text-light dark:text-secondary-text-dark">
-                  Disclaimer: Betting lines may shift rapidly. This opportunity
-                  may no longer be available or profitable. Please verify all
-                  odds before placing any bets. Always gamble responsibly.
+              <Alert className="bg-tertiary-bg-light dark:bg-tertiary-bg-dark border border-tertiary-bg-light dark:border-tertiary-bg-dark">
+                <AlertTriangle className="h-4 w-4 text-secondary-text-light dark:text-secondary-text-dark" />
+                <AlertDescription className="text-xs text-secondary-text-light dark:text-secondary-text-dark">
+                  Lines may shift rapidly. Verify all odds before placing bets.
+                  Gamble responsibly.
                 </AlertDescription>
               </Alert>
             </div>

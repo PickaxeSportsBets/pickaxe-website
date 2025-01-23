@@ -15,6 +15,7 @@ import SearchAndControls from "../filters/filter";
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import SubscriptionBanner from "./banner";
+import FreeBetComponent from "./dailybet";
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const supabase = createClient();
 import {
@@ -358,7 +359,10 @@ export default function Home() {
     <>
       <Header />
       {subscriptionStatus && !subscriptionStatus.isSubscribed && (
-        <SubscriptionBanner />
+        <>
+          <SubscriptionBanner />
+          <FreeBetComponent subscriptionStatus={subscriptionStatus} />
+        </>
       )}
       <div className="min-h-screen bg-primary-bg-light dark:bg-primary-bg-dark">
         <div className="max-w-[90%] mx-auto px-2 sm:px-4 lg:px-6">
