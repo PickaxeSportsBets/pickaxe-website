@@ -214,8 +214,8 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import Header from "../components/utilities/header";
 import { CheckCircle, Zap, Mail } from "lucide-react";
-import Header from "../components/header";
 import { useUser } from "@clerk/nextjs";
 import { createCheckoutSession } from "../utils/stripe/stripe";
 import { useCallback } from "react";

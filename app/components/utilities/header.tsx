@@ -2,7 +2,7 @@ import { useClerk } from "@clerk/nextjs";
 import Link from "next/link";
 import { ThemeToggle } from "./themeprovider";
 import { useRouter } from "next/navigation";
-import { CustomUserButton } from "./userButton";
+import { CustomUserButton } from "../userButton";
 export default function Header() {
   const { signOut } = useClerk();
   const router = useRouter();

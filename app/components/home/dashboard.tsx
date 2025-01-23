@@ -1,17 +1,17 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import Header from "../header";
+import Header from "../utilities/header";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import EVBetCard from "../bets/card";
-import NavButtons from "../navButtons";
+import NavButtons from "../utilities/navButtons";
 import ArbBetCard from "../bets/arbCard";
 import { createClient } from "@/app/utils/supabase/client";
 import { formatDistanceToNow, sub } from "date-fns";
 import PromosCalculator from "../promos/promo";
-import LoadingSkeleton from "../loadingSkeleton";
-import SearchAndControls from "../filter";
+import LoadingSkeleton from "../utilities/loadingSkeleton";
+import SearchAndControls from "../filters/filter";
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import SubscriptionBanner from "./banner";
@@ -22,7 +22,7 @@ import {
   filterArbBets,
   filterEvBets,
   FilterState,
-} from "../filterFuncs";
+} from "../filters/filterFuncs";
 import { useUser } from "@clerk/nextjs";
 enum Page {
   EV = "EV",
