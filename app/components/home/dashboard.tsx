@@ -17,7 +17,11 @@ import { Toaster } from "@/components/ui/toaster";
 import SubscriptionBanner from "./banner";
 import FreeBetComponent from "./dailybet";
 import { Skeleton } from "@/components/ui/skeleton";
-
+import SubscriptionCheck from "./nonSubscriber";
+import {
+  NoSubscriptionOverlay,
+  EmailSubscriptionOverlay,
+} from "./nonSubscriber";
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const supabase = createClient();
 import {
@@ -411,7 +415,6 @@ export default function Home() {
       <div className="min-h-screen bg-primary-bg-light dark:bg-primary-bg-dark">
         <div className="max-w-[90%] mx-auto px-2 sm:px-4 lg:px-6">
           <NavButtons currPage={currPage} setCurrPage={setCurrPage} />
-
           {currPage !== Page.PROMOS && (
             <SearchAndControls
               onSearch={handleSearch}
@@ -422,14 +425,23 @@ export default function Home() {
               isArbPage={currPage === Page.ARB}
             />
           )}
-
           {currPage !== Page.PROMOS && !loading && getLastUpdated() && (
             <p className="text-secondary-text-light dark:text-secondary-text-dark text-sm">
               Updated {formatDistanceToNow(getLastUpdated()!)} ago
             </p>
           )}
-
-          <div className="py-4">{renderContent()}</div>
+          <div className="py-4">
+            {loading && !subscriptionStatus ? (
+              <LoadingSkeleton />
+            ) : (
+              <SubscriptionCheck
+                subscriptionStatus={subscriptionStatus}
+                loading={isLoadingSubscription}
+              >
+                {renderContent()}
+              </SubscriptionCheck>
+            )}
+          </div>
         </div>
       </div>
       <Toaster />
