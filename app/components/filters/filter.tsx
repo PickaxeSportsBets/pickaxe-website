@@ -68,22 +68,24 @@ const SearchAndControls = ({
   };
 
   const handleFilterChange = (newFilters: Partial<FilterState>) => {
+    // Check if all bet types and bookmakers are selected
+    const updatedFilters = { ...filters, ...newFilters };
+
+    const allBetTypesSelected =
+      allBetTypes.length === updatedFilters.betTypes?.length;
+    const allBookmakersSelected =
+      allBookmakers.length === updatedFilters.bookmakers?.length;
+    const isAllDates = updatedFilters.date === "all";
+
+    // If everything is selected, treat it as reset all
+    if (allBetTypesSelected && allBookmakersSelected && isAllDates) {
+      handleResetAll();
+      return;
+    }
+
+    // Otherwise, update with filtering enabled
     updateFilters({
       ...newFilters,
-      isFilteringEnabled: true,
-    });
-  };
-
-  const handleResetFilters = () => {
-    updateFilters({
-      betTypes: allBetTypes,
-      isFilteringEnabled: true,
-    });
-  };
-
-  const handleResetBookmakers = () => {
-    updateFilters({
-      bookmakers: allBookmakers,
       isFilteringEnabled: true,
     });
   };
