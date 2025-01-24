@@ -16,6 +16,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import SubscriptionBanner from "./banner";
 import FreeBetComponent from "./dailybet";
+import { Skeleton } from "@/components/ui/skeleton";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const supabase = createClient();
 import {
@@ -25,10 +27,19 @@ import {
   FilterState,
 } from "../filters/filterFuncs";
 import { useUser } from "@clerk/nextjs";
+
 enum Page {
   EV = "EV",
   ARB = "ARB",
   PROMOS = "PROMOS",
+}
+
+interface SubscriptionStatus {
+  isSubscribed: boolean;
+  subscriptionStatus: string;
+  activePlans: string[];
+  stripeCustomerId?: string;
+  subscriptionName?: string;
 }
 
 export default function Home() {
@@ -44,7 +55,9 @@ export default function Home() {
   const [arbLastUpdated, setArbLastUpdated] = useState("");
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<FilterState>(initialFilterState);
-  const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null);
+  const [isLoadingSubscription, setIsLoadingSubscription] = useState(true);
+  const [subscriptionStatus, setSubscriptionStatus] =
+    useState<SubscriptionStatus | null>(null);
   const itemsPerPage = 25;
   const { toast } = useToast();
 
@@ -147,11 +160,11 @@ export default function Home() {
     fetchUserState();
     fetchData();
   }, []);
+
   const updateFilters = (newFilters: Partial<FilterState>) => {
     setFilters((prev) => ({ ...prev, ...newFilters }));
   };
 
-  // Apply filters effect
   useEffect(() => {
     if (currPage === Page.EV) {
       const filteredBets = filterEvBets(bets || [], filters);
@@ -162,20 +175,18 @@ export default function Home() {
     }
   }, [filters, currPage, bets, arbBets]);
 
-  //fetch subscriptoin status
-
   useEffect(() => {
     const checkSubscriptionStatus = async () => {
+      setIsLoadingSubscription(true);
       try {
         const headers = new Headers();
-
         const currentHeaders = await fetch("/api/headers").then(
           (res) => res.headers
         );
+
         for (const [key, value] of currentHeaders.entries()) {
           headers.set(key, value);
         }
-
         headers.set("Content-Type", "application/json");
 
         const response = await fetch(`${API_URL}/protected`, {
@@ -186,20 +197,33 @@ export default function Home() {
 
         if (response.ok) {
           const data = await response.json();
+          if (data.isSubscribed) {
+            const subscriptionResponse = await fetch(
+              `/api/subscription-details`,
+              {
+                method: "GET",
+                headers: headers,
+                credentials: "include",
+              }
+            );
 
-          setSubscriptionStatus({
-            isSubscribed: data.isSubscribed,
-            subscriptionStatus: data.subscriptionStatus,
-            activePlans: data.activePlans || [],
-            stripeCustomerId: user?.publicMetadata
-              ?.stripe_customer_id as string,
-          });
-        } else {
-          console.error(
-            "Error response:",
-            response.status,
-            await response.text()
-          );
+            const subscriptionDetails = await subscriptionResponse.json();
+
+            setSubscriptionStatus({
+              isSubscribed: data.isSubscribed,
+              subscriptionStatus: data.subscriptionStatus,
+              activePlans: data.activePlans || [],
+              stripeCustomerId: user?.publicMetadata
+                ?.stripe_customer_id as string,
+              subscriptionName: subscriptionDetails.plan?.nickname || "",
+            });
+          } else {
+            setSubscriptionStatus({
+              isSubscribed: false,
+              subscriptionStatus: "inactive",
+              activePlans: [],
+            });
+          }
         }
       } catch (error) {
         console.error("Error fetching subscription status:", error);
@@ -208,11 +232,15 @@ export default function Home() {
           subscriptionStatus: "inactive",
           activePlans: [],
         });
+      } finally {
+        setIsLoadingSubscription(false);
       }
     };
 
     if (user?.id) {
       checkSubscriptionStatus();
+    } else {
+      setIsLoadingSubscription(false);
     }
   }, [user?.id]);
 
@@ -300,6 +328,17 @@ export default function Home() {
     );
   };
 
+  const SubscriptionLoadingState = () => (
+    <div className="w-full space-y-4 mb-6">
+      <div className="flex items-center justify-center w-full">
+        <Skeleton className="h-24 w-full max-w-3xl rounded-lg" />
+      </div>
+      <div className="flex items-center justify-center w-full">
+        <Skeleton className="h-16 w-full max-w-2xl rounded-lg" />
+      </div>
+    </div>
+  );
+
   const renderContent = () => {
     switch (currPage) {
       case Page.EV:
@@ -358,11 +397,16 @@ export default function Home() {
   return (
     <>
       <Header />
-      {subscriptionStatus && !subscriptionStatus.isSubscribed && (
-        <>
-          <SubscriptionBanner />
-          <FreeBetComponent subscriptionStatus={subscriptionStatus} />
-        </>
+      {isLoadingSubscription ? (
+        <SubscriptionLoadingState />
+      ) : (
+        subscriptionStatus &&
+        !subscriptionStatus.isSubscribed && (
+          <>
+            <SubscriptionBanner />
+            <FreeBetComponent subscriptionStatus={subscriptionStatus} />
+          </>
+        )
       )}
       <div className="min-h-screen bg-primary-bg-light dark:bg-primary-bg-dark">
         <div className="max-w-[90%] mx-auto px-2 sm:px-4 lg:px-6">

@@ -15,7 +15,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Gift, AlertTriangle, Calculator } from "lucide-react";
 import CalculatorModal from "../bets/modal";
 import { BookmakerLogos } from "../bets/arbCard";
-
 const FreeBetComponent = ({
   subscriptionStatus,
 }: {
