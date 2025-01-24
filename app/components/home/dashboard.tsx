@@ -408,40 +408,42 @@ export default function Home() {
         !subscriptionStatus.isSubscribed && (
           <>
             <SubscriptionBanner />
-            <FreeBetComponent subscriptionStatus={subscriptionStatus} />
+            <div className="mx-8">
+              <FreeBetComponent subscriptionStatus={subscriptionStatus} />
+            </div>
           </>
         )
       )}
       <div className="min-h-screen bg-primary-bg-light dark:bg-primary-bg-dark">
         <div className="max-w-[90%] mx-auto px-2 sm:px-4 lg:px-6">
           <NavButtons currPage={currPage} setCurrPage={setCurrPage} />
-          {currPage !== Page.PROMOS && (
-            <SearchAndControls
-              onSearch={handleSearch}
-              onRefresh={onRefresh}
-              filters={filters}
-              updateFilters={updateFilters}
-              loading={loading}
-              isArbPage={currPage === Page.ARB}
-            />
-          )}
-          {currPage !== Page.PROMOS && !loading && getLastUpdated() && (
-            <p className="text-secondary-text-light dark:text-secondary-text-dark text-sm">
-              Updated {formatDistanceToNow(getLastUpdated()!)} ago
-            </p>
-          )}
-          <div className="py-4">
-            {loading && !subscriptionStatus ? (
-              <LoadingSkeleton />
-            ) : (
-              <SubscriptionCheck
-                subscriptionStatus={subscriptionStatus}
-                loading={isLoadingSubscription}
-              >
-                {renderContent()}
-              </SubscriptionCheck>
+
+          {/* Wrap both search controls and content in SubscriptionCheck */}
+          <SubscriptionCheck
+            subscriptionStatus={subscriptionStatus}
+            loading={isLoadingSubscription}
+          >
+            {currPage !== Page.PROMOS && (
+              <>
+                <SearchAndControls
+                  onSearch={handleSearch}
+                  onRefresh={onRefresh}
+                  filters={filters}
+                  updateFilters={updateFilters}
+                  loading={loading}
+                  isArbPage={currPage === Page.ARB}
+                />
+                {!loading && getLastUpdated() && (
+                  <p className="text-secondary-text-light dark:text-secondary-text-dark text-sm">
+                    Updated {formatDistanceToNow(getLastUpdated()!)} ago
+                  </p>
+                )}
+              </>
             )}
-          </div>
+            <div className="py-4">
+              {loading ? <LoadingSkeleton /> : renderContent()}
+            </div>
+          </SubscriptionCheck>
         </div>
       </div>
       <Toaster />
