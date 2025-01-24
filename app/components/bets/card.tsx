@@ -56,7 +56,8 @@ const EVBetCard = ({
     const { data, error } = await supabase
       .from("ev_graph")
       .select("*")
-      .eq("primary_key", bet.primary_key);
+      .eq("primary_key", bet.primary_key)
+      .order("timestamp", { ascending: true });
     if (error) {
       console.error("Error fetching historical data:", error);
     } else {
