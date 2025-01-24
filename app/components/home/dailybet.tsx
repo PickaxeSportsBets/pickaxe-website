@@ -169,8 +169,8 @@ const FreeBetComponent = ({
 
     const stake1 = freeBet.team1_stake;
     const stake2 = freeBet.team2_stake;
-    const odds1 = freeBet.odds1;
-    const odds2 = freeBet.odds2;
+    const odds1 = freeBet.team1_odds;
+    const odds2 = freeBet.team2_odds;
 
     const totalStake = 100;
     const stake1Amount = totalStake * (stake1 / 100);
