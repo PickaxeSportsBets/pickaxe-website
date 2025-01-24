@@ -195,6 +195,12 @@ export default function Home() {
     setCurrentPageNumber(1);
   };
 
+  // useEffect(() => {
+  //   console.log(arbBets.slice(0, 30), "arbBets");
+  //   console.log(bets.slice(0, 30), "bets");
+  //   console.log(filteredArbBets.slice(0, 30), "sortedArbBets");
+  //   console.log(filteredEVBets.slice(0, 30), "sortedBets");
+  // }, [arbBets, bets, filteredArbBets, filteredEVBets]);
   const getCurrentPageItems = (items: any[]) => {
     if (!Array.isArray(items) || items.length === 0) {
       return [];

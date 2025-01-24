@@ -11,7 +11,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { FilterState, BetTypes } from "./filterFuncs";
+import { FilterState, BetTypes, initialFilterState } from "./filterFuncs";
 
 export const BookmakerLogos: { [key: string]: any } = {
   betmgm: "betmgm",
@@ -55,10 +55,38 @@ const SearchAndControls = ({
     { label: "This Week", value: "week" },
   ];
 
-  // Initialize all bet types as checked
   const allBetTypes = Object.values(BetTypes);
-  // Initialize all bookmakers as checked
   const allBookmakers = Object.keys(BookmakerLogos);
+
+  const handleResetAll = () => {
+    updateFilters({
+      ...initialFilterState,
+      isFilteringEnabled: false,
+    });
+    setSearchTerm("");
+    onSearch("");
+  };
+
+  const handleFilterChange = (newFilters: Partial<FilterState>) => {
+    updateFilters({
+      ...newFilters,
+      isFilteringEnabled: true,
+    });
+  };
+
+  const handleResetFilters = () => {
+    updateFilters({
+      betTypes: allBetTypes,
+      isFilteringEnabled: true,
+    });
+  };
+
+  const handleResetBookmakers = () => {
+    updateFilters({
+      bookmakers: allBookmakers,
+      isFilteringEnabled: true,
+    });
+  };
 
   return (
     <div className="mb-6">
@@ -87,12 +115,19 @@ const SearchAndControls = ({
           <DialogTrigger asChild>
             <button className="flex items-center gap-2 px-4 py-2 bg-secondary-bg-light dark:bg-secondary-bg-dark text-primary-text-light dark:text-primary-text-dark rounded-md hover:bg-secondary-bg-hover-light dark:hover:bg-secondary-bg-hover-dark">
               <Filter className="w-5 h-5" />
-              Filters
+              Filters {filters.isFilteringEnabled && "(Active)"}
             </button>
           </DialogTrigger>
           <DialogContent className="bg-primary-bg-light dark:bg-primary-bg-dark max-w-2xl">
             <DialogHeader>
               <DialogTitle>Filter Options</DialogTitle>
+              <Button
+                variant="outline"
+                onClick={handleResetAll}
+                className="flex items-center gap-2 px-4 py-2"
+              >
+                Reset All
+              </Button>
             </DialogHeader>
 
             <div className="grid gap-6 py-4">
@@ -107,7 +142,7 @@ const SearchAndControls = ({
                         filters.date === option.value ? "default" : "outline"
                       }
                       onClick={() =>
-                        updateFilters({
+                        handleFilterChange({
                           date: option.value as FilterState["date"],
                         })
                       }
@@ -123,13 +158,6 @@ const SearchAndControls = ({
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <Label className="text-base">Bet Types</Label>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => updateFilters({ betTypes: allBetTypes })}
-                  >
-                    Reset
-                  </Button>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   {allBetTypes.map((betType) => (
@@ -137,12 +165,11 @@ const SearchAndControls = ({
                       <Checkbox
                         id={`betType-${betType}`}
                         checked={filters.betTypes.includes(betType)}
-                        defaultChecked={true}
                         onCheckedChange={(checked) => {
                           const newBetTypes = checked
                             ? [...filters.betTypes, betType]
                             : filters.betTypes.filter((b) => b !== betType);
-                          updateFilters({ betTypes: newBetTypes });
+                          handleFilterChange({ betTypes: newBetTypes });
                         }}
                       />
                       <Label
@@ -160,13 +187,6 @@ const SearchAndControls = ({
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <Label className="text-base">Bookmakers</Label>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => updateFilters({ bookmakers: allBookmakers })}
-                  >
-                    Reset
-                  </Button>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
                   {allBookmakers.map((bookie) => (
@@ -174,12 +194,11 @@ const SearchAndControls = ({
                       <Checkbox
                         id={`bookie-${bookie}`}
                         checked={filters.bookmakers.includes(bookie)}
-                        defaultChecked={true}
                         onCheckedChange={(checked) => {
                           const newBookmakers = checked
                             ? [...filters.bookmakers, bookie]
                             : filters.bookmakers.filter((b) => b !== bookie);
-                          updateFilters({ bookmakers: newBookmakers });
+                          handleFilterChange({ bookmakers: newBookmakers });
                         }}
                       />
                       <Label
