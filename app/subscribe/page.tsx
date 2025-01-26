@@ -308,10 +308,10 @@ const PricingPage = () => {
     {
       price: "$50",
       period: "month",
-      priceId: "price_1QiMqJIs3FmBtaEC2FHprbKG",
+      priceId: "price_1QiMpNIs3FmBtaECxn2rC6Vb",
     },
-    { price: "$25", period: "week", priceId: "price_1QiMqJIs3FmBtaECNFFaiPIR" },
-    { price: "$10", period: "day", priceId: "price_1QiMqJIs3FmBtaECfoHWZm3h" },
+    { price: "$25", period: "week", priceId: "price_1QiMpNIs3FmBtaECvkfzaW3r" },
+    { price: "$10", period: "day", priceId: "price_1QiMpNIs3FmBtaEChhwpMXiH" },
   ];
   const softwareFeatures = [
     "Full platform access",
@@ -322,7 +322,7 @@ const PricingPage = () => {
   ];
   const softwarePrices = [
     {
-      priceId: "price_1QiMqKIs3FmBtaECt8QXCPjE",
+      priceId: "price_1QiMpOIs3FmBtaECxQSHl1nf",
       price: "$75",
       period: "month",
     },

@@ -17,8 +17,10 @@ import CalculatorModal from "../bets/modal";
 import { BookmakerLogos } from "../bets/arbCard";
 const FreeBetComponent = ({
   subscriptionStatus,
+  userState = "NY",
 }: {
   subscriptionStatus: any;
+  userState?: string;
 }) => {
   const [freeBetStatus, setFreeBetStatus] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -261,6 +263,10 @@ const FreeBetComponent = ({
                     <div className="text-primary-text-light dark:text-primary-text-dark text-lg font-medium mb-2">
                       {freeBet.game}
                     </div>
+                    <div className="text-secondary-text-light dark:text-secondary-text-dark text-md font-medium mb-2">
+                      {freeBet.prop_description}
+                    </div>
+
                     <div className="text-secondary-text-light dark:text-secondary-text-dark text-sm">
                       {freeBet.sport}
                     </div>
@@ -287,7 +293,10 @@ const FreeBetComponent = ({
                       <div
                         className="flex items-center gap-4 cursor-pointer"
                         onClick={() =>
-                          window.open(freeBet.team1_link, "_blank")
+                          window.open(
+                            freeBet.team1_link.replace("{state}", userState),
+                            "_blank"
+                          )
                         }
                       >
                         <Image
@@ -323,7 +332,10 @@ const FreeBetComponent = ({
                       <div
                         className="flex items-center gap-4 cursor-pointer"
                         onClick={() =>
-                          window.open(freeBet.team2_link, "_blank")
+                          window.open(
+                            freeBet.team2_link.replace("{state}", userState),
+                            "_blank"
+                          )
                         }
                       >
                         <Image

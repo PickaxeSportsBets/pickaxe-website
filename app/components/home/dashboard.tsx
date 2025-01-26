@@ -409,7 +409,10 @@ export default function Home() {
           <>
             <SubscriptionBanner />
             <div className="mx-8">
-              <FreeBetComponent subscriptionStatus={subscriptionStatus} />
+              <FreeBetComponent
+                subscriptionStatus={subscriptionStatus}
+                userState={userState}
+              />
             </div>
           </>
         )
