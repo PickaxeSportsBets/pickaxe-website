@@ -3,9 +3,12 @@ import Link from "next/link";
 import { ThemeToggle } from "./themeprovider";
 import { useRouter } from "next/navigation";
 import { CustomUserButton } from "../userButton";
+import { useUser } from "@clerk/nextjs";
+
 export default function Header() {
   const { signOut } = useClerk();
   const router = useRouter();
+  const { user, isLoaded } = useUser();
 
   const handleSignOut = async () => {
     await signOut();
@@ -26,7 +29,16 @@ export default function Header() {
           </div>
           <div className="flex items-center gap-4">
             <ThemeToggle />
-            <CustomUserButton />
+            {isLoaded && user ? (
+              <CustomUserButton />
+            ) : (
+              <Link
+                href="/sign-in"
+                className="px-4 py-2 rounded-lg bg-button-green-light dark:bg-button-green-dark text-white hover:bg-accent-green-hover-light dark:hover:bg-accent-green-hover-dark transition-colors text-sm"
+              >
+                Sign In
+              </Link>
+            )}
           </div>
         </div>
       </nav>

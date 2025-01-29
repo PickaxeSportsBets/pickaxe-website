@@ -305,13 +305,13 @@ const PricingPage = () => {
     "Direct email delivery",
   ];
   const emailPrices = [
+    { price: "$10", period: "day", priceId: "price_1QiMpNIs3FmBtaEChhwpMXiH" },
+    { price: "$25", period: "week", priceId: "price_1QiMpNIs3FmBtaECvkfzaW3r" },
     {
       price: "$50",
       period: "month",
       priceId: "price_1QiMpNIs3FmBtaECxn2rC6Vb",
     },
-    { price: "$25", period: "week", priceId: "price_1QiMpNIs3FmBtaECvkfzaW3r" },
-    { price: "$10", period: "day", priceId: "price_1QiMpNIs3FmBtaEChhwpMXiH" },
   ];
   const softwareFeatures = [
     "Full platform access",

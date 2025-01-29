@@ -5,7 +5,7 @@ import { checkSubscription } from "./app/utils/token/subscription";
 import { generateToken, verifyToken, shouldRefreshToken } from "./app/utils/token/jwtService";
 
 const isPublicRoute = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)",
-  "/api(.*)"]);
+  "/api(.*)", "/landing(.*)",]);
 
 export default clerkMiddleware(async (auth: ClerkMiddlewareAuth, request) => {
     if (!isPublicRoute(request)) {
