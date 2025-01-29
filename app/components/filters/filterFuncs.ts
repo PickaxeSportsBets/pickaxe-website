@@ -119,11 +119,17 @@ export const filterEvBets = (bets: any[], filters: FilterState) => {
 };
 
 // Filter functions for arbitrage bets
+// Filter functions for arbitrage bets
 export const filterArbBets = (bets: any[], filters: FilterState) => {
   // If filtering is not enabled, return all bets
   if (!filters.isFilteringEnabled) {
     return bets;
   }
+
+  // Get deselected bookmakers by comparing against all possible bookmakers
+  const deselectedBookmakers = Object.keys(BookmakerLogos).filter(
+    (bookmaker) => !filters.bookmakers.includes(bookmaker)
+  );
 
   return bets.filter((bet) => {
     // Date filtering
@@ -165,10 +171,14 @@ export const filterArbBets = (bets: any[], filters: FilterState) => {
     // Bookmaker filtering
     const team1Book = bet.team1_book?.toLowerCase();
     const team2Book = bet.team2_book?.toLowerCase();
-    if (
-      !filters.bookmakers.includes(team1Book) &&
-      !filters.bookmakers.includes(team2Book)
-    ) {
+
+    // Check if either book is in the deselected list
+    const hasDeselectedBookmaker = deselectedBookmakers.some(
+      (bookmaker) => bookmaker === team1Book || bookmaker === team2Book
+    );
+
+    // Return false if the bet contains any deselected bookmaker
+    if (hasDeselectedBookmaker) {
       return false;
     }
 

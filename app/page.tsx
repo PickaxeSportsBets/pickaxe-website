@@ -119,6 +119,7 @@ export default function Home() {
         });
 
         setArbBets(sortedArbBets);
+        console.log("SORTED ARB BETS", sortedArbBets.slice(0, 30));
         setFilteredArbBets(sortedArbBets);
       }
     } catch (error) {
