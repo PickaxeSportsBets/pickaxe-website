@@ -28,7 +28,7 @@ export default function RootLayout({
             appearance={{
               baseTheme: dark,
             }}
-            afterSignOutUrl={"/sign-in"}
+            afterSignOutUrl={"/landing"}
           >
             {children}
             <Footer />

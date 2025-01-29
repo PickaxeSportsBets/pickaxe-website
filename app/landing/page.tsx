@@ -71,19 +71,14 @@ export default function LandingPage() {
               {/* Feature 2 */}
               <div className="p-6 rounded-xl bg-tertiary-bg-light dark:bg-tertiary-bg-dark">
                 <div className="h-12 w-12 rounded-lg bg-market-purple-light dark:bg-market-purple-dark mb-4 flex items-center justify-center">
-                  <svg
-                    className="w-6 h-6 text-white"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M9 7h6m0 10v4m-6-4v4m6-11v3m-6-3v3m12-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                      d="M12 4v16M4 12h16"
                     />
-                  </svg>
+                  </svg>{" "}
                 </div>
                 <h3 className="text-xl font-semibold text-primary-text-light dark:text-primary-text-dark mb-2">
                   +EV Bet Finding
@@ -333,7 +328,7 @@ export default function LandingPage() {
                 </ul>
                 <Link
                   href="/subscribe?plan=email"
-                  className="block w-full py-3 px-4 text-center rounded-lg bg-secondary-bg-light dark:bg-secondary-bg-dark text-primary-text-light dark:text-primary-text-dark hover:bg-secondary-bg-hover-light dark:hover:bg-secondary-bg-hover-dark transition-colors font-semibold"
+                  className="block w-full py-3 px-4 text-center rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white transition-colors font-semibold"
                 >
                   Subscribe
                 </Link>
@@ -429,7 +424,7 @@ export default function LandingPage() {
                 </ul>
                 <Link
                   href="/subscribe?plan=software"
-                  className="block w-full py-3 px-4 text-center rounded-lg bg-accent-green-light dark:bg-accent-green-dark text-white hover:bg-accent-green-hover-light dark:hover:bg-accent-green-hover-dark transition-colors font-semibold"
+                  className="block w-full py-3 px-4 text-center rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white transition-colors font-semibold"
                 >
                   Subscribe
                 </Link>
