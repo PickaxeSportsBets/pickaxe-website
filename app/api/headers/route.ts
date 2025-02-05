@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
-  // Return all headers as they are
-  const headers = new Headers(request.headers);
+  // Create new headers object
+  const headers = new Headers();
+  
+  // Copy all headers from the request
+  for (const [key, value] of request.headers.entries()) {
+    headers.set(key, value);
+  }
   
   return new NextResponse(null, {
     status: 200,

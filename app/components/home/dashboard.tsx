@@ -64,7 +64,8 @@ export default function Home() {
     useState<SubscriptionStatus | null>(null);
   const itemsPerPage = 25;
   const { toast } = useToast();
-
+  const user_metadata = user?.publicMetadata;
+  const admin = user_metadata?.admin ? true : false;
   const onRefresh = async () => {
     toast({
       title: "Updating Data",
@@ -202,6 +203,7 @@ export default function Home() {
         if (response.ok) {
           const data = await response.json();
           if (data.isSubscribed) {
+            // Get subscription details with same headers
             const subscriptionResponse = await fetch(
               `/api/subscription-details`,
               {
@@ -419,7 +421,11 @@ export default function Home() {
       )}
       <div className="min-h-screen bg-primary-bg-light dark:bg-primary-bg-dark">
         <div className="max-w-[90%] mx-auto px-2 sm:px-4 lg:px-6">
-          <NavButtons currPage={currPage} setCurrPage={setCurrPage} />
+          <NavButtons
+            currPage={currPage}
+            setCurrPage={setCurrPage}
+            admin={admin}
+          />
 
           {/* Wrap both search controls and content in SubscriptionCheck */}
           <SubscriptionCheck

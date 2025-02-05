@@ -3,9 +3,14 @@ import React from "react";
 interface NavButtonsProps {
   currPage: string;
   setCurrPage: any;
+  admin?: boolean;
 }
 
-const NavButtons: React.FC<NavButtonsProps> = ({ currPage, setCurrPage }) => {
+const NavButtons: React.FC<NavButtonsProps> = ({
+  currPage,
+  setCurrPage,
+  admin,
+}) => {
   const buttonClass = (page: string): string => `
     px-2 md:px-4 py-2 rounded-lg font-medium transition-all duration-200 text-sm md:text-base w-full md:w-auto text-center whitespace-nowrap
     ${
@@ -23,12 +28,15 @@ const NavButtons: React.FC<NavButtonsProps> = ({ currPage, setCurrPage }) => {
       <button onClick={() => setCurrPage("ARB")} className={buttonClass("ARB")}>
         Arbitrage
       </button>
-      <button
-        onClick={() => setCurrPage("PROMOS")}
-        className={buttonClass("PROMOS")}
-      >
-        Promotions
-      </button>
+
+      {admin && (
+        <button
+          onClick={() => setCurrPage("PROMOS")}
+          className={buttonClass("PROMOS")}
+        >
+          Promotions
+        </button>
+      )}
     </div>
   );
 };
