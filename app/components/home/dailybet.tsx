@@ -15,6 +15,35 @@ import { useToast } from "@/hooks/use-toast";
 import { Gift, AlertTriangle, Calculator } from "lucide-react";
 import CalculatorModal from "../bets/modal";
 import { BookmakerLogos } from "../bets/arbCard";
+const MarketTypeMapping: { [key: string]: string } = {
+  h2h: "Head to Head",
+  h2h_q1: "Quarter 1 Head to Head",
+  h2h_q2: "Quarter 2 Head to Head",
+  h2h_q3: "Quarter 3 Head to Head",
+  h2h_q4: "Quarter 4 Head to Head",
+  h2h_h1: "Half 1 Head to Head",
+  h2h_h2: "Half 2 Head to Head",
+  spreads: "Spread",
+  spreads_q1: "Quarter 1 Spread",
+  spreads_q2: "Quarter 2 Spread",
+  spreads_q3: "Quarter 3 Spread",
+  spreads_q4: "Quarter 4 Spread",
+  spreads_h1: "Half 1 Spread",
+  spreads_h2: "Half 2 Spread",
+  totals: "Total Points",
+  totals_q1: "Quarter 1 Total Points",
+  totals_q2: "Quarter 2 Total Points",
+  totals_q3: "Quarter 3 Total Points",
+  totals_q4: "Quarter 4 Total Points",
+  totals_h1: "Half 1 Total Points",
+  totals_h2: "Half 2 Total Points",
+  alternate_spreads: "Alternate Spread",
+  alternate_spreads_q1: "Quarter 1 Alternate Spread",
+  alternate_totals: "Alternate Total",
+  alternate_totals_q1: "Quarter 1 Alternate Total",
+  player_prop: "Player Prop",
+};
+
 const FreeBetComponent = ({
   subscriptionStatus,
   userState = "NY",
@@ -188,6 +217,26 @@ const FreeBetComponent = ({
       bet2Odds: odds2 >= 0 ? `+${odds2}` : `${odds2}`,
     };
   };
+  const getMarketDescription = (freeBet: any) => {
+    const baseDesc =
+      freeBet.prop_description ||
+      MarketTypeMapping[freeBet.market_type] ||
+      freeBet.market_type;
+
+    if (
+      (freeBet.market_type.includes("total") ||
+        freeBet.market_type.includes("Total")) &&
+      freeBet.market_point
+    ) {
+      return `${baseDesc} (${freeBet.market_point})`;
+    }
+
+    return baseDesc;
+  };
+  const formatTeamName = (name: string, point?: string) => {
+    if (name.includes("(")) return name;
+    return point ? `${name} (${point})` : name;
+  };
 
   const getBookmakerLogo = (bookmaker: string) => {
     if (!bookmaker) return "/images/placeholder.png";
@@ -264,7 +313,7 @@ const FreeBetComponent = ({
                       {freeBet.game}
                     </div>
                     <div className="text-secondary-text-light dark:text-secondary-text-dark text-md font-medium mb-2">
-                      {freeBet.prop_description}
+                      {getMarketDescription(freeBet)}
                     </div>
 
                     <div className="text-secondary-text-light dark:text-secondary-text-dark text-sm">
@@ -276,7 +325,10 @@ const FreeBetComponent = ({
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="text-primary-text-light dark:text-primary-text-dark">
-                          {freeBet.team1_name}
+                          {formatTeamName(
+                            freeBet.team1_name,
+                            freeBet.team1_point
+                          )}
                         </div>
                         <div
                           className={
@@ -315,7 +367,10 @@ const FreeBetComponent = ({
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="text-primary-text-light dark:text-primary-text-dark">
-                          {freeBet.team2_name}
+                          {formatTeamName(
+                            freeBet.team2_name,
+                            freeBet.team2_point
+                          )}
                         </div>
                         <div
                           className={
