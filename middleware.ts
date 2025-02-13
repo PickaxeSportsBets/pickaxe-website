@@ -58,7 +58,6 @@ export default clerkMiddleware(async (auth: ClerkMiddlewareAuth, request) => {
       requestHeaders.set("x-subscription-plans", JSON.stringify(subscription.plans));
       requestHeaders.set("x-active-plan-ids", JSON.stringify(subscription.activePlans));
 
-      // Forward the request with the updated headers.
       return NextResponse.next({
         request: {
           headers: requestHeaders,
@@ -75,15 +74,9 @@ export default clerkMiddleware(async (auth: ClerkMiddlewareAuth, request) => {
   }
 });
 
-// This matcher ensures the middleware runs on all routes you wish to protect,
-// including API routes (except static files and _next routes).
 export const config = {
   matcher: [
-    // Matches any path except:
-    //   - NextJS internals (_next)
-    //   - Files with extensions (e.g., .css, .js, etc.)
     "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    // Also run for tRPC and our API (except if they are under /api/auth).
     "/trpc(.*)",
     "/api/((?!auth).*)",
   ],
