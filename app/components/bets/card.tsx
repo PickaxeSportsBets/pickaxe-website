@@ -56,7 +56,7 @@ const EVBetCard = ({
     const { data, error } = await supabase
       .from("ev_graph")
       .select("*")
-      .eq("primary_key", bet.primary_key)
+      .eq("bet_key", bet.primary_key)
       .order("timestamp", { ascending: true });
     if (error) {
       console.error("Error fetching historical data:", error);
@@ -67,6 +67,9 @@ const EVBetCard = ({
   useEffect(() => {
     fetchData();
   }, []);
+  useEffect(() => {
+    console.log(historicalData);
+  }, [historicalData]);
 
   const processMarketData = (data: any) => {
     if (!data) return null;

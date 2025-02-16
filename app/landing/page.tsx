@@ -223,8 +223,14 @@ const LandingPage = () => {
                 Book your free consultation and learn how we can help you
                 achieve consistent profits.
               </p>
-              <button className="w-full md:w-auto bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg font-medium text-base transition-colors">
-                Schedule Free Call
+              <button
+                className="w-full md:w-auto bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg font-medium text-base transition-colors"
+                onClick={() =>
+                  (window.location.href =
+                    "https://calendar.app.google/4dNj6An4JqBhCVYx9")
+                }
+              >
+                Schedule Call
               </button>
             </div>
 
@@ -322,7 +328,10 @@ const LandingPage = () => {
               <p className="text-secondary-text-light dark:text-secondary-text-dark mb-6">
                 Best for beginners and casual betters.
               </p>
-              <button className="w-full bg-gray-700 hover:bg-gray-600 transition-colors text-white px-6 py-3 rounded-md font-medium mb-6">
+              <button
+                className="w-full bg-gray-700 hover:bg-gray-600 transition-colors text-white px-6 py-3 rounded-md font-medium mb-6"
+                onClick={() => router.push("/sign-up")}
+              >
                 Subscribe
               </button>
               <ul className="space-y-4">
@@ -367,7 +376,10 @@ const LandingPage = () => {
               <p className="text-secondary-text-light dark:text-secondary-text-dark mb-6">
                 Best for serious and pro betters.
               </p>
-              <button className="w-full bg-emerald-500 hover:bg-emerald-600 transition-colors text-white px-6 py-3 rounded-md font-medium mb-6">
+              <button
+                className="w-full bg-emerald-500 hover:bg-emerald-600 transition-colors text-white px-6 py-3 rounded-md font-medium mb-6"
+                onClick={() => router.push("/sign-up")}
+              >
                 Subscribe
               </button>
               <ul className="space-y-4">
