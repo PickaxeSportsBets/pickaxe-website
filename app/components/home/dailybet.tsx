@@ -14,7 +14,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { Gift, AlertTriangle, Calculator } from "lucide-react";
 import CalculatorModal from "../bets/modal";
-import { BookmakerLogos } from "../bets/arbCard";
+import BookmakerLogos from "../bets/utils";
 const MarketTypeMapping: { [key: string]: string } = {
   h2h: "Head to Head",
   h2h_q1: "Quarter 1 Head to Head",

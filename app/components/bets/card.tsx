@@ -1,17 +1,9 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import betmgm from "@/public/images/betmgm-logo.png";
-import betRivers from "@/public/images/betrivers-logo.png";
-import caesars from "@/public/images/caesars-logo.png";
-import dk from "@/public/images/draftkings-logo.png";
-import espn from "@/public/images/espnbet-logo.png";
-import fanduel from "@/public/images/fanduel-logo.png";
-import hardrockBet from "@/public/images/hardrockbet-logo.png";
-import pinnacle from "@/public/images/pinnacle-logo.png";
-import underDog from "@/public/images/underdog-logo.png";
 import { createClient } from "@/app/utils/supabase/client";
 import OddsHistoryGraph from "./graph";
+import BookmakerLogos from "./utils";
 import { LineChart, X } from "lucide-react";
 const supabase = createClient();
 import {
@@ -23,18 +15,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import Link from "next/link";
-
-const BookmakerLogos: { [key: string]: any } = {
-  betmgm: betmgm,
-  betrivers: betRivers,
-  caesars: caesars,
-  draftkings: dk,
-  espnbet: espn,
-  fanduel: fanduel,
-  hardrock: hardrockBet,
-  pinnacle: pinnacle,
-  underdog: underDog,
-};
 
 const BOOKMAKERS_PER_ROW = {
   sm: 1,
@@ -56,7 +36,10 @@ const EVBetCard = ({
     const { data, error } = await supabase
       .from("ev_graph")
       .select("*")
-      .eq("bet_key", bet.primary_key)
+      .eq("game", bet.game)
+      .eq("market_type", bet.market_type)
+      .eq("team", bet.team)
+      .eq("market_point", bet.market_point)
       .order("timestamp", { ascending: true });
     if (error) {
       console.error("Error fetching historical data:", error);
@@ -68,7 +51,7 @@ const EVBetCard = ({
     fetchData();
   }, []);
   useEffect(() => {
-    console.log(historicalData);
+    console.log("Historical Data", historicalData);
   }, [historicalData]);
 
   const processMarketData = (data: any) => {

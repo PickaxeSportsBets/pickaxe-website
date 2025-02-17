@@ -1,4 +1,4 @@
-// filterFuncs.ts
+import BookmakerLogos from "../bets/utils";
 export interface FilterState {
   date: "all" | "today" | "tomorrow" | "week";
   bookmakers: string[];
@@ -14,14 +14,7 @@ export const BetTypes = {
   ALTERNATE_LINES: "Alternate Lines",
 } as const;
 
-export const BookmakerLogos: { [key: string]: string } = {
-  betmgm: "betmgm",
-  betrivers: "betRivers",
-  caesars: "caesars",
-  draftkings: "dk",
-  fanduel: "fanduel",
-  pinnacle: "pinnacle",
-};
+
 
 // Initialize with no filtering active
 export const initialFilterState: FilterState = {

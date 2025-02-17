@@ -12,15 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { FilterState, BetTypes, initialFilterState } from "./filterFuncs";
-
-export const BookmakerLogos: { [key: string]: any } = {
-  betmgm: "betmgm",
-  betrivers: "betRivers",
-  caesars: "caesars",
-  draftkings: "dk",
-  fanduel: "fanduel",
-  pinnacle: "pinnacle",
-};
+import BookmakerLogos from "../bets/utils";
 
 interface SearchAndControlsProps {
   onSearch: (value: string) => void;
