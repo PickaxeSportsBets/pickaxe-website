@@ -81,6 +81,9 @@ const EVBetCard = ({
   };
 
   const formatLink = (link: string) => {
+    if (!link && bet.bookmaker?.toLowerCase() === "fanatics") {
+      return "https://sportsbook.fanatics.com/";
+    }
     if (!link) return "#";
     return link.replace(/{state}/g, userState.toLowerCase());
   };
