@@ -92,6 +92,8 @@ export const filterEvBets = (bets: any[], filters: FilterState) => {
 
     // Bookmaker filtering
     const mainBookmaker = bet.bookmaker?.toLowerCase();
+    console.log(mainBookmaker);
+    console.log(filters.bookmakers);
     if (!filters.bookmakers.includes(mainBookmaker)) {
       const marketData = bet.market_data || {};
       const hasMatchingBookmaker = Object.values(marketData).some(
