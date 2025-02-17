@@ -12,6 +12,15 @@ import hardrockBet from "@/public/images/hardrockbet-logo.png";
 import pinnacle from "@/public/images/pinnacle-logo.png";
 import underDog from "@/public/images/underdog-logo.png";
 import CalculatorModal from "./modal";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { X } from "lucide-react";
+
 const BookmakerLogos: { [key: string]: any } = {
   betmgm: betmgm,
   betrivers: betRivers,
@@ -61,6 +70,7 @@ const ArbBetCard = ({
   userState?: string;
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const formatDateTime = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -134,10 +144,41 @@ const ArbBetCard = ({
     if (name.includes("(")) return name;
     return point ? `${name} (${point})` : name;
   };
+  const processMarketData = (data: any) => {
+    if (!data) return null;
+
+    try {
+      const marketData = typeof data === "string" ? JSON.parse(data) : data;
+      const marketEntries = Object.entries(marketData);
+
+      const allBookmakers = new Set<string>();
+      marketEntries.forEach(([_, value]: [string, any]) => {
+        if (value.odds) {
+          Object.keys(value.odds).forEach((bookie) =>
+            allBookmakers.add(bookie)
+          );
+        }
+      });
+
+      return {
+        entries: marketEntries,
+        bookmakers: Array.from(allBookmakers).sort(),
+      };
+    } catch (error) {
+      console.error("Error processing market data:", error);
+      return null;
+    }
+  };
+
+  const processedData = processMarketData(bet.market_data);
+  if (!processedData) return null;
 
   return (
     <div className="w-full py-4">
-      <div className="bg-secondary-bg-light dark:bg-secondary-bg-dark rounded-lg overflow-hidden">
+      <div
+        className="bg-secondary-bg-light dark:bg-secondary-bg-dark rounded-lg overflow-hidden hover:bg-secondary-bg-hover-light dark:hover:bg-secondary-bg-hover-dark transition-all cursor-pointer"
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
         <div className="py-4 md:px-8 px-2">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-0">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6 w-full md:w-auto px-4 md:px-0">
@@ -307,7 +348,190 @@ const ArbBetCard = ({
             </div>
           </div>
         </div>
+        {/* Desktop expanded view - unchanged */}
+        {isExpanded && processedData && (
+          <div className="hidden md:block p-6 bg-secondary-bg-light dark:bg-secondary-bg-dark border-t border-gray-200 dark:border-gray-700">
+            <div className="">
+              <div className="min-w-max">
+                <div className="grid grid-cols-[200px_repeat(auto-fit,minmax(100px,1fr))] text-center h-16">
+                  <div className="text-secondary-text-light dark:text-secondary-text-dark font-medium flex items-center justify-center">
+                    Selection
+                  </div>
+                  {processedData.bookmakers.map((bookie) => (
+                    <div
+                      key={bookie}
+                      className="flex items-center justify-center"
+                    >
+                      <Image
+                        src={
+                          BookmakerLogos[bookie.toLowerCase()] ||
+                          "/images/placeholder.png"
+                        }
+                        alt={bookie}
+                        width={28}
+                        height={28}
+                        className="rounded"
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {processedData.entries.map(([key, data]: [string, any]) => {
+                    const [name, point] = key.split("_");
+                    const validOdds = processedData.bookmakers
+                      .map((bookie) => data.odds[bookie]?.american)
+                      .filter((odds) => odds !== undefined)
+                      .map((odds) => parseInt(odds));
+                    const highestOdds = Math.max(...validOdds);
+
+                    return (
+                      <div
+                        key={key}
+                        className="grid grid-cols-[200px_repeat(auto-fit,minmax(100px,1fr))] text-center h-12"
+                      >
+                        <div className="text-primary-text-light dark:text-primary-text-dark break-words font-medium flex items-center justify-center px-4">
+                          {`${name} ${
+                            point !== "None" && point ? `(${point})` : ""
+                          }`}
+                        </div>
+                        {processedData.bookmakers.map((bookie) => {
+                          const odds = data.odds[bookie]?.american;
+                          const link = data.odds[bookie]?.link;
+                          const isHighest = parseInt(odds) === highestOdds;
+
+                          return (
+                            <a
+                              key={bookie}
+                              href={formatLink(link)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className={`cursor-pointer transition-all font-medium flex items-center justify-center
+                                ${
+                                  isHighest
+                                    ? "bg-button-green-light dark:bg-green-900/20"
+                                    : ""
+                                }
+                                ${
+                                  odds >= 0
+                                    ? "text-accent-green-light dark:text-accent-green-dark hover:text-accent-green-hover-light dark:hover:text-accent-green-hover-dark"
+                                    : "text-negative-red-light dark:text-negative-red-dark hover:text-negative-red-hover-light dark:hover:text-negative-red-hover-dark"
+                                }`}
+                            >
+                              {odds ? (odds >= 0 ? `+${odds}` : odds) : "-"}
+                            </a>
+                          );
+                        })}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Modal */}
+        {isExpanded && processedData && (
+          <AlertDialog open={isExpanded && window.innerWidth < 768}>
+            <AlertDialogContent className="w-screen h-[90vh] max-w-[90%] m-0 rounded-t-xl p-0 bg-background">
+              <AlertDialogHeader className="relative px-4 py-3 border-b">
+                <button
+                  onClick={() => setIsExpanded(false)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2 hover:bg-accent/10 rounded-full transition-colors"
+                  aria-label="Close dialog"
+                >
+                  <X className="h-5 w-5 text-muted-foreground" />
+                </button>
+                <AlertDialogTitle className="text-base font-semibold pr-12">
+                  {bet.game}
+                </AlertDialogTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Available Odds Comparison
+                </p>
+              </AlertDialogHeader>
+
+              <div className="h-[calc(90vh-4.5rem)] overflow-y-auto">
+                {processedData.entries.map(([key, data]: any) => {
+                  const [name, point] = key.split("_");
+                  const validOdds = processedData.bookmakers
+                    .map((bookie) => data.odds[bookie]?.american)
+                    .filter((odds): odds is string => odds !== undefined)
+                    .map((odds) => parseInt(odds));
+                  const highestOdds = Math.max(...validOdds);
+
+                  return (
+                    <div key={key} className="border-b last:border-b-0">
+                      <div className="px-4 py-3 bg-muted/30">
+                        <div className="font-medium">
+                          {`${name} ${
+                            point !== "None" && point ? `(${point})` : ""
+                          }`}
+                        </div>
+                      </div>
+                      <div className="divide-y">
+                        {processedData.bookmakers.map((bookie) => {
+                          const odds = data.odds[bookie]?.american;
+                          const link = data.odds[bookie]?.link;
+                          const isHighest =
+                            odds && parseInt(odds) === highestOdds;
+
+                          return (
+                            <a
+                              key={bookie}
+                              href={formatLink(link)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={`flex items-center justify-between p-4 hover:bg-accent/10 transition-colors
+                          ${
+                            isHighest ? "bg-green-100 dark:bg-green-900/20" : ""
+                          }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <Image
+                                  src={
+                                    BookmakerLogos[bookie.toLowerCase()] ||
+                                    "/images/placeholder.png"
+                                  }
+                                  alt={bookie}
+                                  width={20}
+                                  height={20}
+                                  className="rounded"
+                                />
+                                <span className="text-sm text-muted-foreground">
+                                  {bookie}
+                                </span>
+                              </div>
+                              <span
+                                className={`text-sm font-medium
+                            ${
+                              odds
+                                ? parseInt(odds) >= 0
+                                  ? "text-accent-green-light dark:text-accent-green-dark"
+                                  : "text-negative-red-light dark:text-negative-red-dark"
+                                : "text-muted-foreground"
+                            }`}
+                              >
+                                {odds
+                                  ? parseInt(odds) >= 0
+                                    ? `+${odds}`
+                                    : odds
+                                  : "-"}
+                              </span>
+                            </a>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
       </div>
+
       <CalculatorModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
