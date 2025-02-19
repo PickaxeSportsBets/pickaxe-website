@@ -210,6 +210,10 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
       pinnacle: "hsl(var(--chart-4))",
       betrivers: "hsl(var(--chart-5))",
       draftkings: "hsl(var(--chart-1))", // Reuse first color if needed
+      "hard rock bet": "hsl(var(--chart-6))",
+      "espn bet": "hsl(var(--chart-7))",
+      fliff: "hsl(var(--chart-8))",
+      fanatics: "hsl(var(--chart-9))",
     };
     return colors[bookmaker.toLowerCase()] || "hsl(var(--muted-foreground))";
   };

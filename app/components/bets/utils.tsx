@@ -18,7 +18,7 @@ const BookmakerLogos: { [key: string]: any } = {
   caesars: caesars,
   draftkings: dk,
   fanduel: fanduel,
-  hardrock: hardrockBet,
+  "hard rock bet": hardrockBet,
   pinnacle: pinnacle,
   underdog: underDog,
   "espn bet": ESPNBet,
