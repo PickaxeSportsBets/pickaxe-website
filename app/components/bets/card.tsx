@@ -160,7 +160,13 @@ const EVBetCard = ({
             <div className="flex flex-col md:flex-row items-center md:items-center gap-6 md:gap-8">
               <div className="text-center md:text-right w-full md:w-auto space-y-1">
                 <div className="text-market-purple-light dark:text-market-purple-dark font-medium">
-                  {bet.market_type}
+                  {bet.market_type
+                    ?.split("_")
+                    .map(
+                      (word: string) =>
+                        word.charAt(0).toUpperCase() + word.slice(1)
+                    )
+                    .join(" ")}
                 </div>
                 <div className="text-primary-text-light dark:text-primary-text-dark">
                   {bet.team} {bet.market_point && `(${bet.market_point})`}
