@@ -4,7 +4,7 @@ import Image from "next/image";
 import { createClient } from "@/app/utils/supabase/client";
 import OddsHistoryGraph from "./graph";
 import BookmakerLogos from "./utils";
-import { LineChart, X } from "lucide-react";
+import { LineChart, X, Loader2 } from "lucide-react";
 const supabase = createClient();
 import {
   AlertDialog,
@@ -32,27 +32,38 @@ const EVBetCard = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [isOpen, setIsGraphOpen] = useState(false);
   const [historicalData, setHistoricalData] = useState<any>(null);
+  const [isLoadingGraph, setIsLoadingGraph] = useState(false);
+
   const fetchData = async () => {
-    const { data, error } = await supabase
-      .from("ev_graph")
-      .select("*")
-      .eq("game", bet.game)
-      .eq("market_type", bet.market_type)
-      .eq("team", bet.team)
-      .eq("market_point", bet.market_point)
-      .order("timestamp", { ascending: true });
-    if (error) {
-      console.error("Error fetching historical data:", error);
-    } else {
-      setHistoricalData(data);
+    setIsLoadingGraph(true);
+    try {
+      const { data, error } = await supabase
+        .from("ev_graph")
+        .select("*")
+        .eq("game", bet.game)
+        .eq("market_type", bet.market_type)
+        .eq("team", bet.team)
+        .eq("market_point", bet.market_point)
+        .order("timestamp", { ascending: true });
+
+      if (error) {
+        console.error("Error fetching historical data:", error);
+      } else {
+        setHistoricalData(data);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    } finally {
+      setIsLoadingGraph(false);
     }
   };
-  useEffect(() => {
-    fetchData();
-  }, []);
-  useEffect(() => {
-    console.log("Historical Data", historicalData);
-  }, [historicalData]);
+
+  const handleGraphOpen = async () => {
+    setIsGraphOpen(true);
+    if (!historicalData) {
+      await fetchData();
+    }
+  };
 
   const processMarketData = (data: any) => {
     if (!data) return null;
@@ -160,13 +171,26 @@ const EVBetCard = ({
             <div className="flex flex-col md:flex-row items-center md:items-center gap-6 md:gap-8">
               <div className="text-center md:text-right w-full md:w-auto space-y-1">
                 <div className="text-market-purple-light dark:text-market-purple-dark font-medium">
-                  {bet.market_type
-                    ?.split("_")
-                    .map(
-                      (word: string) =>
-                        word.charAt(0).toUpperCase() + word.slice(1)
-                    )
-                    .join(" ")}
+                  {bet.player ? (
+                    <>
+                      {bet.player} {" - "}
+                      {bet.market_type
+                        ?.split("_")
+                        .map(
+                          (word: string) =>
+                            word.charAt(0).toUpperCase() + word.slice(1)
+                        )
+                        .join(" ")}
+                    </>
+                  ) : (
+                    bet.market_type
+                      ?.split("_")
+                      .map(
+                        (word: string) =>
+                          word.charAt(0).toUpperCase() + word.slice(1)
+                      )
+                      .join(" ")
+                  )}
                 </div>
                 <div className="text-primary-text-light dark:text-primary-text-dark">
                   {bet.team} {bet.market_point && `(${bet.market_point})`}
@@ -198,7 +222,7 @@ const EVBetCard = ({
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      setIsGraphOpen(true);
+                      handleGraphOpen();
                     }}
                     className="bg-tertiary-bg-light dark:bg-tertiary-bg-dark hover:bg-tertiary-bg-hover-light dark:hover:bg-tertiary-bg-hover-dark transition-all px-4 py-2 rounded text-primary-text-light dark:text-primary-text-dark flex items-center font-medium"
                   >
@@ -422,7 +446,11 @@ const EVBetCard = ({
       <OddsHistoryGraph
         data={historicalData}
         isOpen={isOpen}
-        onClose={() => setIsGraphOpen(false)}
+        onClose={() => {
+          setIsGraphOpen(false);
+          setHistoricalData(null);
+        }}
+        isLoading={isLoadingGraph}
       />
     </div>
   );

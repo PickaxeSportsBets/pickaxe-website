@@ -16,6 +16,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { Loader2 } from "lucide-react";
 
 interface MarketOdds {
   link: string;
@@ -55,6 +56,7 @@ interface OddsHistoryGraphProps {
   isOpen: boolean;
   onClose: () => void;
   side?: "over" | "under";
+  isLoading?: boolean;
 }
 
 interface VisibleLines {
@@ -81,6 +83,7 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
   isOpen,
   onClose,
   side = "over",
+  isLoading = false,
 }) => {
   const [visibleLines, setVisibleLines] = useState<VisibleLines>({});
 
@@ -171,6 +174,24 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
     return [Math.floor(min - padding), Math.ceil(max + padding)];
   }, [processedData]);
 
+  // Handle loading state
+  if (isLoading) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-6xl max-h-[90vh]">
+          <div className="h-[calc(90vh-100px)] flex items-center justify-center">
+            <div className="flex flex-col items-center gap-4">
+              <Loader2 className="h-8 w-8 animate-spin text-secondary-text-light dark:text-secondary-text-dark" />
+              <p className="text-secondary-text-light dark:text-secondary-text-dark">
+                Loading historical odds data...
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   // Handle invalid data cases
   if (!Array.isArray(rawData) || rawData.length === 0) {
     return (
@@ -187,21 +208,6 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
     );
   }
 
-  if (processedData.length === 0) {
-    return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Data Processing Error</DialogTitle>
-            <DialogDescription>
-              Unable to process the odds data. Please try again later.
-            </DialogDescription>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
   const getLineColor = (bookmaker: string): string => {
     const colors: { [key: string]: string } = {
       betmgm: "hsl(var(--chart-1))",
@@ -209,7 +215,7 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
       fanduel: "hsl(var(--chart-3))",
       pinnacle: "hsl(var(--chart-4))",
       betrivers: "hsl(var(--chart-5))",
-      draftkings: "hsl(var(--chart-1))", // Reuse first color if needed
+      draftkings: "hsl(var(--chart-10))", // Reuse first color if needed
       "hard rock bet": "hsl(var(--chart-6))",
       "espn bet": "hsl(var(--chart-7))",
       fliff: "hsl(var(--chart-8))",
