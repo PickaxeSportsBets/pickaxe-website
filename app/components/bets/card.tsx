@@ -91,9 +91,9 @@ const EVBetCard = ({
       setIsLoadingGraph(false);
     }
   };
-  useEffect(() => {
-    console.log(historicalData);
-  }, [historicalData]);
+  // useEffect(() => {
+  //   console.log(historicalData);
+  // }, [historicalData]);
 
   const handleGraphOpen = async () => {
     setIsGraphOpen(true);
