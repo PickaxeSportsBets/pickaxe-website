@@ -245,10 +245,8 @@ export default function Home() {
 
     if (user?.id) {
       checkSubscriptionStatus();
-    } else {
-      setIsLoadingSubscription(false);
     }
-  }, [user?.id]);
+  }, [user?.id, user?.publicMetadata?.stripe_customer_id]);
 
   const handleSearch = (searchTerm: string) => {
     const currentBets = currPage === Page.EV ? bets : arbBets;

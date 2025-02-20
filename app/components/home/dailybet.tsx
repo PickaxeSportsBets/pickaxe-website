@@ -284,7 +284,7 @@ const FreeBetComponent = ({
               Your Free Arbitrage Bet
             </DialogTitle>
             <DialogDescription className="text-secondary-text-light dark:text-secondary-text-dark">
-              Today's arbitrage opportunity
+              Today&apos;s arbitrage opportunity
             </DialogDescription>
           </DialogHeader>
 

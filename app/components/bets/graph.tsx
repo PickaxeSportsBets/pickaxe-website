@@ -181,7 +181,7 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
     });
 
     return Array.from(bookmakers);
-  }, [processedData]);
+  }, [processedData, visibleLines]);
 
   // Calculate Y-axis domain based on all odds values
   const yAxisDomain = useMemo(() => {
