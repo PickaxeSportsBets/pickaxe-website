@@ -427,7 +427,6 @@ export default function Home() {
             admin={admin}
           />
 
-          {/* Wrap both search controls and content in SubscriptionCheck */}
           <SubscriptionCheck
             subscriptionStatus={subscriptionStatus}
             loading={isLoadingSubscription}

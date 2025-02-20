@@ -92,11 +92,14 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
     if (!Array.isArray(rawData) || rawData.length === 0) return [];
 
     try {
-      // Group data by timestamp
+      // Group data by full timestamp
       const groupedByTimestamp = rawData.reduce(
         (acc: { [key: string]: any }, entry) => {
           const timestamp = new Date(entry.timestamp);
-          const formattedTime = timestamp.toLocaleTimeString("en-US", {
+          // Format with date and time
+          const formattedTime = timestamp.toLocaleString("en-US", {
+            month: "numeric",
+            day: "numeric",
             hour: "numeric",
             minute: "2-digit",
             hour12: true,
@@ -122,11 +125,37 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
         })
       );
 
-      // Sort by timestamp
+      // Sort by full timestamp
       return timeSeriesData.sort((a, b) => {
-        const timeA = new Date(`1970/01/01 ${a.timestamp}`).getTime();
-        const timeB = new Date(`1970/01/01 ${b.timestamp}`).getTime();
-        return timeA - timeB;
+        // Parse the formatted timestamps back to Date objects for proper sorting
+        const [monthA, dayA, timeA] = a.timestamp.split(/[\/\s]/);
+        const [monthB, dayB, timeB] = b.timestamp.split(/[\/\s]/);
+
+        const dateA = new Date(
+          2025,
+          parseInt(monthA) - 1,
+          parseInt(dayA),
+          ...timeA
+            .replace(/(AM|PM)/, "")
+            .trim()
+            .split(":")
+            .map((n: string) => parseInt(n))
+        );
+        if (timeA.includes("PM")) dateA.setHours(dateA.getHours() + 12);
+
+        const dateB = new Date(
+          2025,
+          parseInt(monthB) - 1,
+          parseInt(dayB),
+          ...timeB
+            .replace(/(AM|PM)/, "")
+            .trim()
+            .split(":")
+            .map((n: string) => parseInt(n))
+        );
+        if (timeB.includes("PM")) dateB.setHours(dateB.getHours() + 12);
+
+        return dateA.getTime() - dateB.getTime();
       });
     } catch (error) {
       console.error("Error processing odds data:", error);

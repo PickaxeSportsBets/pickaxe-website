@@ -209,7 +209,26 @@ const ArbBetCard = ({
             </div>
 
             <div className="text-market-purple-light dark:text-market-purple-dark font-medium px-4 md:px-0 text-left md:text-center w-full md:w-auto">
-              {getMarketDescription()}
+              {bet.player ? (
+                <>
+                  {bet.player} {" - "}
+                  {bet.market_type
+                    ?.split("_")
+                    .map(
+                      (word: string) =>
+                        word.charAt(0).toUpperCase() + word.slice(1)
+                    )
+                    .join(" ")}
+                </>
+              ) : (
+                bet.market_type
+                  ?.split("_")
+                  .map(
+                    (word: string) =>
+                      word.charAt(0).toUpperCase() + word.slice(1)
+                  )
+                  .join(" ")
+              )}
             </div>
 
             <div className="flex flex-col space-y-4 w-full md:w-auto">

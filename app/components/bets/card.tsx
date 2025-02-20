@@ -22,6 +22,27 @@ const BOOKMAKERS_PER_ROW = {
   lg: 3,
 };
 
+interface MarketOdds {
+  link: string | null;
+  point?: number;
+  decimal: number;
+  american: number;
+}
+
+interface BookmakerOdds {
+  [bookmaker: string]: MarketOdds;
+}
+
+interface MarketSide {
+  odds: BookmakerOdds;
+}
+
+interface MarketData {
+  over?: MarketSide;
+  under?: MarketSide;
+  [key: string]: any; // For other formats
+}
+
 const EVBetCard = ({
   bet,
   userState = "NY",
@@ -37,14 +58,27 @@ const EVBetCard = ({
   const fetchData = async () => {
     setIsLoadingGraph(true);
     try {
-      const { data, error } = await supabase
-        .from("ev_graph")
-        .select("*")
-        .eq("game", bet.game)
-        .eq("market_type", bet.market_type)
-        .eq("team", bet.team)
-        .eq("market_point", bet.market_point)
-        .order("timestamp", { ascending: true });
+      let data, error;
+      if (!bet.player) {
+        ({ data, error } = await supabase
+          .from("ev_graph")
+          .select("*")
+          .eq("game", bet.game)
+          .eq("market_type", bet.market_type)
+          .eq("team", bet.team)
+          .eq("market_point", bet.market_point)
+          .order("timestamp", { ascending: true }));
+      } else {
+        const team = bet.player + " " + bet.team;
+        ({ data, error } = await supabase
+          .from("ev_graph")
+          .select("*")
+          .eq("game", bet.game)
+          .eq("market_type", bet.market_type)
+          .eq("team", team)
+          .eq("market_point", bet.market_point)
+          .order("timestamp", { ascending: true }));
+      }
 
       if (error) {
         console.error("Error fetching historical data:", error);
@@ -57,6 +91,9 @@ const EVBetCard = ({
       setIsLoadingGraph(false);
     }
   };
+  useEffect(() => {
+    console.log(historicalData);
+  }, [historicalData]);
 
   const handleGraphOpen = async () => {
     setIsGraphOpen(true);
@@ -69,20 +106,63 @@ const EVBetCard = ({
     if (!data) return null;
 
     try {
-      const marketData = typeof data === "string" ? JSON.parse(data) : data;
-      const marketEntries = Object.entries(marketData);
-
+      const marketData: MarketData =
+        typeof data === "string" ? JSON.parse(data) : data;
+      let processedEntries: [string, any][] = [];
       const allBookmakers = new Set<string>();
-      marketEntries.forEach(([_, value]: [string, any]) => {
-        if (value.odds) {
-          Object.keys(value.odds).forEach((bookie) =>
-            allBookmakers.add(bookie)
-          );
+
+      // Handle over/under structure (including player props)
+      if (marketData.over?.odds || marketData.under?.odds) {
+        // Process over odds
+        if (marketData.over?.odds) {
+          const overOdds: { [key: string]: any } = {};
+          Object.entries(marketData.over.odds).forEach(([bookie, value]) => {
+            const bookieLower = bookie.toLowerCase();
+            allBookmakers.add(bookieLower);
+            overOdds[bookieLower] = {
+              american: value.american,
+              link: value.link,
+            };
+          });
+          processedEntries.push(["over", { odds: overOdds }]);
         }
-      });
+
+        // Process under odds
+        if (marketData.under?.odds) {
+          const underOdds: { [key: string]: any } = {};
+          Object.entries(marketData.under.odds).forEach(([bookie, value]) => {
+            const bookieLower = bookie.toLowerCase();
+            allBookmakers.add(bookieLower);
+            underOdds[bookieLower] = {
+              american: value.american,
+              link: value.link,
+            };
+          });
+          processedEntries.push(["under", { odds: underOdds }]);
+        }
+      }
+      // Handle alternate spreads or other formats
+      else {
+        const odds: { [key: string]: any } = {};
+
+        Object.entries(marketData).forEach(([bookmaker, value]) => {
+          if (bookmaker !== "fair_odds" && value?.odds?.american) {
+            const bookieLower = bookmaker.toLowerCase();
+            allBookmakers.add(bookieLower);
+            odds[bookieLower] = {
+              american: value.odds.american,
+              link: value.odds.link,
+            };
+          }
+        });
+
+        if (Object.keys(odds).length > 0) {
+          processedEntries = [["market", { odds }]];
+        }
+      }
 
       return {
-        entries: marketEntries,
+        entries: processedEntries,
         bookmakers: Array.from(allBookmakers).sort(),
       };
     } catch (error) {
