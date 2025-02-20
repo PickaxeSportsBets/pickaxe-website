@@ -59,7 +59,7 @@ export default clerkMiddleware(async (auth: ClerkMiddlewareAuth, request) => {
       requestHeaders.set("x-subscription-status", subscription.status);
       requestHeaders.set("x-subscription-plans", JSON.stringify(subscription.plans));
       requestHeaders.set("x-active-plan-ids", JSON.stringify(subscription.activePlans));
-      console.log(token);
+      // console.log(token);
 
       return NextResponse.next({
         request: {
