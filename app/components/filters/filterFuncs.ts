@@ -29,11 +29,11 @@ const matchesMarketType = (marketType: string, betType: string): boolean => {
 
   switch (betType) {
     case BetTypes.PLAYER_PROPS:
-      return marketTypeLower.includes("player prop");
+      return marketTypeLower.includes("player");
     case BetTypes.MONEYLINES:
       return marketTypeLower.includes("moneyline");
     case BetTypes.SPREADS:
-      return marketTypeLower.includes("spread");
+      return marketTypeLower.includes("spreads");
     case BetTypes.TOTALS:
       return (
         marketTypeLower.includes("total") &&
