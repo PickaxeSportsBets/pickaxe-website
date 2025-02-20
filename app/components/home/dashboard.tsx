@@ -403,7 +403,7 @@ export default function Home() {
   return (
     <>
       <Header />
-      {isLoadingSubscription ? (
+      {/* {isLoadingSubscription ? (
         <SubscriptionLoadingState />
       ) : (
         subscriptionStatus &&
@@ -418,7 +418,7 @@ export default function Home() {
             </div>
           </>
         )
-      )}
+      )} */}
       <div className="min-h-screen bg-primary-bg-light dark:bg-primary-bg-dark">
         <div className="max-w-[90%] mx-auto px-2 sm:px-4 lg:px-6">
           <NavButtons
@@ -427,31 +427,31 @@ export default function Home() {
             admin={admin}
           />
 
-          <SubscriptionCheck
+          {/* <SubscriptionCheck
             subscriptionStatus={subscriptionStatus}
             loading={isLoadingSubscription}
-          >
-            {currPage !== Page.PROMOS && (
-              <>
-                <SearchAndControls
-                  onSearch={handleSearch}
-                  onRefresh={onRefresh}
-                  filters={filters}
-                  updateFilters={updateFilters}
-                  loading={loading}
-                  isArbPage={currPage === Page.ARB}
-                />
-                {!loading && getLastUpdated() && (
-                  <p className="text-secondary-text-light dark:text-secondary-text-dark text-sm">
-                    Updated {formatDistanceToNow(getLastUpdated()!)} ago
-                  </p>
-                )}
-              </>
-            )}
-            <div className="py-4">
-              {loading ? <LoadingSkeleton /> : renderContent()}
-            </div>
-          </SubscriptionCheck>
+          > */}
+          {currPage !== Page.PROMOS && (
+            <>
+              <SearchAndControls
+                onSearch={handleSearch}
+                onRefresh={onRefresh}
+                filters={filters}
+                updateFilters={updateFilters}
+                loading={loading}
+                isArbPage={currPage === Page.ARB}
+              />
+              {!loading && getLastUpdated() && (
+                <p className="text-secondary-text-light dark:text-secondary-text-dark text-sm">
+                  Updated {formatDistanceToNow(getLastUpdated()!)} ago
+                </p>
+              )}
+            </>
+          )}
+          <div className="py-4">
+            {loading ? <LoadingSkeleton /> : renderContent()}
+          </div>
+          {/* </SubscriptionCheck> */}
         </div>
       </div>
       <Toaster />
