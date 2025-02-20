@@ -7,12 +7,12 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 export default function SuccessPage() {
-  const searchParams = useSearchParams();
-  const sessionId = searchParams?.get("session_id");
+  // const searchParams = useSearchParams();
+  // const sessionId = searchParams?.get("session_id");
 
-  useEffect(() => {
-    // You could verify the session here if needed
-  }, [sessionId]);
+  // useEffect(() => {
+  //   // You could verify the session here if needed
+  // }, [sessionId]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
