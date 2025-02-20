@@ -22,12 +22,12 @@ export default function PrivacyPolicy() {
               <div className="text-secondary-text-light dark:text-secondary-text-dark space-y-4">
                 <p>
                   This Privacy Policy describes Our policies and procedures on
-                  the collection, use and disclosure of Your information when
-                  You use the Service and tells You about Your privacy rights
-                  and how the law protects You.
+                  the collection, use and disclosure of your information when
+                  you use the Service and tells you about your privacy rights
+                  and how the law protects you.
                 </p>
                 <p>
-                  We use Your Personal data to provide and improve the Service.
+                  We use your personal data to provide and improve the Service.
                   By using the Service, You agree to the collection and use of
                   information in accordance with this Privacy Policy.
                 </p>
