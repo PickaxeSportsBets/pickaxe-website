@@ -16,6 +16,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { Loader2 } from "lucide-react";
 
 interface MarketOdds {
   link: string;
@@ -47,7 +48,7 @@ interface HistoricalDataEntry {
 
 interface ProcessedDataEntry {
   timestamp: string;
-  [key: string]: string | number;
+  [bookmaker: string]: string | number;
 }
 
 interface OddsHistoryGraphProps {
@@ -55,6 +56,7 @@ interface OddsHistoryGraphProps {
   isOpen: boolean;
   onClose: () => void;
   side?: "over" | "under";
+  isLoading?: boolean;
 }
 
 interface VisibleLines {
@@ -81,124 +83,146 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
   isOpen,
   onClose,
   side = "over",
+  isLoading = false,
 }) => {
   const [visibleLines, setVisibleLines] = useState<VisibleLines>({});
 
-  // Data validation and early returns
-  const isValidData = useMemo(() => {
-    return Array.isArray(rawData) && rawData.length > 0;
-  }, [rawData]);
-  const determinedSide = useMemo(() => {
-    if (!isValidData) return "over";
-    const teamName = rawData[0]?.team || "";
-    return teamName.toLowerCase().includes("under") ? "under" : "over";
-  }, [rawData, isValidData]);
-
-  // Calculate market point
-  const marketPoint = useMemo(() => {
-    if (!isValidData) return 0;
-    return rawData[0]?.market_point ?? 0;
-  }, [rawData, isValidData]);
-
-  // Process data
+  // Process data for the graph
   const processedData = useMemo(() => {
-    if (!isValidData) return [];
+    if (!Array.isArray(rawData) || rawData.length === 0) return [];
 
     try {
-      return rawData.map((entry) => {
-        if (!entry?.timestamp) {
-          throw new Error("Invalid entry: missing timestamp");
-        }
-
-        const timestamp = new Date(entry.timestamp);
-        const formattedTime = timestamp.toLocaleTimeString("en-US", {
-          hour: "numeric",
-          minute: "2-digit",
-          hour12: true,
-        });
-
-        const processedEntry: ProcessedDataEntry = {
-          timestamp: formattedTime,
-        };
-
-        const oddsData = entry.market_data?.[determinedSide]?.odds;
-        if (oddsData) {
-          Object.entries(oddsData).forEach(([bookmaker, data]) => {
-            if (data?.american !== undefined) {
-              processedEntry[bookmaker] = data.american;
-              if (visibleLines[bookmaker] === undefined) {
-                setVisibleLines((prev) => ({ ...prev, [bookmaker]: true }));
-              }
-            }
+      // Group data by full timestamp
+      const groupedByTimestamp = rawData.reduce(
+        (acc: { [key: string]: any }, entry) => {
+          const timestamp = new Date(entry.timestamp);
+          // Format with date and time
+          const formattedTime = timestamp.toLocaleString("en-US", {
+            month: "numeric",
+            day: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
           });
-        }
 
-        return processedEntry;
+          if (!acc[formattedTime]) {
+            acc[formattedTime] = {};
+          }
+
+          // Add odds for this bookmaker at this timestamp
+          acc[formattedTime][entry.bookmaker] = entry.odds;
+
+          return acc;
+        },
+        {}
+      );
+
+      // Convert grouped data to array format for Recharts
+      const timeSeriesData = Object.entries(groupedByTimestamp).map(
+        ([timestamp, odds]) => ({
+          timestamp,
+          ...odds,
+        })
+      );
+
+      // Sort by full timestamp
+      return timeSeriesData.sort((a, b) => {
+        // Parse the formatted timestamps back to Date objects for proper sorting
+        const [monthA, dayA, timeA] = a.timestamp.split(/[\/\s]/);
+        const [monthB, dayB, timeB] = b.timestamp.split(/[\/\s]/);
+
+        const dateA = new Date(
+          2025,
+          parseInt(monthA) - 1,
+          parseInt(dayA),
+          ...timeA
+            .replace(/(AM|PM)/, "")
+            .trim()
+            .split(":")
+            .map((n: string) => parseInt(n))
+        );
+        if (timeA.includes("PM")) dateA.setHours(dateA.getHours() + 12);
+
+        const dateB = new Date(
+          2025,
+          parseInt(monthB) - 1,
+          parseInt(dayB),
+          ...timeB
+            .replace(/(AM|PM)/, "")
+            .trim()
+            .split(":")
+            .map((n: string) => parseInt(n))
+        );
+        if (timeB.includes("PM")) dateB.setHours(dateB.getHours() + 12);
+
+        return dateA.getTime() - dateB.getTime();
       });
     } catch (error) {
       console.error("Error processing odds data:", error);
       return [];
     }
-  }, [rawData, side, isValidData, visibleLines]);
-  const playerName = useMemo(() => {
-    if (!isValidData) return "";
-    const teamName = rawData[0]?.team || "";
-    return teamName.replace(/ Over| Under/g, "").trim();
-  }, [rawData, isValidData]);
-  // Calculate Y-axis domain
+  }, [rawData]);
+
+  // Get unique bookmakers for legend
+  const availableBookmakers = useMemo(() => {
+    if (!processedData.length) return [];
+
+    const bookmakers = new Set<string>();
+    processedData.forEach((entry) => {
+      Object.keys(entry).forEach((key) => {
+        if (key !== "timestamp") {
+          bookmakers.add(key);
+          // Initialize visibility state for this bookmaker
+          if (visibleLines[key] === undefined) {
+            setVisibleLines((prev) => ({ ...prev, [key]: true }));
+          }
+        }
+      });
+    });
+
+    return Array.from(bookmakers);
+  }, [processedData, visibleLines]);
+
+  // Calculate Y-axis domain based on all odds values
   const yAxisDomain = useMemo(() => {
     if (!processedData.length) return [-130, -100];
 
-    try {
-      let min = Infinity;
-      let max = -Infinity;
+    let min = Infinity;
+    let max = -Infinity;
 
-      processedData.forEach((entry) => {
-        Object.entries(entry).forEach(([key, value]) => {
-          if (key !== "timestamp" && typeof value === "number") {
-            min = Math.min(min, value);
-            max = Math.max(max, value);
-          }
-        });
-      });
-
-      if (min === Infinity || max === -Infinity) {
-        return [-130, -100];
-      }
-
-      const padding = (max - min) * 0.1;
-      return [Math.floor(min - padding), Math.ceil(max + padding)];
-    } catch (error) {
-      console.error("Error calculating axis domain:", error);
-      return [-130, -100];
-    }
-  }, [processedData]);
-
-  // Get available lines
-  const availableLines = useMemo(() => {
-    if (!processedData.length) return [];
-
-    try {
-      const lines = new Set<string>();
-      const firstEntry = processedData[0];
-
-      if (!firstEntry) return [];
-
-      Object.keys(firstEntry).forEach((key) => {
-        if (key !== "timestamp") {
-          lines.add(key);
+    processedData.forEach((entry) => {
+      Object.entries(entry).forEach(([key, value]) => {
+        if (key !== "timestamp" && typeof value === "number") {
+          min = Math.min(min, value);
+          max = Math.max(max, value);
         }
       });
+    });
 
-      return Array.from(lines);
-    } catch (error) {
-      console.error("Error getting lines:", error);
-      return [];
-    }
+    const padding = (max - min) * 0.1;
+    return [Math.floor(min - padding), Math.ceil(max + padding)];
   }, [processedData]);
 
+  // Handle loading state
+  if (isLoading) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-6xl max-h-[90vh]">
+          <div className="h-[calc(90vh-100px)] flex items-center justify-center">
+            <div className="flex flex-col items-center gap-4">
+              <Loader2 className="h-8 w-8 animate-spin text-secondary-text-light dark:text-secondary-text-dark" />
+              <p className="text-secondary-text-light dark:text-secondary-text-dark">
+                Loading historical odds data...
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   // Handle invalid data cases
-  if (!isValidData) {
+  if (!Array.isArray(rawData) || rawData.length === 0) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent>
@@ -213,21 +237,6 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
     );
   }
 
-  if (processedData.length === 0) {
-    return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Data Processing Error</DialogTitle>
-            <DialogDescription>
-              Unable to process the odds data. Please try again later.
-            </DialogDescription>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
   const getLineColor = (bookmaker: string): string => {
     const colors: { [key: string]: string } = {
       betmgm: "hsl(var(--chart-1))",
@@ -235,7 +244,11 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
       fanduel: "hsl(var(--chart-3))",
       pinnacle: "hsl(var(--chart-4))",
       betrivers: "hsl(var(--chart-5))",
-      draftkings: "hsl(var(--chart-1))", // Reuse first color if needed
+      draftkings: "hsl(var(--chart-10))", // Reuse first color if needed
+      "hard rock bet": "hsl(var(--chart-6))",
+      "espn bet": "hsl(var(--chart-7))",
+      fliff: "hsl(var(--chart-8))",
+      fanatics: "hsl(var(--chart-9))",
     };
     return colors[bookmaker.toLowerCase()] || "hsl(var(--muted-foreground))";
   };
@@ -326,9 +339,7 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
       <DialogContent className="max-w-6xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
-            {`${playerName} ${
-              determinedSide.charAt(0).toUpperCase() + determinedSide.slice(1)
-            } ${marketPoint} Odds Movement`}{" "}
+            {`${rawData[0]?.game} - ${rawData[0]?.market_type} ${rawData[0]?.market_point} Odds Movement`}
           </DialogTitle>
         </DialogHeader>
 
@@ -350,7 +361,6 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
                 height={80}
                 tick={{ fontSize: 12 }}
                 stroke="currentColor"
-                tickFormatter={(value) => value}
                 className="text-secondary-text-light dark:text-secondary-text-dark"
               />
               <YAxis
@@ -370,7 +380,7 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
                 verticalAlign="bottom"
                 height={120}
               />
-              {availableLines.map((bookmaker) => (
+              {availableBookmakers.map((bookmaker) => (
                 <Line
                   key={bookmaker}
                   type="monotone"

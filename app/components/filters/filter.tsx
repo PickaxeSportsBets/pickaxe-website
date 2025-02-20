@@ -11,19 +11,8 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { FilterState, BetTypes } from "./filterFuncs";
-
-export const BookmakerLogos: { [key: string]: any } = {
-  betmgm: "betmgm",
-  betrivers: "betRivers",
-  caesars: "caesars",
-  draftkings: "dk",
-  // espnbet: "espn",
-  fanduel: "fanduel",
-  // hardrock: "hardrockBet",
-  pinnacle: "pinnacle",
-  // underdog: "underDog",
-};
+import { FilterState, BetTypes, initialFilterState } from "./filterFuncs";
+import BookmakerLogos from "../bets/utils";
 
 interface SearchAndControlsProps {
   onSearch: (value: string) => void;
@@ -58,6 +47,41 @@ const SearchAndControls = ({
     { label: "This Week", value: "week" },
   ];
 
+  const allBetTypes = Object.values(BetTypes);
+  const allBookmakers = Object.keys(BookmakerLogos);
+
+  const handleResetAll = () => {
+    updateFilters({
+      ...initialFilterState,
+      isFilteringEnabled: false,
+    });
+    setSearchTerm("");
+    onSearch("");
+  };
+
+  const handleFilterChange = (newFilters: Partial<FilterState>) => {
+    // Check if all bet types and bookmakers are selected
+    const updatedFilters = { ...filters, ...newFilters };
+
+    const allBetTypesSelected =
+      allBetTypes.length === updatedFilters.betTypes?.length;
+    const allBookmakersSelected =
+      allBookmakers.length === updatedFilters.bookmakers?.length;
+    const isAllDates = updatedFilters.date === "all";
+
+    // If everything is selected, treat it as reset all
+    if (allBetTypesSelected && allBookmakersSelected && isAllDates) {
+      handleResetAll();
+      return;
+    }
+
+    // Otherwise, update with filtering enabled
+    updateFilters({
+      ...newFilters,
+      isFilteringEnabled: true,
+    });
+  };
+
   return (
     <div className="mb-6">
       <div className="flex flex-wrap gap-4 mb-4">
@@ -85,12 +109,19 @@ const SearchAndControls = ({
           <DialogTrigger asChild>
             <button className="flex items-center gap-2 px-4 py-2 bg-secondary-bg-light dark:bg-secondary-bg-dark text-primary-text-light dark:text-primary-text-dark rounded-md hover:bg-secondary-bg-hover-light dark:hover:bg-secondary-bg-hover-dark">
               <Filter className="w-5 h-5" />
-              Filters
+              Filters {filters.isFilteringEnabled && "(Active)"}
             </button>
           </DialogTrigger>
           <DialogContent className="bg-primary-bg-light dark:bg-primary-bg-dark max-w-2xl">
             <DialogHeader>
               <DialogTitle>Filter Options</DialogTitle>
+              <Button
+                variant="outline"
+                onClick={handleResetAll}
+                className="flex items-center gap-2 px-4 py-2"
+              >
+                Reset All
+              </Button>
             </DialogHeader>
 
             <div className="grid gap-6 py-4">
@@ -105,7 +136,7 @@ const SearchAndControls = ({
                         filters.date === option.value ? "default" : "outline"
                       }
                       onClick={() =>
-                        updateFilters({
+                        handleFilterChange({
                           date: option.value as FilterState["date"],
                         })
                       }
@@ -121,26 +152,18 @@ const SearchAndControls = ({
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <Label className="text-base">Bet Types</Label>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => updateFilters({ betTypes: [] })}
-                  >
-                    Reset
-                  </Button>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  {Object.values(BetTypes).map((betType) => (
+                  {allBetTypes.map((betType) => (
                     <div key={betType} className="flex items-center space-x-2">
                       <Checkbox
                         id={`betType-${betType}`}
                         checked={filters.betTypes.includes(betType)}
-                        defaultChecked={true}
                         onCheckedChange={(checked) => {
                           const newBetTypes = checked
                             ? [...filters.betTypes, betType]
                             : filters.betTypes.filter((b) => b !== betType);
-                          updateFilters({ betTypes: newBetTypes });
+                          handleFilterChange({ betTypes: newBetTypes });
                         }}
                       />
                       <Label
@@ -158,26 +181,18 @@ const SearchAndControls = ({
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <Label className="text-base">Bookmakers</Label>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => updateFilters({ bookmakers: [] })}
-                  >
-                    Reset
-                  </Button>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
-                  {Object.keys(BookmakerLogos).map((bookie) => (
+                  {allBookmakers.map((bookie) => (
                     <div key={bookie} className="flex items-center space-x-2">
                       <Checkbox
                         id={`bookie-${bookie}`}
                         checked={filters.bookmakers.includes(bookie)}
-                        defaultChecked={true}
                         onCheckedChange={(checked) => {
                           const newBookmakers = checked
                             ? [...filters.bookmakers, bookie]
                             : filters.bookmakers.filter((b) => b !== bookie);
-                          updateFilters({ bookmakers: newBookmakers });
+                          handleFilterChange({ bookmakers: newBookmakers });
                         }}
                       />
                       <Label

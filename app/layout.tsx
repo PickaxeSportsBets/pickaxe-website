@@ -17,13 +17,18 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head />
-      <body style={{ fontFamily: "'Consolas', 'Monaco', monospace" }}>
+      <body
+        style={{
+          fontFamily: "'Consolas', 'Monaco', monospace",
+        }}
+        className="bg-primary-bg-light dark:bg-primary-bg-dark"
+      >
         <ThemeProvider defaultTheme="dark" storageKey="theme">
           <ClerkProvider
             appearance={{
               baseTheme: dark,
             }}
-            afterSignOutUrl={"/sign-in"}
+            afterSignOutUrl={"/landing"}
           >
             {children}
             <Footer />

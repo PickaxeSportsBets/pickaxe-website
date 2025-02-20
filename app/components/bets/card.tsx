@@ -1,18 +1,10 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import betmgm from "@/public/images/betmgm-logo.png";
-import betRivers from "@/public/images/betrivers-logo.png";
-import caesars from "@/public/images/caesars-logo.png";
-import dk from "@/public/images/draftkings-logo.png";
-import espn from "@/public/images/espnbet-logo.png";
-import fanduel from "@/public/images/fanduel-logo.png";
-import hardrockBet from "@/public/images/hardrockbet-logo.png";
-import pinnacle from "@/public/images/pinnacle-logo.png";
-import underDog from "@/public/images/underdog-logo.png";
 import { createClient } from "@/app/utils/supabase/client";
 import OddsHistoryGraph from "./graph";
-import { LineChart, X } from "lucide-react";
+import BookmakerLogos from "./utils";
+import { LineChart, X, Loader2 } from "lucide-react";
 const supabase = createClient();
 import {
   AlertDialog,
@@ -24,23 +16,32 @@ import {
 } from "@/components/ui/alert-dialog";
 import Link from "next/link";
 
-const BookmakerLogos: { [key: string]: any } = {
-  betmgm: betmgm,
-  betrivers: betRivers,
-  caesars: caesars,
-  draftkings: dk,
-  espnbet: espn,
-  fanduel: fanduel,
-  hardrock: hardrockBet,
-  pinnacle: pinnacle,
-  underdog: underDog,
-};
-
 const BOOKMAKERS_PER_ROW = {
   sm: 1,
   md: 2,
   lg: 3,
 };
+
+interface MarketOdds {
+  link: string | null;
+  point?: number;
+  decimal: number;
+  american: number;
+}
+
+interface BookmakerOdds {
+  [bookmaker: string]: MarketOdds;
+}
+
+interface MarketSide {
+  odds: BookmakerOdds;
+}
+
+interface MarketData {
+  over?: MarketSide;
+  under?: MarketSide;
+  [key: string]: any; // For other formats
+}
 
 const EVBetCard = ({
   bet,
@@ -52,39 +53,116 @@ const EVBetCard = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [isOpen, setIsGraphOpen] = useState(false);
   const [historicalData, setHistoricalData] = useState<any>(null);
+  const [isLoadingGraph, setIsLoadingGraph] = useState(false);
+
   const fetchData = async () => {
-    const { data, error } = await supabase
-      .from("ev_graph")
-      .select("*")
-      .eq("primary_key", bet.primary_key);
-    if (error) {
-      console.error("Error fetching historical data:", error);
-    } else {
-      setHistoricalData(data);
+    setIsLoadingGraph(true);
+    try {
+      let data, error;
+      if (!bet.player) {
+        ({ data, error } = await supabase
+          .from("ev_graph")
+          .select("*")
+          .eq("game", bet.game)
+          .eq("market_type", bet.market_type)
+          .eq("team", bet.team)
+          .eq("market_point", bet.market_point)
+          .order("timestamp", { ascending: true }));
+      } else {
+        const team = bet.player + " " + bet.team;
+        ({ data, error } = await supabase
+          .from("ev_graph")
+          .select("*")
+          .eq("game", bet.game)
+          .eq("market_type", bet.market_type)
+          .eq("team", team)
+          .eq("market_point", bet.market_point)
+          .order("timestamp", { ascending: true }));
+      }
+
+      if (error) {
+        console.error("Error fetching historical data:", error);
+      } else {
+        setHistoricalData(data);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    } finally {
+      setIsLoadingGraph(false);
     }
   };
-  useEffect(() => {
-    fetchData();
-  }, []);
+  // useEffect(() => {
+  //   console.log(historicalData);
+  // }, [historicalData]);
+
+  const handleGraphOpen = async () => {
+    setIsGraphOpen(true);
+    if (!historicalData) {
+      await fetchData();
+    }
+  };
 
   const processMarketData = (data: any) => {
     if (!data) return null;
 
     try {
-      const marketData = typeof data === "string" ? JSON.parse(data) : data;
-      const marketEntries = Object.entries(marketData);
-
+      const marketData: MarketData =
+        typeof data === "string" ? JSON.parse(data) : data;
+      let processedEntries: [string, any][] = [];
       const allBookmakers = new Set<string>();
-      marketEntries.forEach(([_, value]: [string, any]) => {
-        if (value.odds) {
-          Object.keys(value.odds).forEach((bookie) =>
-            allBookmakers.add(bookie)
-          );
+
+      // Handle over/under structure (including player props)
+      if (marketData.over?.odds || marketData.under?.odds) {
+        // Process over odds
+        if (marketData.over?.odds) {
+          const overOdds: { [key: string]: any } = {};
+          Object.entries(marketData.over.odds).forEach(([bookie, value]) => {
+            const bookieLower = bookie.toLowerCase();
+            allBookmakers.add(bookieLower);
+            overOdds[bookieLower] = {
+              american: value.american,
+              link: value.link,
+            };
+          });
+          processedEntries.push(["over", { odds: overOdds }]);
         }
-      });
+
+        // Process under odds
+        if (marketData.under?.odds) {
+          const underOdds: { [key: string]: any } = {};
+          Object.entries(marketData.under.odds).forEach(([bookie, value]) => {
+            const bookieLower = bookie.toLowerCase();
+            allBookmakers.add(bookieLower);
+            underOdds[bookieLower] = {
+              american: value.american,
+              link: value.link,
+            };
+          });
+          processedEntries.push(["under", { odds: underOdds }]);
+        }
+      }
+      // Handle alternate spreads or other formats
+      else {
+        const odds: { [key: string]: any } = {};
+
+        Object.entries(marketData).forEach(([bookmaker, value]) => {
+          if (bookmaker !== "fair_odds" && value?.odds?.american) {
+            const bookieLower = bookmaker.toLowerCase();
+            allBookmakers.add(bookieLower);
+            odds[bookieLower] = {
+              american: value.odds.american,
+              link: value.odds.link,
+            };
+          }
+        });
+
+        if (Object.keys(odds).length > 0) {
+          processedEntries = [["market", { odds }]];
+        }
+      }
 
       return {
-        entries: marketEntries,
+        entries: processedEntries,
         bookmakers: Array.from(allBookmakers).sort(),
       };
     } catch (error) {
@@ -94,6 +172,9 @@ const EVBetCard = ({
   };
 
   const formatLink = (link: string) => {
+    if (!link && bet.bookmaker?.toLowerCase() === "fanatics") {
+      return "https://sportsbook.fanatics.com/";
+    }
     if (!link) return "#";
     return link.replace(/{state}/g, userState.toLowerCase());
   };
@@ -170,7 +251,26 @@ const EVBetCard = ({
             <div className="flex flex-col md:flex-row items-center md:items-center gap-6 md:gap-8">
               <div className="text-center md:text-right w-full md:w-auto space-y-1">
                 <div className="text-market-purple-light dark:text-market-purple-dark font-medium">
-                  {bet.market_type}
+                  {bet.player ? (
+                    <>
+                      {bet.player} {" - "}
+                      {bet.market_type
+                        ?.split("_")
+                        .map(
+                          (word: string) =>
+                            word.charAt(0).toUpperCase() + word.slice(1)
+                        )
+                        .join(" ")}
+                    </>
+                  ) : (
+                    bet.market_type
+                      ?.split("_")
+                      .map(
+                        (word: string) =>
+                          word.charAt(0).toUpperCase() + word.slice(1)
+                      )
+                      .join(" ")
+                  )}
                 </div>
                 <div className="text-primary-text-light dark:text-primary-text-dark">
                   {bet.team} {bet.market_point && `(${bet.market_point})`}
@@ -202,7 +302,7 @@ const EVBetCard = ({
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      setIsGraphOpen(true);
+                      handleGraphOpen();
                     }}
                     className="bg-tertiary-bg-light dark:bg-tertiary-bg-dark hover:bg-tertiary-bg-hover-light dark:hover:bg-tertiary-bg-hover-dark transition-all px-4 py-2 rounded text-primary-text-light dark:text-primary-text-dark flex items-center font-medium"
                   >
@@ -426,7 +526,11 @@ const EVBetCard = ({
       <OddsHistoryGraph
         data={historicalData}
         isOpen={isOpen}
-        onClose={() => setIsGraphOpen(false)}
+        onClose={() => {
+          setIsGraphOpen(false);
+          setHistoricalData(null);
+        }}
+        isLoading={isLoadingGraph}
       />
     </div>
   );
