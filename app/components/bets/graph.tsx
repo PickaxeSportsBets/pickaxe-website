@@ -37,13 +37,20 @@ interface MarketData {
   under?: MarketSide;
 }
 
-interface HistoricalDataEntry {
-  timestamp: string;
-  market_data: MarketData;
+interface HistoricalDataPoint {
+  odds: number;
   team: string;
+  bookmaker: string;
+  timestamp: string;
   market_point: number;
-  odds?: number;
-  [key: string]: any;
+}
+
+interface HistoricalDataEntry {
+  past_data: HistoricalDataPoint[];
+  game: string;
+  market_type: string;
+  market_point: string | number;
+  team: string;
 }
 
 interface ProcessedDataEntry {
@@ -92,96 +99,76 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
     if (!Array.isArray(rawData) || rawData.length === 0) return [];
 
     try {
-      // Group data by full timestamp
-      const groupedByTimestamp = rawData.reduce(
-        (acc: { [key: string]: any }, entry) => {
-          const timestamp = new Date(entry.timestamp);
-          // Format with date and time
-          const formattedTime = timestamp.toLocaleString("en-US", {
+      // Collect all timestamps and bookmakers
+      const allTimestamps = new Set<string>();
+      const bookmakers = new Set<string>();
+
+      // Collect all past data points
+      const allPastData: HistoricalDataPoint[] = [];
+      rawData.forEach((entry) => {
+        if (entry.past_data) {
+          entry.past_data.forEach((point) => {
+            allPastData.push(point);
+            allTimestamps.add(point.timestamp);
+            if (point.bookmaker) bookmakers.add(point.bookmaker);
+          });
+        }
+      });
+
+      // Sort timestamps chronologically
+      const sortedTimestamps = Array.from(allTimestamps).sort();
+
+      // Create data points for each timestamp
+      const timeSeriesData = sortedTimestamps.map((timestamp) => {
+        const dataPoint: any = {
+          timestamp: new Date(timestamp).toLocaleString("en-US", {
             month: "numeric",
             day: "numeric",
             hour: "numeric",
             minute: "2-digit",
             hour12: true,
-          });
+          }),
+        };
 
-          if (!acc[formattedTime]) {
-            acc[formattedTime] = {};
+        // Add odds for each bookmaker at this timestamp
+        Array.from(bookmakers).forEach((bookmaker) => {
+          const point = allPastData.find(
+            (p) => p.timestamp === timestamp && p.bookmaker === bookmaker
+          );
+          if (point) {
+            dataPoint[point.bookmaker] = point.odds;
           }
+        });
 
-          // Add odds for this bookmaker at this timestamp
-          acc[formattedTime][entry.bookmaker] = entry.odds;
-
-          return acc;
-        },
-        {}
-      );
-
-      // Convert grouped data to array format for Recharts
-      const timeSeriesData = Object.entries(groupedByTimestamp).map(
-        ([timestamp, odds]) => ({
-          timestamp,
-          ...odds,
-        })
-      );
-
-      // Sort by full timestamp
-      return timeSeriesData.sort((a, b) => {
-        // Parse the formatted timestamps back to Date objects for proper sorting
-        const [monthA, dayA, timeA] = a.timestamp.split(/[\/\s]/);
-        const [monthB, dayB, timeB] = b.timestamp.split(/[\/\s]/);
-
-        const dateA = new Date(
-          2025,
-          parseInt(monthA) - 1,
-          parseInt(dayA),
-          ...timeA
-            .replace(/(AM|PM)/, "")
-            .trim()
-            .split(":")
-            .map((n: string) => parseInt(n))
-        );
-        if (timeA.includes("PM")) dateA.setHours(dateA.getHours() + 12);
-
-        const dateB = new Date(
-          2025,
-          parseInt(monthB) - 1,
-          parseInt(dayB),
-          ...timeB
-            .replace(/(AM|PM)/, "")
-            .trim()
-            .split(":")
-            .map((n: string) => parseInt(n))
-        );
-        if (timeB.includes("PM")) dateB.setHours(dateB.getHours() + 12);
-
-        return dateA.getTime() - dateB.getTime();
+        return dataPoint;
       });
+
+      // Initialize visibility state for bookmakers
+      Array.from(bookmakers).forEach((bookmaker) => {
+        if (visibleLines[bookmaker] === undefined) {
+          setVisibleLines((prev) => ({ ...prev, [bookmaker]: true }));
+        }
+      });
+
+      return timeSeriesData;
     } catch (error) {
       console.error("Error processing odds data:", error);
       return [];
     }
-  }, [rawData]);
+  }, [rawData, visibleLines]);
 
-  // Get unique bookmakers for legend
   const availableBookmakers = useMemo(() => {
     if (!processedData.length) return [];
-
     const bookmakers = new Set<string>();
     processedData.forEach((entry) => {
       Object.keys(entry).forEach((key) => {
         if (key !== "timestamp") {
           bookmakers.add(key);
-          // Initialize visibility state for this bookmaker
-          if (visibleLines[key] === undefined) {
-            setVisibleLines((prev) => ({ ...prev, [key]: true }));
-          }
         }
       });
     });
-
     return Array.from(bookmakers);
-  }, [processedData, visibleLines]);
+  }, [processedData]);
 
   // Calculate Y-axis domain based on all odds values
   const yAxisDomain = useMemo(() => {
@@ -237,20 +224,30 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
     );
   }
 
-  const getLineColor = (bookmaker: string): string => {
-    const colors: { [key: string]: string } = {
-      betmgm: "hsl(var(--chart-1))",
-      caesars: "hsl(var(--chart-2))",
-      fanduel: "hsl(var(--chart-3))",
-      pinnacle: "hsl(var(--chart-4))",
-      betrivers: "hsl(var(--chart-5))",
-      draftkings: "hsl(var(--chart-10))", // Reuse first color if needed
-      "hard rock bet": "hsl(var(--chart-6))",
-      "espn bet": "hsl(var(--chart-7))",
-      fliff: "hsl(var(--chart-8))",
-      fanatics: "hsl(var(--chart-9))",
-    };
-    return colors[bookmaker.toLowerCase()] || "hsl(var(--muted-foreground))";
+  const colors: { [key: string]: string } = {
+    betmgm: "#D9A440", // Gold
+    caesars: "#2F7ABF", // Blue
+    fanduel: "#1493FF", // Light blue
+    pinnacle: "#0E3042", // Dark blue
+    betrivers: "#F60B0E", // Red
+    draftkings: "#3CAC3B", // Green
+    "hard rock bet": "#CD1332", // Red
+    "espn bet": "#FF0000", // Red
+    fliff: "#FF6B00", // Orange
+    fanatics: "#041E42", // Navy blue
+  };
+
+  // Helper function to ensure color contrast
+  const getLineColor = (bookmaker: string) => {
+    const defaultColor = "#666666"; // Fallback color
+    const color = colors[bookmaker.toLowerCase()] || defaultColor;
+
+    // For dark colors, we can add some opacity to make them more visible
+    if (color === "#000000" || color === "#041E42" || color === "#0E3042") {
+      return `${color}CC`; // Add 80% opacity
+    }
+
+    return color;
   };
 
   const handleLegendClick = (entry: LegendEntry): void => {
@@ -267,38 +264,32 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
   };
 
   const CustomTooltip = ({ active, payload, label }: any) => {
-    if (!active || !payload || !payload.length) return null;
-
-    return (
-      <div className="bg-primary-bg-light dark:bg-primary-bg-dark border border-border rounded-lg shadow-lg p-3">
-        <p className="text-secondary-text-light dark:text-secondary-text-dark text-sm font-medium mb-2">
-          {label}
-        </p>
-        {payload
-          .sort((a: any, b: any) => (b.value || 0) - (a.value || 0))
-          .map((entry: any) => (
-            <div key={entry.name} className="flex items-center gap-2 py-1">
-              <span
-                className="w-2 h-2 rounded-full"
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+          <p className="text-sm font-medium mb-2">{label}</p>
+          {payload.map((entry: any, index: number) => (
+            <div key={index} className="flex items-center gap-2 mb-1">
+              <div
+                className="w-3 h-3 rounded-full"
                 style={{ backgroundColor: entry.color }}
               />
-              <span className="text-sm capitalize text-secondary-text-light dark:text-secondary-text-dark">
+              <span className="text-sm text-gray-600 dark:text-gray-300">
                 {entry.name}:
               </span>
               <span
                 className={`text-sm font-medium ${
-                  entry.value >= 0
-                    ? "text-accent-green-light dark:text-accent-green-dark"
-                    : "text-negative-red-light dark:text-negative-red-dark"
+                  entry.value >= 0 ? "text-green-500" : "text-red-500"
                 }`}
               >
-                {entry.value >= 0 ? "+" : ""}
-                {entry.value}
+                {entry.value >= 0 ? `+${entry.value}` : entry.value}
               </span>
             </div>
           ))}
-      </div>
-    );
+        </div>
+      );
+    }
+    return null;
   };
 
   const CustomLegend: React.FC<CustomLegendProps> = ({
@@ -339,7 +330,7 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
       <DialogContent className="max-w-6xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
-            {`${rawData[0]?.game} - ${rawData[0]?.market_type} ${rawData[0]?.market_point} Odds Movement`}
+            {`${rawData[0]?.game} - ${rawData[0]?.market_type} ${rawData[0]?.market_point} ${rawData[0]?.team} Odds Movement`}
           </DialogTitle>
         </DialogHeader>
 
@@ -388,9 +379,20 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
                   name={bookmaker}
                   stroke={getLineColor(bookmaker)}
                   strokeWidth={2}
-                  dot={false}
+                  dot={{
+                    r: 4,
+                    strokeWidth: 2,
+                    fill: getLineColor(bookmaker),
+                    stroke: getLineColor(bookmaker),
+                  }}
+                  activeDot={{
+                    r: 6,
+                    strokeWidth: 2,
+                    fill: getLineColor(bookmaker),
+                    stroke: "white",
+                  }}
                   opacity={visibleLines[bookmaker] ? 1 : 0.2}
-                  activeDot={{ r: 6, strokeWidth: 0 }}
+                  connectNulls={false}
                 />
               ))}
             </LineChart>
