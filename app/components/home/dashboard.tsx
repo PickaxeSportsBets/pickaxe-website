@@ -424,6 +424,7 @@ export default function Home() {
             currPage={currPage}
             setCurrPage={setCurrPage}
             admin={admin}
+            resetPageNumber={() => setCurrentPageNumber(1)}
           />
 
           {/* <SubscriptionCheck
