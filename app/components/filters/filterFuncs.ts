@@ -29,11 +29,11 @@ const matchesMarketType = (marketType: string, betType: string): boolean => {
 
   switch (betType) {
     case BetTypes.PLAYER_PROPS:
-      return marketTypeLower.includes("player prop");
+      return marketTypeLower.includes("player");
     case BetTypes.MONEYLINES:
       return marketTypeLower.includes("moneyline");
     case BetTypes.SPREADS:
-      return marketTypeLower.includes("spread");
+      return marketTypeLower.includes("spreads");
     case BetTypes.TOTALS:
       return (
         marketTypeLower.includes("total") &&
@@ -92,9 +92,7 @@ export const filterEvBets = (bets: any[], filters: FilterState) => {
 
     // Bookmaker filtering
     const mainBookmaker = bet.bookmaker?.toLowerCase();
-    console.log(mainBookmaker);
-    console.log(filters.bookmakers);
-    if (!filters.bookmakers.includes(mainBookmaker)) {
+          if (!filters.bookmakers.includes(mainBookmaker)) {
       const marketData = bet.market_data || {};
       const hasMatchingBookmaker = Object.values(marketData).some(
         (side: any) => {

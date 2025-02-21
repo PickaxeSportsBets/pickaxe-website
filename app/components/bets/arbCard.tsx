@@ -153,8 +153,9 @@ const ArbBetCard = ({
     }
   };
 
-  const processedData = processMarketData(bet.market_data);
-  if (!processedData) return null;
+  const processedData = bet.market_data
+    ? processMarketData(bet.market_data)
+    : null;
 
   return (
     <div className="w-full py-4">

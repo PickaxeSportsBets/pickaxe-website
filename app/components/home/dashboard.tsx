@@ -108,11 +108,11 @@ export default function Home() {
       const { data: evBets } = await supabase
         .from("plus_ev")
         .select()
-        .order("timestamp", { ascending: false });
+        .order("ev_percentage", { ascending: false });
       const { data: arbBetsData } = await supabase
         .from("arbitrage")
         .select()
-        .order("timestamp", { ascending: false });
+        .order("profit_percentage", { ascending: false });
 
       if (evBets) {
         setEvLastUpdated(evBets[0]?.timestamp);
@@ -125,6 +125,7 @@ export default function Home() {
       }
 
       if (arbBetsData) {
+        console.log(arbBetsData);
         setArbLastUpdated(arbBetsData[0]?.timestamp);
         const sortedArbBets = [...arbBetsData].sort((a, b) => {
           const profitA = Number(a.profit_percentage) || 0;
@@ -245,10 +246,8 @@ export default function Home() {
 
     if (user?.id) {
       checkSubscriptionStatus();
-    } else {
-      setIsLoadingSubscription(false);
     }
-  }, [user?.id]);
+  }, [user?.id, user?.publicMetadata?.stripe_customer_id]);
 
   const handleSearch = (searchTerm: string) => {
     const currentBets = currPage === Page.EV ? bets : arbBets;

@@ -71,7 +71,7 @@ export const CustomUserButton = () => {
     if (user?.id) {
       checkSubscriptionStatus();
     }
-  }, [user?.id]);
+  }, [user?.id, user?.publicMetadata?.stripe_customer_id]);
 
   const handlePortalAccess = async () => {
     try {

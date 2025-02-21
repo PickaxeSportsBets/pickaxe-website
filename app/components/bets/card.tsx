@@ -54,11 +54,12 @@ const EVBetCard = ({
   const [isOpen, setIsGraphOpen] = useState(false);
   const [historicalData, setHistoricalData] = useState<any>(null);
   const [isLoadingGraph, setIsLoadingGraph] = useState(false);
-
+  const [historicalData2, setHistoricalData2] = useState<any>(null);
   const fetchData = async () => {
     setIsLoadingGraph(true);
     try {
       let data, error;
+      let historicalData2;
       if (!bet.player) {
         ({ data, error } = await supabase
           .from("ev_graph")
@@ -68,6 +69,13 @@ const EVBetCard = ({
           .eq("team", bet.team)
           .eq("market_point", bet.market_point)
           .order("timestamp", { ascending: true }));
+        historicalData2 = await supabase
+          .from("ev_graph_v2")
+          .select("*")
+          .eq("game", bet.game)
+          .eq("market_type", bet.market_type)
+          .eq("team", bet.team)
+          .eq("market_point", bet.market_point);
       } else {
         const team = bet.player + " " + bet.team;
         ({ data, error } = await supabase
@@ -78,12 +86,21 @@ const EVBetCard = ({
           .eq("team", team)
           .eq("market_point", bet.market_point)
           .order("timestamp", { ascending: true }));
+
+        historicalData2 = await supabase
+          .from("ev_graph_v2")
+          .select("*")
+          .eq("game", bet.game)
+          .eq("market_type", bet.market_type)
+          .eq("team", team)
+          .eq("market_point", bet.market_point);
       }
 
       if (error) {
         console.error("Error fetching historical data:", error);
       } else {
         setHistoricalData(data);
+        setHistoricalData2(historicalData2.data);
       }
     } catch (error) {
       console.error("Error:", error);
@@ -93,6 +110,7 @@ const EVBetCard = ({
   };
   useEffect(() => {
     console.log(historicalData);
+    console.log("Historical Data 2:", historicalData2);
   }, [historicalData]);
 
   const handleGraphOpen = async () => {
@@ -524,11 +542,12 @@ const EVBetCard = ({
       </div>
       {/* Add this just before the final closing div */}
       <OddsHistoryGraph
-        data={historicalData}
+        data={historicalData2}
         isOpen={isOpen}
         onClose={() => {
           setIsGraphOpen(false);
           setHistoricalData(null);
+          setHistoricalData2(null);
         }}
         isLoading={isLoadingGraph}
       />

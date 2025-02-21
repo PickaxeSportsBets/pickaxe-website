@@ -43,7 +43,7 @@ const LandingPage = () => {
               </h1>
               <p className="text-xl text-secondary-text-light dark:text-gray-300 mb-8">
                 Discover profitable arbitrage opportunities and +EV bets across
-                multiple sports books in real-time with Pickaxe Sports.
+                multiple sports books in real-time with Pickaxe.
               </p>
               <button
                 onClick={() => router.push("/sign-up")}
