@@ -61,14 +61,6 @@ const EVBetCard = ({
       let data, error;
       let historicalData2;
       if (!bet.player) {
-        ({ data, error } = await supabase
-          .from("ev_graph")
-          .select("*")
-          .eq("game", bet.game)
-          .eq("market_type", bet.market_type)
-          .eq("team", bet.team)
-          .eq("market_point", bet.market_point)
-          .order("timestamp", { ascending: true }));
         historicalData2 = await supabase
           .from("ev_graph_v2")
           .select("*")
@@ -78,15 +70,6 @@ const EVBetCard = ({
           .eq("market_point", bet.market_point);
       } else {
         const team = bet.player + " " + bet.team;
-        ({ data, error } = await supabase
-          .from("ev_graph")
-          .select("*")
-          .eq("game", bet.game)
-          .eq("market_type", bet.market_type)
-          .eq("team", team)
-          .eq("market_point", bet.market_point)
-          .order("timestamp", { ascending: true }));
-
         historicalData2 = await supabase
           .from("ev_graph_v2")
           .select("*")
