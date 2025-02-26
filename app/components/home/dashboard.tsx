@@ -77,7 +77,7 @@ export default function Home() {
 
     try {
       await fetch(
-        "https://backend-production-adcb.up.railway.app/api/v1/db/update_dbV2",
+        "https://backend-production-adcb.up.railway.app/api/v1/db/update_dbV3",
         {
           method: "POST",
         }
