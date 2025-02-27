@@ -228,7 +228,7 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
     betmgm: "#D9A440", // Gold
     caesars: "#2F7ABF", // Blue
     fanduel: "#1493FF", // Light blue
-    pinnacle: "#0E3042", // Dark blue
+    pinnacle: "#1E6B99", // Lighter blue for Pinnacle
     betrivers: "#F60B0E", // Red
     draftkings: "#3CAC3B", // Green
     "hard rock bet": "#CD1332", // Red
@@ -379,12 +379,7 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
                   name={bookmaker}
                   stroke={getLineColor(bookmaker)}
                   strokeWidth={2}
-                  dot={{
-                    r: 4,
-                    strokeWidth: 2,
-                    fill: getLineColor(bookmaker),
-                    stroke: getLineColor(bookmaker),
-                  }}
+                  dot={false}
                   activeDot={{
                     r: 6,
                     strokeWidth: 2,
