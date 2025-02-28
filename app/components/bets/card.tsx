@@ -58,8 +58,9 @@ const EVBetCard = ({
   const fetchData = async () => {
     setIsLoadingGraph(true);
     try {
-      let data, error;
-      let historicalData2;
+      let historicalData2: any;
+      let pastData: any[] = [];
+
       if (!bet.player) {
         historicalData2 = await supabase
           .from("ev_graph_v2")
@@ -68,6 +69,18 @@ const EVBetCard = ({
           .eq("market_type", bet.market_type)
           .eq("team", bet.team)
           .eq("market_point", bet.market_point);
+
+        if (historicalData2?.data) {
+          for (const item of historicalData2.data) {
+            const response = await supabase
+              .from("ev_graph_past_data")
+              .select("*")
+              .eq("bet_key", item.bet_key);
+            if (response?.data) {
+              pastData.push(...response.data);
+            }
+          }
+        }
       } else {
         const team = bet.player + " " + bet.team;
         historicalData2 = await supabase
@@ -77,24 +90,32 @@ const EVBetCard = ({
           .eq("market_type", bet.market_type)
           .eq("team", team)
           .eq("market_point", bet.market_point);
+
+        if (historicalData2?.data) {
+          for (const item of historicalData2.data) {
+            const response = await supabase
+              .from("ev_graph_past_data")
+              .select("*")
+              .eq("bet_key", item.bet_key);
+            if (response?.data) {
+              pastData.push(...response.data);
+            }
+          }
+        }
       }
 
-      if (error) {
-        console.error("Error fetching historical data:", error);
+      if (historicalData2.error) {
+        console.error("Error fetching historical data:", historicalData2.error);
       } else {
-        setHistoricalData(data);
-        setHistoricalData2(historicalData2.data);
+        setHistoricalData(pastData);
+        console.log(pastData);
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error fetching data:", error);
     } finally {
       setIsLoadingGraph(false);
     }
   };
-  useEffect(() => {
-    console.log(historicalData);
-    console.log("Historical Data 2:", historicalData2);
-  }, [historicalData]);
 
   const handleGraphOpen = async () => {
     setIsGraphOpen(true);
@@ -525,7 +546,7 @@ const EVBetCard = ({
       </div>
       {/* Add this just before the final closing div */}
       <OddsHistoryGraph
-        data={historicalData2}
+        data={historicalData}
         isOpen={isOpen}
         onClose={() => {
           setIsGraphOpen(false);

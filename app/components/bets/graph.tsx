@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   LineChart,
   Line,
@@ -94,23 +94,45 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
 }) => {
   const [visibleLines, setVisibleLines] = useState<VisibleLines>({});
 
+  // Initialize visible lines when data changes
+  useEffect(() => {
+    if (Array.isArray(rawData) && rawData.length > 0) {
+      const bookmakers = new Set<string>();
+      rawData.forEach((bet) => {
+        if (bet.past_data) {
+          bet.past_data.forEach((point) => {
+            bookmakers.add(point.bookmaker);
+          });
+        }
+      });
+
+      const initialVisibility = Array.from(bookmakers).reduce(
+        (acc, bookmaker) => {
+          acc[bookmaker] = true;
+          return acc;
+        },
+        {} as VisibleLines
+      );
+
+      setVisibleLines(initialVisibility);
+    }
+  }, [rawData]);
+
   // Process data for the graph
   const processedData = useMemo(() => {
     if (!Array.isArray(rawData) || rawData.length === 0) return [];
 
     try {
-      // Collect all timestamps and bookmakers
+      // Get all unique timestamps across all past_data entries
       const allTimestamps = new Set<string>();
       const bookmakers = new Set<string>();
 
       // Collect all past data points
-      const allPastData: HistoricalDataPoint[] = [];
-      rawData.forEach((entry) => {
-        if (entry.past_data) {
-          entry.past_data.forEach((point) => {
-            allPastData.push(point);
+      rawData.forEach((bet) => {
+        if (bet.past_data && Array.isArray(bet.past_data)) {
+          bet.past_data.forEach((point) => {
             allTimestamps.add(point.timestamp);
-            if (point.bookmaker) bookmakers.add(point.bookmaker);
+            bookmakers.add(point.bookmaker);
           });
         }
       });
@@ -118,8 +140,8 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
       // Sort timestamps chronologically
       const sortedTimestamps = Array.from(allTimestamps).sort();
 
-      // Create data points for each timestamp
-      const timeSeriesData = sortedTimestamps.map((timestamp) => {
+      // Create time series data
+      return sortedTimestamps.map((timestamp) => {
         const dataPoint: any = {
           timestamp: new Date(timestamp).toLocaleString("en-US", {
             month: "numeric",
@@ -131,31 +153,26 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
         };
 
         // Add odds for each bookmaker at this timestamp
-        Array.from(bookmakers).forEach((bookmaker) => {
-          const point = allPastData.find(
-            (p) => p.timestamp === timestamp && p.bookmaker === bookmaker
-          );
-          if (point) {
-            dataPoint[point.bookmaker] = point.odds;
+        bookmakers.forEach((bookmaker) => {
+          // Find the odds for this bookmaker at this timestamp
+          for (const bet of rawData) {
+            const point = bet.past_data?.find(
+              (p) => p.timestamp === timestamp && p.bookmaker === bookmaker
+            );
+            if (point) {
+              dataPoint[bookmaker] = point.odds;
+              break;
+            }
           }
         });
 
         return dataPoint;
       });
-
-      // Initialize visibility state for bookmakers
-      Array.from(bookmakers).forEach((bookmaker) => {
-        if (visibleLines[bookmaker] === undefined) {
-          setVisibleLines((prev) => ({ ...prev, [bookmaker]: true }));
-        }
-      });
-
-      return timeSeriesData;
     } catch (error) {
       console.error("Error processing odds data:", error);
       return [];
     }
-  }, [rawData, visibleLines]);
+  }, [rawData]);
 
   const availableBookmakers = useMemo(() => {
     if (!processedData.length) return [];
