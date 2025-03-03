@@ -89,19 +89,8 @@ export const filterEvBets = (bets: any[], filters: FilterState) => {
 
     // Bookmaker filtering
     const mainBookmaker = bet.bookmaker?.toLowerCase();
-          if (!filters.bookmakers.includes(mainBookmaker)) {
-      const marketData = bet.market_data || {};
-      const hasMatchingBookmaker = Object.values(marketData).some(
-        (side: any) => {
-          const odds = side?.odds || {};
-          return Object.keys(odds).some((bookie) =>
-            filters.bookmakers.includes(bookie.toLowerCase())
-          );
-        }
-      );
-      if (!hasMatchingBookmaker) {
-        return false;
-      }
+    if (!filters.bookmakers.includes(mainBookmaker)) {
+      return false;
     }
 
     return true;
