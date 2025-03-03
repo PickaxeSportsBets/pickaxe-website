@@ -11,7 +11,7 @@ export const BetTypes = {
   MONEYLINES: "Moneylines",
   SPREADS: "Spreads",
   TOTALS: "Totals",
-  ALTERNATE_LINES: "Alternate Lines",
+  // ALTERNATE_LINES: "Alternate Lines",
 } as const;
 
 
@@ -31,16 +31,13 @@ const matchesMarketType = (marketType: string, betType: string): boolean => {
     case BetTypes.PLAYER_PROPS:
       return marketTypeLower.includes("player");
     case BetTypes.MONEYLINES:
-      return marketTypeLower.includes("moneyline");
+      return marketTypeLower.includes("h2h");
     case BetTypes.SPREADS:
-      return marketTypeLower.includes("spreads");
+      return marketTypeLower.includes("spread");
     case BetTypes.TOTALS:
-      return (
-        marketTypeLower.includes("total") &&
-        !marketTypeLower.includes("alternate")
-      );
-    case BetTypes.ALTERNATE_LINES:
-      return marketTypeLower.includes("alternate");
+      return marketTypeLower.includes("total");
+    // case BetTypes.ALTERNATE_LINES:
+    //   return marketTypeLower.includes("alternate");
     default:
       return false;
   }
