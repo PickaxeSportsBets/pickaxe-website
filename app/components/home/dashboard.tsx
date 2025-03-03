@@ -125,7 +125,6 @@ export default function Home() {
       }
 
       if (arbBetsData) {
-        console.log(arbBetsData);
         setArbLastUpdated(arbBetsData[0]?.timestamp);
         const sortedArbBets = [...arbBetsData].sort((a, b) => {
           const profitA = Number(a.profit_percentage) || 0;

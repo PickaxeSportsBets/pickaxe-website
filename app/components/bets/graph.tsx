@@ -64,6 +64,7 @@ interface OddsHistoryGraphProps {
   onClose: () => void;
   side?: "over" | "under";
   isLoading?: boolean;
+  betData: any;
 }
 
 interface VisibleLines {
@@ -90,6 +91,7 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
   isOpen,
   onClose,
   side = "over",
+  betData,
   isLoading = false,
 }) => {
   const [visibleLines, setVisibleLines] = useState<VisibleLines>({});
@@ -347,7 +349,7 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
       <DialogContent className="max-w-6xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
-            {`${rawData[0]?.game} - ${rawData[0]?.market_type} ${rawData[0]?.market_point} ${rawData[0]?.team} Odds Movement`}
+            {`${betData.game} - ${betData.market_type} ${betData.market_point} ${betData.team} Odds Movement`}
           </DialogTitle>
         </DialogHeader>
 

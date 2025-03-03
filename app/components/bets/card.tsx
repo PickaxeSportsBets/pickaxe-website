@@ -108,7 +108,6 @@ const EVBetCard = ({
         console.error("Error fetching historical data:", historicalData2.error);
       } else {
         setHistoricalData(pastData);
-        console.log(pastData);
       }
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -554,6 +553,7 @@ const EVBetCard = ({
           setHistoricalData2(null);
         }}
         isLoading={isLoadingGraph}
+        betData={bet}
       />
     </div>
   );
