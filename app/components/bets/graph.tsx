@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import pako from "pako";
 import {
   LineChart,
   Line,
@@ -46,7 +47,7 @@ interface HistoricalDataPoint {
 }
 
 interface HistoricalDataEntry {
-  past_data: HistoricalDataPoint[];
+  past_data: string;
   game: string;
   market_type: string;
   market_point: string | number;
@@ -95,16 +96,37 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
   isLoading = false,
 }) => {
   const [visibleLines, setVisibleLines] = useState<VisibleLines>({});
+  console.log(rawData);
 
-  // Initialize visible lines when data changes
+  function decodePastData(encodedData: string) {
+    try {
+      const compressedData = atob(encodedData); // Decode Base64
+      const uint8Array = new Uint8Array(
+        [...compressedData].map((c) => c.charCodeAt(0))
+      );
+      const decompressedData = new TextDecoder().decode(
+        pako.inflate(uint8Array) // Gzip decompress
+      );
+      return JSON.parse(decompressedData); // Convert back to JSON
+    } catch (error) {
+      console.error("Error decoding past_data:", error);
+      return [];
+    }
+  }
+
   useEffect(() => {
     if (Array.isArray(rawData) && rawData.length > 0) {
       const bookmakers = new Set<string>();
+
       rawData.forEach((bet) => {
         if (bet.past_data) {
-          bet.past_data.forEach((point) => {
-            bookmakers.add(point.bookmaker);
-          });
+          const decodedPastData = decodePastData(bet.past_data);
+
+          if (Array.isArray(decodedPastData)) {
+            decodedPastData.forEach((point) => {
+              bookmakers.add(point.bookmaker);
+            });
+          }
         }
       });
 
@@ -131,11 +153,14 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
 
       // Collect all past data points
       rawData.forEach((bet) => {
-        if (bet.past_data && Array.isArray(bet.past_data)) {
-          bet.past_data.forEach((point) => {
-            allTimestamps.add(point.timestamp);
-            bookmakers.add(point.bookmaker);
-          });
+        if (bet.past_data) {
+          const decodedPastData = decodePastData(bet.past_data);
+          if (Array.isArray(decodedPastData)) {
+            decodedPastData.forEach((point) => {
+              allTimestamps.add(point.timestamp);
+              bookmakers.add(point.bookmaker);
+            });
+          }
         }
       });
 
@@ -158,12 +183,18 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
         bookmakers.forEach((bookmaker) => {
           // Find the odds for this bookmaker at this timestamp
           for (const bet of rawData) {
-            const point = bet.past_data?.find(
-              (p) => p.timestamp === timestamp && p.bookmaker === bookmaker
-            );
-            if (point) {
-              dataPoint[bookmaker] = point.odds;
-              break;
+            if (bet.past_data) {
+              const decodedPastData = decodePastData(bet.past_data);
+              if (Array.isArray(decodedPastData)) {
+                const point = decodedPastData.find(
+                  (p: HistoricalDataPoint) =>
+                    p.timestamp === timestamp && p.bookmaker === bookmaker
+                );
+                if (point) {
+                  dataPoint[bookmaker] = point.odds;
+                  break;
+                }
+              }
             }
           }
         });
