@@ -145,12 +145,13 @@ export const filterArbBets = (bets: any[], filters: FilterState) => {
     const team1Book = bet.team1_book?.toLowerCase();
     const team2Book = bet.team2_book?.toLowerCase();
 
-    // Check if either bookmaker matches any of the selected bookmakers
-    const hasSelectedBookmaker = filters.bookmakers.some(
-      (bookmaker) => bookmaker === team1Book || bookmaker === team2Book
-    );
+    // If only one bookmaker is selected, show all bets where that bookmaker appears
+    if (filters.bookmakers.length === 1) {
+      const selectedBookmaker = filters.bookmakers[0];
+      return team1Book === selectedBookmaker || team2Book === selectedBookmaker;
+    }
 
-    // Return true if at least one of the bookmakers is selected
-    return hasSelectedBookmaker;
+    // If multiple bookmakers are selected, both bookmakers must be from the selected list
+    return filters.bookmakers.includes(team1Book) && filters.bookmakers.includes(team2Book);
   });
 };
