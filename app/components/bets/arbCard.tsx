@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Calculator } from "lucide-react";
 import BookmakerLogos from "./utils";
 import CalculatorModal from "./modal";
+import pako from "pako";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -51,6 +52,21 @@ const ArbBetCard = ({
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  function decodeMarketData(encodedData: string) {
+    try {
+      const compressedData = atob(encodedData); // Decode Base64
+      const uint8Array = new Uint8Array(
+        [...compressedData].map((c) => c.charCodeAt(0))
+      );
+      const decompressedData = new TextDecoder().decode(
+        pako.inflate(uint8Array) // Gzip decompress
+      );
+      return JSON.parse(decompressedData); // Convert back to JSON
+    } catch (error) {
+      console.error("Error decoding past_data:", error);
+      return [];
+    }
+  }
 
   const formatDateTime = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -154,7 +170,7 @@ const ArbBetCard = ({
   };
 
   const processedData = bet.market_data
-    ? processMarketData(bet.market_data)
+    ? processMarketData(decodeMarketData(bet.market_data))
     : null;
 
   return (

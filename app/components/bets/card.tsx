@@ -5,6 +5,7 @@ import { createClient } from "@/app/utils/supabase/client";
 import OddsHistoryGraph from "./graph";
 import BookmakerLogos from "./utils";
 import { LineChart, X, Loader2 } from "lucide-react";
+import pako from "pako";
 const supabase = createClient();
 import {
   AlertDialog,
@@ -55,6 +56,21 @@ const EVBetCard = ({
   const [historicalData, setHistoricalData] = useState<any>(null);
   const [isLoadingGraph, setIsLoadingGraph] = useState(false);
   const [historicalData2, setHistoricalData2] = useState<any>(null);
+  function decodeMarketData(encodedData: string) {
+    try {
+      const compressedData = atob(encodedData); // Decode Base64
+      const uint8Array = new Uint8Array(
+        [...compressedData].map((c) => c.charCodeAt(0))
+      );
+      const decompressedData = new TextDecoder().decode(
+        pako.inflate(uint8Array) // Gzip decompress
+      );
+      return JSON.parse(decompressedData); // Convert back to JSON
+    } catch (error) {
+      console.error("Error decoding past_data:", error);
+      return [];
+    }
+  }
   const fetchData = async () => {
     setIsLoadingGraph(true);
     try {
@@ -200,7 +216,7 @@ const EVBetCard = ({
     return link.replace(/{state}/g, userState.toLowerCase());
   };
 
-  const processedData = processMarketData(bet.market_data);
+  const processedData = processMarketData(decodeMarketData(bet.market_data));
   if (!processedData) return null;
 
   const formatDateTime = (dateStr: string) => {
