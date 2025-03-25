@@ -45,12 +45,12 @@ const LandingPage = () => {
                 Discover profitable arbitrage opportunities and +EV bets across
                 multiple sports books in real-time with Pickaxe.
               </p>
-              <button
+              {/* <button
                 onClick={() => router.push("/sign-up")}
                 className="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-4 rounded-lg font-medium text-lg transition-colors"
               >
-                Get Started
-              </button>
+                Sign up now
+              </button> */}
             </div>
 
             {/* Right side - with responsive changes */}
