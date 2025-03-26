@@ -121,7 +121,7 @@ const ArbBetCard = ({
     if (
       (bet.market_type.includes("total") ||
         bet.market_type.includes("Total")) &&
-      bet.market_point
+      bet.market_point !== 0
     ) {
       return `${baseDesc} (${bet.market_point})`;
     }

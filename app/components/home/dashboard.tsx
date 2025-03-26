@@ -31,7 +31,7 @@ import {
   FilterState,
 } from "../filters/filterFuncs";
 import { useUser } from "@clerk/nextjs";
-
+import { useHeaders } from "@/app/hooks/use-headers";
 enum Page {
   EV = "EV",
   ARB = "ARB",
@@ -48,6 +48,7 @@ interface SubscriptionStatus {
 
 export default function Home() {
   const { user } = useUser();
+  const { getAuthHeaders } = useHeaders();
   const [bets, setBets] = useState<any>();
   const [filteredEVBets, setFilteredEVBets] = useState<any>();
   const [filteredArbBets, setFilteredArbBets] = useState<any>();
@@ -105,14 +106,20 @@ export default function Home() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const { data: evBets } = await supabase
-        .from("plus_ev")
-        .select()
-        .order("ev_percentage", { ascending: false });
-      const { data: arbBetsData } = await supabase
-        .from("arbitrage")
-        .select()
-        .order("profit_percentage", { ascending: false });
+      const headers = await getAuthHeaders();
+      const response1 = await fetch(`${API_URL}/api/v1/db/evBets`, {
+        method: "GET",
+        headers: headers,
+      });
+
+      const evBets = await response1.json();
+
+      const response2 = await fetch(`${API_URL}/api/v1/db/arbitrageBets`, {
+        method: "GET",
+        headers: headers,
+      });
+
+      const arbBetsData = await response2.json();
 
       if (evBets) {
         setEvLastUpdated(evBets[0]?.timestamp);

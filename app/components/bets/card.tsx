@@ -6,7 +6,8 @@ import OddsHistoryGraph from "./graph";
 import BookmakerLogos from "./utils";
 import { LineChart, X, Loader2 } from "lucide-react";
 import pako from "pako";
-const supabase = createClient();
+import { useHeaders } from "@/app/hooks/use-headers";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 import {
   AlertDialog,
   AlertDialogAction,
@@ -51,6 +52,7 @@ const EVBetCard = ({
   bet: any;
   userState?: string;
 }) => {
+  const { getAuthHeaders } = useHeaders();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isOpen, setIsGraphOpen] = useState(false);
   const [historicalData, setHistoricalData] = useState<any>(null);
@@ -72,58 +74,38 @@ const EVBetCard = ({
     }
   }
   const fetchData = async () => {
+    const headers = await getAuthHeaders();
     setIsLoadingGraph(true);
     try {
-      let historicalData2: any;
-      let pastData: any[] = [];
-
-      if (!bet.player) {
-        historicalData2 = await supabase
-          .from("ev_graph_v2")
-          .select("*")
-          .eq("game", bet.game)
-          .eq("market_type", bet.market_type)
-          .eq("team", bet.team)
-          .eq("market_point", bet.market_point);
-
-        if (historicalData2?.data) {
-          for (const item of historicalData2.data) {
-            const response = await supabase
-              .from("ev_graph_past_data")
-              .select("*")
-              .eq("bet_key", item.bet_key);
-            if (response?.data) {
-              pastData.push(...response.data);
-            }
-          }
-        }
+      if (!bet.player || bet.player == null) {
+        const response = await fetch(`${API_URL}/api/v1/db/get_bet_data`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            game: bet.game,
+            market_type: bet.market_type,
+            team: bet.team,
+            market_point:
+              bet.market_point === 0 ? null : String(bet.market_point),
+          }),
+        });
+        const data = await response.json();
+        setHistoricalData(data);
       } else {
         const team = bet.player + " " + bet.team;
-        historicalData2 = await supabase
-          .from("ev_graph_v2")
-          .select("*")
-          .eq("game", bet.game)
-          .eq("market_type", bet.market_type)
-          .eq("team", team)
-          .eq("market_point", bet.market_point);
-
-        if (historicalData2?.data) {
-          for (const item of historicalData2.data) {
-            const response = await supabase
-              .from("ev_graph_past_data")
-              .select("*")
-              .eq("bet_key", item.bet_key);
-            if (response?.data) {
-              pastData.push(...response.data);
-            }
-          }
-        }
-      }
-
-      if (historicalData2.error) {
-        console.error("Error fetching historical data:", historicalData2.error);
-      } else {
-        setHistoricalData(pastData);
+        const response = await fetch(`${API_URL}/api/v1/db/get_bet_data`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            game: bet.game,
+            market_type: bet.market_type,
+            team: team,
+            market_point: String(bet.market_point) || null,
+          }),
+        });
+        const data = await response.json();
+        console.log(data);
+        setHistoricalData(data);
       }
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -310,7 +292,10 @@ const EVBetCard = ({
                   )}
                 </div>
                 <div className="text-primary-text-light dark:text-primary-text-dark">
-                  {bet.team} {bet.market_point && `(${bet.market_point})`}
+                  {bet.team}{" "}
+                  {bet.market_point !== 0 &&
+                    bet.market_point &&
+                    `(${bet.market_point})`}
                 </div>
               </div>
               <div

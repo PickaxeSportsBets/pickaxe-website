@@ -16,7 +16,7 @@ import { Gift, AlertTriangle, Calculator } from "lucide-react";
 import CalculatorModal from "../bets/modal";
 import BookmakerLogos from "../bets/utils";
 import { useHeaders } from "@/app/hooks/use-headers";
-
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const MarketTypeMapping: { [key: string]: string } = {
   h2h: "Head to Head",
   h2h_q1: "Quarter 1 Head to Head",
@@ -74,6 +74,7 @@ const FreeBetComponent = ({
         body: JSON.stringify({ redeem: false }),
       });
       const data = await response.json();
+      console.log("Data", data);
       setFreeBetStatus(data);
       setLoading(false);
     } catch (error) {
@@ -101,14 +102,16 @@ const FreeBetComponent = ({
       setFreeBetStatus(redemptionData);
 
       // Set the random bet from our pre-checked data
-      const { data, error } = await supabase
-        .from("arbitrage")
-        .select("*")
-        .gt("profit_percentage", 0)
-        .eq("opportunity_type", "Arbitrage")
-        .limit(10);
+      const freeBetResponse = await fetch(
+        `${API_URL}/api/v1/db/arbitrageFreeBet`,
+        {
+          method: "GET",
+          headers: headers,
+        }
+      );
 
-      if (error) throw error;
+      const data = await freeBetResponse.json();
+
       if (!data || data.length === 0) {
         toast({
           title: "No Bets Available",

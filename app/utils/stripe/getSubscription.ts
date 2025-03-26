@@ -1,14 +1,18 @@
 import { createClient } from "../supabase/client";
+import { useHeaders } from "@/app/hooks/use-headers";
 const supabase = createClient();
-
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 export const getUserSubscription = async (user_id: string) => {
+  const { getAuthHeaders } = useHeaders();
+  const headers = await getAuthHeaders();
   try {
-    const { data: subscriptions, error } = await supabase
-      .from("subscriptions")
-      .select("*")
-      .eq("clerk_user_id", user_id);
-
-    if (error) throw error;
+    const response = await fetch(`${API_URL}/api/get-subscriptions/${user_id}`, {
+      headers,
+      method: "GET",
+    });
+    const data = await response.json();
+    const subscriptions = data.subscriptions;
+    
 
     if (!subscriptions || subscriptions.length === 0) {
       return {
@@ -19,7 +23,7 @@ export const getUserSubscription = async (user_id: string) => {
     }
 
     // Check if any subscription is valid
-    const validSubscription = subscriptions.find((subscription) => {
+    const validSubscription = subscriptions.find((subscription: any) => {
       return (
         subscription.status === "active" &&
         new Date(subscription.current_period_end) > new Date()

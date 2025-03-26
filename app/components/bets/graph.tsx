@@ -87,6 +87,102 @@ interface CustomLegendProps {
   visibleLines: VisibleLines;
 }
 
+function processHistoricalData(data: any[]): ProcessedDataEntry[] {
+  if (!Array.isArray(data) || data.length === 0) return [];
+
+  try {
+    // Get all unique timestamps across all entries
+    const allTimestamps = new Set<string>();
+    const bookmakers = new Set<string>();
+
+    // Process each bet entry
+    data.forEach((bet) => {
+      // Check if past_data is a string (encoded) or array
+      let pastDataPoints: HistoricalDataPoint[] = [];
+
+      if (typeof bet.past_data === "string") {
+        // Handle encoded data
+        try {
+          const compressedData = atob(bet.past_data);
+          const uint8Array = new Uint8Array(
+            [...compressedData].map((c) => c.charCodeAt(0))
+          );
+          const decompressedData = new TextDecoder().decode(
+            pako.inflate(uint8Array)
+          );
+          pastDataPoints = JSON.parse(decompressedData);
+        } catch (e) {
+          console.error("Error decoding past_data:", e);
+          return;
+        }
+      } else if (Array.isArray(bet.past_data)) {
+        // Handle direct array data
+        pastDataPoints = bet.past_data;
+      }
+
+      // Process the data points
+      pastDataPoints.forEach((point) => {
+        allTimestamps.add(point.timestamp);
+        bookmakers.add(point.bookmaker);
+      });
+    });
+
+    // Sort timestamps chronologically
+    const sortedTimestamps = Array.from(allTimestamps).sort();
+
+    // Create time series data
+    return sortedTimestamps.map((timestamp) => {
+      const dataPoint: ProcessedDataEntry = {
+        timestamp: new Date(timestamp).toLocaleString("en-US", {
+          month: "numeric",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        }),
+      };
+
+      // Add odds for each bookmaker at this timestamp
+      bookmakers.forEach((bookmaker) => {
+        for (const bet of data) {
+          let pastDataPoints: HistoricalDataPoint[] = [];
+
+          if (typeof bet.past_data === "string") {
+            try {
+              const compressedData = atob(bet.past_data);
+              const uint8Array = new Uint8Array(
+                [...compressedData].map((c) => c.charCodeAt(0))
+              );
+              const decompressedData = new TextDecoder().decode(
+                pako.inflate(uint8Array)
+              );
+              pastDataPoints = JSON.parse(decompressedData);
+            } catch (e) {
+              continue;
+            }
+          } else if (Array.isArray(bet.past_data)) {
+            pastDataPoints = bet.past_data;
+          }
+
+          const point = pastDataPoints.find(
+            (p) => p.timestamp === timestamp && p.bookmaker === bookmaker
+          );
+
+          if (point) {
+            dataPoint[bookmaker] = point.odds;
+            break;
+          }
+        }
+      });
+
+      return dataPoint;
+    });
+  } catch (error) {
+    console.error("Error processing odds data:", error);
+    return [];
+  }
+}
+
 const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
   data: rawData,
   isOpen,
@@ -97,35 +193,15 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
 }) => {
   const [visibleLines, setVisibleLines] = useState<VisibleLines>({});
 
-  function decodePastData(encodedData: string) {
-    try {
-      const compressedData = atob(encodedData); // Decode Base64
-      const uint8Array = new Uint8Array(
-        [...compressedData].map((c) => c.charCodeAt(0))
-      );
-      const decompressedData = new TextDecoder().decode(
-        pako.inflate(uint8Array) // Gzip decompress
-      );
-      return JSON.parse(decompressedData); // Convert back to JSON
-    } catch (error) {
-      console.error("Error decoding past_data:", error);
-      return [];
-    }
-  }
-
   useEffect(() => {
     if (Array.isArray(rawData) && rawData.length > 0) {
       const bookmakers = new Set<string>();
 
       rawData.forEach((bet) => {
-        if (bet.past_data) {
-          const decodedPastData = decodePastData(bet.past_data);
-
-          if (Array.isArray(decodedPastData)) {
-            decodedPastData.forEach((point) => {
-              bookmakers.add(point.bookmaker);
-            });
-          }
+        if (Array.isArray(bet.past_data)) {
+          bet.past_data.forEach((point) => {
+            bookmakers.add(point.bookmaker);
+          });
         }
       });
 
@@ -141,70 +217,11 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
     }
   }, [rawData]);
 
-  // Process data for the graph
-  const processedData = useMemo(() => {
-    if (!Array.isArray(rawData) || rawData.length === 0) return [];
-
-    try {
-      // Get all unique timestamps across all past_data entries
-      const allTimestamps = new Set<string>();
-      const bookmakers = new Set<string>();
-
-      // Collect all past data points
-      rawData.forEach((bet) => {
-        if (bet.past_data) {
-          const decodedPastData = decodePastData(bet.past_data);
-          if (Array.isArray(decodedPastData)) {
-            decodedPastData.forEach((point) => {
-              allTimestamps.add(point.timestamp);
-              bookmakers.add(point.bookmaker);
-            });
-          }
-        }
-      });
-
-      // Sort timestamps chronologically
-      const sortedTimestamps = Array.from(allTimestamps).sort();
-
-      // Create time series data
-      return sortedTimestamps.map((timestamp) => {
-        const dataPoint: any = {
-          timestamp: new Date(timestamp).toLocaleString("en-US", {
-            month: "numeric",
-            day: "numeric",
-            hour: "numeric",
-            minute: "2-digit",
-            hour12: true,
-          }),
-        };
-
-        // Add odds for each bookmaker at this timestamp
-        bookmakers.forEach((bookmaker) => {
-          // Find the odds for this bookmaker at this timestamp
-          for (const bet of rawData) {
-            if (bet.past_data) {
-              const decodedPastData = decodePastData(bet.past_data);
-              if (Array.isArray(decodedPastData)) {
-                const point = decodedPastData.find(
-                  (p: HistoricalDataPoint) =>
-                    p.timestamp === timestamp && p.bookmaker === bookmaker
-                );
-                if (point) {
-                  dataPoint[bookmaker] = point.odds;
-                  break;
-                }
-              }
-            }
-          }
-        });
-
-        return dataPoint;
-      });
-    } catch (error) {
-      console.error("Error processing odds data:", error);
-      return [];
-    }
-  }, [rawData]);
+  // Use the new processHistoricalData function
+  const processedData = useMemo(
+    () => processHistoricalData(rawData),
+    [rawData]
+  );
 
   const availableBookmakers = useMemo(() => {
     if (!processedData.length) return [];

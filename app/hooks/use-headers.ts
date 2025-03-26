@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+"use client";
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 interface Headers {
   get: (name: string) => string | null;
@@ -11,13 +12,24 @@ interface UseHeadersResult {
   loading: boolean;
   error: Error | null;
   getAuthHeaders: () => Promise<HeadersInit>;
+  refreshHeaders: () => Promise<void>;
 }
+
+interface CachedHeaders {
+  headers: Record<string, string>;
+  timestamp: number;
+}
+
+const CACHE_DURATION = 55 * 60 * 1000; // 55 minutes in milliseconds
 
 export function useHeaders(): UseHeadersResult {
   const [headers, setHeaders] = useState<Headers | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  
+  // Use ref to store cached headers across renders
+  const cachedHeadersRef = useRef<CachedHeaders | null>(null);
 
   const fetchHeaders = async () => {
     try {
@@ -33,7 +45,8 @@ export function useHeaders(): UseHeadersResult {
       const headerEntries = Array.from(response.headers.entries());
       const headersMap = new Map(headerEntries);
 
-      const headers: Headers = {
+      // Create Headers object for internal state
+      const headersObj: Headers = {
         get: (name: string) => {
           const value = headersMap.get(name);
           return value || null;
@@ -43,13 +56,26 @@ export function useHeaders(): UseHeadersResult {
         },
       };
 
-      setHeaders(headers);
+      // Create plain object for cache
+      const headersPlainObj: Record<string, string> = {};
+      for (const [key, value] of headerEntries) {
+        headersPlainObj[key] = value;
+      }
+      headersPlainObj['Content-Type'] = 'application/json';
 
-      const authHeader = headers.get('Authorization');
+      // Update cache
+      cachedHeadersRef.current = {
+        headers: headersPlainObj,
+        timestamp: Date.now(),
+      };
+
+      setHeaders(headersObj);
+
+      const authHeader = headersObj.get('Authorization');
       const token = authHeader?.replace('Bearer ', '') || null;
       setToken(token);
 
-      return headers;
+      return headersObj;
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Unknown error occurred');
       setError(error);
@@ -59,26 +85,30 @@ export function useHeaders(): UseHeadersResult {
     }
   };
 
-  // Modified to return a plain object that matches HeadersInit
-  const getAuthHeaders = useCallback(async () => {
-    const response = await fetch('/api/headers');
-    const headerEntries = Array.from(response.headers.entries());
+  const shouldRefreshHeaders = () => {
+    if (!cachedHeadersRef.current) return true;
     
-    // Convert headers to a plain object
-    const headersObject: Record<string, string> = {};
-    for (const [key, value] of headerEntries) {
-      headersObject[key] = value;
+    const age = Date.now() - cachedHeadersRef.current.timestamp;
+    return age > CACHE_DURATION;
+  };
+
+  const refreshHeaders = async () => {
+    await fetchHeaders();
+  };
+
+  const getAuthHeaders = useCallback(async (): Promise<HeadersInit> => {
+    if (shouldRefreshHeaders()) {
+      await fetchHeaders();
     }
     
-    // Add Content-Type
-    headersObject['Content-Type'] = 'application/json';
-    
-    return headersObject;
+    return cachedHeadersRef.current?.headers || {};
   }, []);
 
   useEffect(() => {
-    fetchHeaders();
+    if (!cachedHeadersRef.current) {
+      fetchHeaders();
+    }
   }, []);
 
-  return { headers, token, loading, error, getAuthHeaders };
+  return { headers, token, loading, error, getAuthHeaders, refreshHeaders };
 } 

@@ -1,21 +1,22 @@
 import { createClient } from "../supabase/client";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export class FreeBetController {
     private supabase: any
     private COOLDOWN_PERIOD = 24 * 60 * 60 * 1000
-    constructor() {
+    private headers: HeadersInit
+
+    constructor(headers: HeadersInit) {
         this.supabase = createClient()
+        this.headers = headers
     }
+    
     private async getUserBetData(clerkUserId: string) {
-        const { data, error } = await this.supabase
-            .from('free_bet')
-            .select('*')
-            .eq('clerk_id', clerkUserId)
-            .single();
-        if (error && error.code !== 'PGRST116') { // Not found error is okay
-            console.error('Error fetching user bet data:', error);
-            throw error;
-        }
+        const response = await fetch(`${API_URL}/api/get-free-bet/${clerkUserId}`, {
+            method: "GET",
+            headers: this.headers
+        });
+        const data = await response.json();
         return data;
     }
 
@@ -30,14 +31,15 @@ export class FreeBetController {
 
             const userData = await this.getUserBetData(clerkUserId);
 
-            // If no record exists, user can place a bet
-            if (!userData) {
+            // If no record exists or error response, user can place a bet
+            if (userData.code === 404 || !userData.data) {
                 return { allowed: true };
             }
 
-            if (userData.lastRedemptionDate) {
-                const timeSinceLastBet = Date.now() - new Date(userData.lastRedemptionDate).getTime();
-                const nextDate = new Date(userData.lastRedemptionDate).getTime() + this.COOLDOWN_PERIOD;
+            // Access lastRedemptionDate from the nested data object
+            if (userData.data.lastRedemptionDate) {
+                const timeSinceLastBet = Date.now() - new Date(userData.data.lastRedemptionDate).getTime();
+                const nextDate = new Date(userData.data.lastRedemptionDate).getTime() + this.COOLDOWN_PERIOD;
                 if (timeSinceLastBet < this.COOLDOWN_PERIOD) {
                     const hoursRemaining = Math.ceil((this.COOLDOWN_PERIOD - timeSinceLastBet) / (60 * 60 * 1000));
                     return {
@@ -56,21 +58,14 @@ export class FreeBetController {
     }
 
     async redeemFreeBet(clerkUserId: string) {
-        try {
-            const { data, error } = await this.supabase
-                .from('free_bet')
-                .upsert(
-                    { 
-                        clerk_id: clerkUserId, 
-                        lastRedemptionDate: new Date() 
-                    }, 
-                    { onConflict: 'clerk_id' }
-                )
-                .select()
-                .single();
-
-            if (error) {
-                console.error('Error placing free bet:', error);
+        try {   
+            const response = await fetch(`${API_URL}/api/upsert-free-bet/${clerkUserId}`, {
+                method: "POST",
+                headers: this.headers
+            });
+            const data = await response.json();
+            if (data.error) {
+                console.error('Error placing free bet:', data.error);
                 throw new Error('Unable to place free bet');
             }
 
