@@ -15,6 +15,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Gift, AlertTriangle, Calculator } from "lucide-react";
 import CalculatorModal from "../bets/modal";
 import BookmakerLogos from "../bets/utils";
+import { useHeaders } from "@/app/hooks/use-headers";
+
 const MarketTypeMapping: { [key: string]: string } = {
   h2h: "Head to Head",
   h2h_q1: "Quarter 1 Head to Head",
@@ -59,21 +61,15 @@ const FreeBetComponent = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { toast } = useToast();
   const supabase = createClient();
+  const { getAuthHeaders } = useHeaders();
 
   const fetchFreeBetStatus = async () => {
     try {
-      const headers = new Headers();
-      const currentHeaders = await fetch("/api/headers").then(
-        (res) => res.headers
-      );
-      for (const [key, value] of currentHeaders.entries()) {
-        headers.set(key, value);
-      }
-      headers.set("Content-Type", "application/json");
+      const headers = await getAuthHeaders();
 
       const response = await fetch("/api/redeem-bet", {
         method: "POST",
-        headers: headers,
+        headers,
         credentials: "include",
         body: JSON.stringify({ redeem: false }),
       });
@@ -88,7 +84,23 @@ const FreeBetComponent = ({
 
   const redeemFreeBet = async () => {
     try {
-      // Check for available bets first
+      const headers = await getAuthHeaders();
+
+      const response = await fetch("/api/redeem-bet", {
+        method: "POST",
+        headers,
+        credentials: "include",
+        body: JSON.stringify({ redeem: true }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to redeem bet");
+      }
+
+      const redemptionData = await response.json();
+      setFreeBetStatus(redemptionData);
+
+      // Set the random bet from our pre-checked data
       const { data, error } = await supabase
         .from("arbitrage")
         .select("*")
@@ -107,30 +119,6 @@ const FreeBetComponent = ({
         return;
       }
 
-      const headers = new Headers();
-      const currentHeaders = await fetch("/api/headers").then(
-        (res) => res.headers
-      );
-      for (const [key, value] of currentHeaders.entries()) {
-        headers.set(key, value);
-      }
-      headers.set("Content-Type", "application/json");
-
-      const response = await fetch("/api/redeem-bet", {
-        method: "POST",
-        headers: headers,
-        credentials: "include",
-        body: JSON.stringify({ redeem: true }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to redeem bet");
-      }
-
-      const redemptionData = await response.json();
-      setFreeBetStatus(redemptionData);
-
-      // Set the random bet from our pre-checked data
       const randomIndex = Math.floor(Math.random() * data.length);
       setFreeBet(data[randomIndex]);
       setShowBetDialog(true);

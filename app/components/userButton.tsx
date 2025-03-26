@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { CreditCard, Package, User, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useHeaders } from "@/app/hooks/use-headers";
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 type SubscriptionStatus = {
   isSubscribed: boolean;
@@ -18,32 +19,23 @@ export const CustomUserButton = () => {
   const { isLoaded, user } = useUser();
   const { signOut, openUserProfile } = useClerk();
   const router = useRouter();
+  const { getAuthHeaders } = useHeaders();
   const [subscriptionStatus, setSubscriptionStatus] =
     useState<SubscriptionStatus | null>(null);
 
   useEffect(() => {
     const checkSubscriptionStatus = async () => {
       try {
-        const headers = new Headers();
-
-        const currentHeaders = await fetch("/api/headers").then(
-          (res) => res.headers
-        );
-        for (const [key, value] of currentHeaders.entries()) {
-          headers.set(key, value);
-        }
-
-        headers.set("Content-Type", "application/json");
+        const headers = await getAuthHeaders();
 
         const response = await fetch(`${API_URL}/protected`, {
           method: "GET",
-          headers: headers,
-          credentials: "include", // Important for cookies and auth headers
+          headers,
+          credentials: "include",
         });
 
         if (response.ok) {
           const data = await response.json();
-
           setSubscriptionStatus({
             isSubscribed: data.isSubscribed,
             subscriptionStatus: data.subscriptionStatus,
@@ -71,7 +63,7 @@ export const CustomUserButton = () => {
     if (user?.id) {
       checkSubscriptionStatus();
     }
-  }, [user?.id, user?.publicMetadata?.stripe_customer_id]);
+  }, [user?.id, user?.publicMetadata?.stripe_customer_id, getAuthHeaders]);
 
   const handlePortalAccess = async () => {
     try {

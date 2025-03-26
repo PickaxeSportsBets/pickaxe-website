@@ -96,7 +96,6 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
   isLoading = false,
 }) => {
   const [visibleLines, setVisibleLines] = useState<VisibleLines>({});
-  console.log(rawData);
 
   function decodePastData(encodedData: string) {
     try {
