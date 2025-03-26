@@ -44,22 +44,11 @@ export default clerkMiddleware(async (auth: ClerkMiddlewareAuth, request) => {
           token = existingToken;
         }
       }
-
-      // Always fetch subscription data (or cache it as needed).
-      const subscription = await checkSubscription(session.userId);
-
-      // Generate a new token if there’s no valid existing one.
       if (!token) {
-        token = await generateToken(session.userId, subscription);
+        token = await generateToken(session.userId);
       }
-
       // Set the JWT token and subscription details as headers.
       requestHeaders.set("Authorization", `Bearer ${token}`);
-      requestHeaders.set("x-subscription-valid", String(subscription.isValid));
-      requestHeaders.set("x-subscription-status", subscription.status);
-      requestHeaders.set("x-subscription-plans", JSON.stringify(subscription.plans));
-      requestHeaders.set("x-active-plan-ids", JSON.stringify(subscription.activePlans));
-      // console.log(token);
 
       return NextResponse.next({
         request: {

@@ -43,7 +43,6 @@ interface SubscriptionStatus {
   subscriptionStatus: string;
   activePlans: string[];
   stripeCustomerId?: string;
-  subscriptionName?: string;
 }
 
 export default function Home() {
@@ -210,25 +209,12 @@ export default function Home() {
         if (response.ok) {
           const data = await response.json();
           if (data.isSubscribed) {
-            // Get subscription details with same headers
-            const subscriptionResponse = await fetch(
-              `/api/subscription-details`,
-              {
-                method: "GET",
-                headers: headers,
-                credentials: "include",
-              }
-            );
-
-            const subscriptionDetails = await subscriptionResponse.json();
-
             setSubscriptionStatus({
               isSubscribed: data.isSubscribed,
               subscriptionStatus: data.subscriptionStatus,
               activePlans: data.activePlans || [],
               stripeCustomerId: user?.publicMetadata
                 ?.stripe_customer_id as string,
-              subscriptionName: subscriptionDetails.plan?.nickname || "",
             });
           } else {
             setSubscriptionStatus({

@@ -1,19 +1,15 @@
 import { SignJWT, jwtVerify } from 'jose';
-import { SubscriptionData } from './subscription';
 const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
 
 // Token durations in seconds
 const TOKEN_EXPIRY = 24 * 60 * 60; // 24 hours
 const REFRESH_THRESHOLD = 60 * 60; // 1 hour
 
-export async function generateToken(userId: string, subscription: SubscriptionData) {
+export async function generateToken(userId: string) {
   try {
     const now = Math.floor(Date.now() / 1000);
     return await new SignJWT({
       userId,
-      isSubscribed: subscription.isValid,
-      subscriptionStatus: subscription.status,
-      activePlans: subscription.activePlans,
       iat: now,
       exp: now + TOKEN_EXPIRY,
     })
