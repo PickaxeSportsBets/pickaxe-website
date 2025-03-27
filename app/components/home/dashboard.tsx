@@ -431,7 +431,12 @@ export default function Home() {
           />
 
           {/* <SubscriptionCheck
-            subscriptionStatus={subscriptionStatus}
+            subscriptionStatus={
+              subscriptionStatus || {
+                isSubscribed: false,
+                subscriptionName: null,
+              }
+            }
             loading={isLoadingSubscription}
           > */}
           {currPage !== Page.PROMOS && (

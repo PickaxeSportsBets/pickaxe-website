@@ -43,8 +43,8 @@ const SubscriptionCheck = ({
   children,
 }: {
   subscriptionStatus: {
-    isSubscribed: boolean;
-    subscriptionName?: string;
+    isSubscribed: boolean | null;
+    subscriptionName?: string | null;
   };
   loading: boolean;
   children: React.ReactNode;
