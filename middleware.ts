@@ -1,7 +1,6 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import type { ClerkMiddlewareAuth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { checkSubscription } from "./app/utils/token/subscription";
 import { generateToken, shouldRefreshToken } from "./app/utils/token/jwtService";
 
 // Only sign in, sign up, and landing pages are public.

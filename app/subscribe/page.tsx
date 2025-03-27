@@ -18,7 +18,7 @@ import {
   EmbeddedCheckoutProvider,
   EmbeddedCheckout,
 } from "@stripe/react-stripe-js";
-import { getUserSubscription } from "../utils/stripe/getSubscription";
+import { getSubscription } from "../utils/stripe/getSubscription";
 import { CreditCard } from "lucide-react";
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const stripePromise = loadStripe(

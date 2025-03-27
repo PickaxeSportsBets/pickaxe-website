@@ -6,7 +6,7 @@ import OddsHistoryGraph from "./graph";
 import BookmakerLogos from "./utils";
 import { LineChart, X, Loader2 } from "lucide-react";
 import pako from "pako";
-import { useHeaders } from "@/app/hooks/use-headers";
+import { useHeaders } from "@/lib/headersContext";
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 import {
   AlertDialog,
@@ -52,12 +52,15 @@ const EVBetCard = ({
   bet: any;
   userState?: string;
 }) => {
-  const { getAuthHeaders } = useHeaders();
+  const { getAuthHeaders, loading: headersLoading } = useHeaders();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isOpen, setIsGraphOpen] = useState(false);
   const [historicalData, setHistoricalData] = useState<any>(null);
   const [isLoadingGraph, setIsLoadingGraph] = useState(false);
   const [historicalData2, setHistoricalData2] = useState<any>(null);
+  const [historicalLoading, setHistoricalLoading] = useState(false);
+  const [historical, setHistorical] = useState<any>(null);
+
   function decodeMarketData(encodedData: string) {
     try {
       const compressedData = atob(encodedData); // Decode Base64
@@ -73,6 +76,38 @@ const EVBetCard = ({
       return [];
     }
   }
+
+  const fetchHistoricalData = async () => {
+    if (headersLoading) return; // Wait for headers to load
+
+    setHistoricalLoading(true);
+    try {
+      const headers = await getAuthHeaders();
+
+      const response = await fetch(
+        `${API_URL}/api/v1/odds/historical/${bet.bet_key}`,
+        {
+          method: "GET",
+          headers,
+        }
+      );
+
+      if (response.ok) {
+        const historicalData = await response.json();
+        setHistorical(historicalData);
+      } else {
+        console.error(
+          "Failed to fetch historical data:",
+          await response.text()
+        );
+      }
+    } catch (error) {
+      console.error("Error fetching historical data:", error);
+    } finally {
+      setHistoricalLoading(false);
+    }
+  };
+
   const fetchData = async () => {
     const headers = await getAuthHeaders();
     setIsLoadingGraph(true);
@@ -546,14 +581,14 @@ const EVBetCard = ({
       </div>
       {/* Add this just before the final closing div */}
       <OddsHistoryGraph
-        data={historicalData}
+        data={historical}
         isOpen={isOpen}
         onClose={() => {
           setIsGraphOpen(false);
           setHistoricalData(null);
           setHistoricalData2(null);
         }}
-        isLoading={isLoadingGraph}
+        isLoading={historicalLoading}
         betData={bet}
       />
     </div>

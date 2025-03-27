@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { CreditCard, Package, User, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useHeaders } from "@/app/hooks/use-headers";
+import { useHeaders } from "@/lib/headersContext";
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 type SubscriptionStatus = {
   isSubscribed: boolean;
@@ -19,13 +19,17 @@ export const CustomUserButton = () => {
   const { isLoaded, user } = useUser();
   const { signOut, openUserProfile } = useClerk();
   const router = useRouter();
-  const { getAuthHeaders } = useHeaders();
+  const { loading: headersLoading, getAuthHeaders } = useHeaders();
   const [subscriptionStatus, setSubscriptionStatus] =
     useState<SubscriptionStatus | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const checkSubscriptionStatus = async () => {
+      if (headersLoading) return; // Wait for headers to load
+
       try {
+        setLoading(true);
         const headers = await getAuthHeaders();
 
         const response = await fetch(`${API_URL}/protected`, {
@@ -57,13 +61,20 @@ export const CustomUserButton = () => {
           subscriptionStatus: "inactive",
           activePlans: [],
         });
+      } finally {
+        setLoading(false);
       }
     };
 
-    if (user?.id) {
+    if (user?.id && !headersLoading) {
       checkSubscriptionStatus();
     }
-  }, [user?.id, user?.publicMetadata?.stripe_customer_id, getAuthHeaders]);
+  }, [
+    user?.id,
+    user?.publicMetadata?.stripe_customer_id,
+    headersLoading,
+    getAuthHeaders,
+  ]);
 
   const handlePortalAccess = async () => {
     try {
@@ -98,7 +109,11 @@ export const CustomUserButton = () => {
     }
   };
 
-  if (!isLoaded || !user?.id) return null;
+  if (!isLoaded || loading) {
+    return (
+      <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse"></div>
+    );
+  }
 
   const subscriptionText = (() => {
     if (!subscriptionStatus) return "Loading...";

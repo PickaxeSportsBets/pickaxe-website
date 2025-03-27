@@ -3,6 +3,7 @@ import { dark } from "@clerk/themes";
 import { ThemeProvider } from "./components/utilities/themeprovider";
 import "./globals.css";
 import Footer from "./components/utilities/footer";
+import { HeadersProvider } from "@/lib/headersContext";
 
 export const metadata = {
   title: "Pickaxe",
@@ -30,8 +31,10 @@ export default function RootLayout({
             }}
             afterSignOutUrl={"/landing"}
           >
-            {children}
-            <Footer />
+            <HeadersProvider>
+              {children}
+              <Footer />
+            </HeadersProvider>
           </ClerkProvider>
         </ThemeProvider>
       </body>

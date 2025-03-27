@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Gift, AlertTriangle, Calculator } from "lucide-react";
 import CalculatorModal from "../bets/modal";
 import BookmakerLogos from "../bets/utils";
-import { useHeaders } from "@/app/hooks/use-headers";
+import { useHeaders } from "@/lib/headersContext";
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const MarketTypeMapping: { [key: string]: string } = {
   h2h: "Head to Head",
@@ -61,9 +61,11 @@ const FreeBetComponent = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { toast } = useToast();
   const supabase = createClient();
-  const { getAuthHeaders } = useHeaders();
+  const { getAuthHeaders, loading: headersLoading } = useHeaders();
 
   const fetchFreeBetStatus = async () => {
+    if (headersLoading) return; // Wait for headers to load
+
     try {
       const headers = await getAuthHeaders();
 
@@ -74,7 +76,6 @@ const FreeBetComponent = ({
         body: JSON.stringify({ redeem: false }),
       });
       const data = await response.json();
-      console.log("Data", data);
       setFreeBetStatus(data);
       setLoading(false);
     } catch (error) {
@@ -84,6 +85,8 @@ const FreeBetComponent = ({
   };
 
   const redeemFreeBet = async () => {
+    if (headersLoading) return; // Wait for headers to load
+
     try {
       const headers = await getAuthHeaders();
 
@@ -149,10 +152,10 @@ const FreeBetComponent = ({
   };
 
   useEffect(() => {
-    if (!subscriptionStatus?.isSubscribed) {
+    if (!subscriptionStatus?.isSubscribed && !headersLoading) {
       fetchFreeBetStatus();
     }
-  }, [subscriptionStatus]);
+  }, [subscriptionStatus, headersLoading]);
 
   useEffect(() => {
     if (freeBetStatus?.nextDate) {
@@ -235,7 +238,8 @@ const FreeBetComponent = ({
     return BookmakerLogos[key] || "/images/placeholder.png";
   };
 
-  if (loading || subscriptionStatus?.isSubscribed) return null;
+  if (loading || headersLoading || subscriptionStatus?.isSubscribed)
+    return null;
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-4">

@@ -31,7 +31,7 @@ import {
   FilterState,
 } from "../filters/filterFuncs";
 import { useUser } from "@clerk/nextjs";
-import { useHeaders } from "@/app/hooks/use-headers";
+import { useHeaders } from "@/lib/headersContext";
 enum Page {
   EV = "EV",
   ARB = "ARB",
@@ -47,7 +47,13 @@ interface SubscriptionStatus {
 
 export default function Home() {
   const { user } = useUser();
-  const { getAuthHeaders } = useHeaders();
+  const {
+    headers,
+    token,
+    error,
+    loading: headersLoading,
+    getAuthHeaders,
+  } = useHeaders();
   const [bets, setBets] = useState<any>();
   const [filteredEVBets, setFilteredEVBets] = useState<any>();
   const [filteredArbBets, setFilteredArbBets] = useState<any>();
@@ -103,19 +109,22 @@ export default function Home() {
   };
 
   const fetchData = async () => {
+    if (headersLoading) return;
+
     setLoading(true);
     try {
       const headers = await getAuthHeaders();
+
       const response1 = await fetch(`${API_URL}/api/v1/db/evBets`, {
         method: "GET",
-        headers: headers,
+        headers,
       });
 
       const evBets = await response1.json();
 
       const response2 = await fetch(`${API_URL}/api/v1/db/arbitrageBets`, {
         method: "GET",
-        headers: headers,
+        headers,
       });
 
       const arbBetsData = await response2.json();
@@ -169,8 +178,10 @@ export default function Home() {
     };
 
     fetchUserState();
-    fetchData();
-  }, []);
+    if (!headersLoading) {
+      fetchData();
+    }
+  }, [headersLoading]);
 
   const updateFilters = (newFilters: Partial<FilterState>) => {
     setFilters((prev) => ({ ...prev, ...newFilters }));

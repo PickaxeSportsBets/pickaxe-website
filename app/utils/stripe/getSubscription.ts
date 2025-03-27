@@ -1,42 +1,39 @@
 import { createClient } from "../supabase/client";
-import { useHeaders } from "@/app/hooks/use-headers";
+import { useHeaders } from "@/lib/headersContext";
 const supabase = createClient();
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
-export const getUserSubscription = async (user_id: string) => {
-  const { getAuthHeaders } = useHeaders();
-  const headers = await getAuthHeaders();
-  try {
-    const response = await fetch(`${API_URL}/api/get-subscriptions/${user_id}`, {
-      headers,
-      method: "GET",
-    });
-    const data = await response.json();
-    const subscriptions = data.subscriptions;
-    
 
-    if (!subscriptions || subscriptions.length === 0) {
-      return {
-        subscriptions: [],
-        isValid: true, // Free user is considered valid
-        plan: "free",
-      };
-    }
-
-    // Check if any subscription is valid
-    const validSubscription = subscriptions.find((subscription: any) => {
-      return (
-        subscription.status === "active" &&
-        new Date(subscription.current_period_end) > new Date()
-      );
-    });
-
+export async function getSubscription(userId: string) {
+  const { getAuthHeaders, loading } = useHeaders();
+  
+  // If headers are still loading, return null or a loading state
+  if (loading) {
     return {
-      subscriptions: validSubscription ? [validSubscription] : [],
-      isValid: !!validSubscription,
-      plan: validSubscription ? validSubscription.plan : "free",
+      isLoading: true,
+      data: null,
+      error: null
+    };
+  }
+  
+  try {
+    const headers = await getAuthHeaders();
+    
+    const response = await fetch(`/api/subscription-details/${userId}`, {
+      headers,
+    });
+    
+    const data = await response.json();
+    return {
+      isLoading: false,
+      data,
+      error: null
     };
   } catch (error) {
-    console.error("Error getting subscription:", error);
-    return null;
+    console.error("Error fetching subscription:", error);
+    return {
+      isLoading: false,
+      data: null,
+      error
+    };
   }
-};
+}
