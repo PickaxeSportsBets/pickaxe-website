@@ -126,8 +126,8 @@ export const CustomUserButton = () => {
       <DropdownMenu.Trigger asChild>
         <button className="flex items-center justify-center w-10 h-10 aspect-square rounded-full border border-secondary-bg-light dark:border-secondary-bg-dark bg-white dark:bg-secondary-bg-dark transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 overflow-hidden">
           <Image
-            alt={user.primaryEmailAddress?.emailAddress!}
-            src={user.imageUrl}
+            alt={user?.primaryEmailAddress?.emailAddress!}
+            src={user?.imageUrl!}
             width={40}
             height={40}
             className="w-full h-full object-cover rounded-full"
@@ -144,7 +144,7 @@ export const CustomUserButton = () => {
           <div className="flex flex-col gap-1 p-2">
             <div className="px-2 py-2">
               <p className="text-sm font-medium text-primary-text-light dark:text-primary-text-dark">
-                {user.primaryEmailAddress?.emailAddress}
+                {user?.primaryEmailAddress?.emailAddress}
               </p>
               <p className="text-xs text-secondary-text-light dark:text-secondary-text-dark">
                 {subscriptionText}
