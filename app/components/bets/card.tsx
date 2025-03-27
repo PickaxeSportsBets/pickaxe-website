@@ -55,9 +55,7 @@ const EVBetCard = ({
   const { getAuthHeaders, loading: headersLoading } = useHeaders();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isOpen, setIsGraphOpen] = useState(false);
-  const [historicalData, setHistoricalData] = useState<any>(null);
   const [isLoadingGraph, setIsLoadingGraph] = useState(false);
-  const [historicalData2, setHistoricalData2] = useState<any>(null);
   const [historicalLoading, setHistoricalLoading] = useState(false);
   const [historical, setHistorical] = useState<any>(null);
 
@@ -125,7 +123,7 @@ const EVBetCard = ({
           }),
         });
         const data = await response.json();
-        setHistoricalData(data);
+        setHistorical(data);
       } else {
         const team = bet.player + " " + bet.team;
         const response = await fetch(`${API_URL}/api/v1/db/get_bet_data`, {
@@ -140,7 +138,7 @@ const EVBetCard = ({
         });
         const data = await response.json();
         console.log(data);
-        setHistoricalData(data);
+        setHistorical(data);
       }
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -151,8 +149,14 @@ const EVBetCard = ({
 
   const handleGraphOpen = async () => {
     setIsGraphOpen(true);
-    if (!historicalData) {
-      await fetchData();
+    if (!historical) {
+      setHistoricalLoading(true);
+      try {
+        await fetchHistoricalData();
+        await fetchData();
+      } finally {
+        setHistoricalLoading(false);
+      }
     }
   };
 
@@ -585,8 +589,7 @@ const EVBetCard = ({
         isOpen={isOpen}
         onClose={() => {
           setIsGraphOpen(false);
-          setHistoricalData(null);
-          setHistoricalData2(null);
+          setHistorical(null);
         }}
         isLoading={historicalLoading}
         betData={bet}

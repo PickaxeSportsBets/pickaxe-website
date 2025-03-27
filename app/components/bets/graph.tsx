@@ -91,7 +91,6 @@ function processHistoricalData(data: any[]): ProcessedDataEntry[] {
   if (!Array.isArray(data) || data.length === 0) return [];
 
   try {
-    // Get all unique timestamps across all entries
     const allTimestamps = new Set<string>();
     const bookmakers = new Set<string>();
 
@@ -191,6 +190,8 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
   betData,
   isLoading = false,
 }) => {
+  console.log(rawData);
+  console.log(betData);
   const [visibleLines, setVisibleLines] = useState<VisibleLines>({});
 
   useEffect(() => {
@@ -256,37 +257,49 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
     return [Math.floor(min - padding), Math.ceil(max + padding)];
   }, [processedData]);
 
-  // Handle loading state
+  // Base Dialog wrapper
+  const DialogWrapper: React.FC<{ children: React.ReactNode }> = ({
+    children,
+  }) => (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-6xl max-h-[90vh]">
+        {children}
+      </DialogContent>
+    </Dialog>
+  );
+
+  // Handle loading state first
   if (isLoading) {
     return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-6xl max-h-[90vh]">
-          <div className="h-[calc(90vh-100px)] flex items-center justify-center">
-            <div className="flex flex-col items-center gap-4">
-              <Loader2 className="h-8 w-8 animate-spin text-secondary-text-light dark:text-secondary-text-dark" />
-              <p className="text-secondary-text-light dark:text-secondary-text-dark">
-                Loading historical odds data...
-              </p>
-            </div>
+      <DialogWrapper>
+        <div className="h-[calc(90vh-100px)] flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="h-8 w-8 animate-spin text-secondary-text-light dark:text-secondary-text-dark" />
+            <p className="text-secondary-text-light dark:text-secondary-text-dark">
+              Loading historical odds data...
+            </p>
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </DialogWrapper>
     );
   }
 
-  // Handle invalid data cases
-  if (!Array.isArray(rawData) || rawData.length === 0) {
+  // Then handle no data case
+  if (
+    !rawData ||
+    !Array.isArray(rawData) ||
+    rawData.length === 0 ||
+    !processedData.length
+  ) {
     return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>No Data Available</DialogTitle>
-            <DialogDescription>
-              There is no historical odds data available for this selection.
-            </DialogDescription>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
+      <DialogWrapper>
+        <DialogHeader>
+          <DialogTitle>No Data Available</DialogTitle>
+          <DialogDescription>
+            There is no historical odds data available for this selection.
+          </DialogDescription>
+        </DialogHeader>
+      </DialogWrapper>
     );
   }
 
@@ -392,75 +405,73 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh]">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-semibold">
-            {`${betData.game} - ${betData.market_type} ${betData.market_point} ${betData.team} Odds Movement`}
-          </DialogTitle>
-        </DialogHeader>
+    <DialogWrapper>
+      <DialogHeader>
+        <DialogTitle className="text-xl font-semibold">
+          {`${betData.game} - ${betData.market_type} ${betData.market_point} ${betData.team} Odds Movement`}
+        </DialogTitle>
+      </DialogHeader>
 
-        <div className="h-[calc(90vh-100px)] bg-primary-bg-light dark:bg-primary-bg-dark rounded-lg p-4">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart
-              data={processedData}
-              margin={{ top: 20, right: 30, left: 20, bottom: 100 }}
-            >
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="currentColor"
-                opacity={0.1}
-              />
-              <XAxis
-                dataKey="timestamp"
-                angle={-45}
-                textAnchor="end"
-                height={80}
-                tick={{ fontSize: 12 }}
-                stroke="currentColor"
-                className="text-secondary-text-light dark:text-secondary-text-dark"
-              />
-              <YAxis
-                domain={yAxisDomain}
-                fontSize={12}
-                stroke="currentColor"
-                className="text-secondary-text-light dark:text-secondary-text-dark"
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Legend
-                content={
-                  <CustomLegend
-                    onLegendClick={handleLegendClick}
-                    visibleLines={visibleLines}
-                  />
-                }
-                verticalAlign="bottom"
-                height={120}
-              />
-              {availableBookmakers.map((bookmaker) => (
-                <Line
-                  key={bookmaker}
-                  type="monotone"
-                  dataKey={bookmaker}
-                  name={bookmaker}
-                  stroke={getLineColor(bookmaker)}
-                  strokeWidth={2}
-                  dot={false}
-                  activeDot={{
-                    r: 6,
-                    strokeWidth: 2,
-                    fill: getLineColor(bookmaker),
-                    stroke: "white",
-                  }}
-                  opacity={visibleLines[bookmaker] ? 1 : 0.2}
-                  connectNulls={false}
+      <div className="h-[calc(90vh-100px)] bg-primary-bg-light dark:bg-primary-bg-dark rounded-lg p-4">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart
+            data={processedData}
+            margin={{ top: 20, right: 30, left: 20, bottom: 100 }}
+          >
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="currentColor"
+              opacity={0.1}
+            />
+            <XAxis
+              dataKey="timestamp"
+              angle={-45}
+              textAnchor="end"
+              height={80}
+              tick={{ fontSize: 12 }}
+              stroke="currentColor"
+              className="text-secondary-text-light dark:text-secondary-text-dark"
+            />
+            <YAxis
+              domain={yAxisDomain}
+              fontSize={12}
+              stroke="currentColor"
+              className="text-secondary-text-light dark:text-secondary-text-dark"
+            />
+            <Tooltip content={<CustomTooltip />} />
+            <Legend
+              content={
+                <CustomLegend
+                  onLegendClick={handleLegendClick}
+                  visibleLines={visibleLines}
                 />
-              ))}
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      </DialogContent>
-    </Dialog>
+              }
+              verticalAlign="bottom"
+              height={120}
+            />
+            {availableBookmakers.map((bookmaker) => (
+              <Line
+                key={bookmaker}
+                type="monotone"
+                dataKey={bookmaker}
+                name={bookmaker}
+                stroke={getLineColor(bookmaker)}
+                strokeWidth={2}
+                dot={false}
+                activeDot={{
+                  r: 6,
+                  strokeWidth: 2,
+                  fill: getLineColor(bookmaker),
+                  stroke: "white",
+                }}
+                opacity={visibleLines[bookmaker] ? 1 : 0.2}
+                connectNulls={false}
+              />
+            ))}
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </DialogWrapper>
   );
 };
 
