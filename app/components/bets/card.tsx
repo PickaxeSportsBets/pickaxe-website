@@ -149,14 +149,20 @@ const EVBetCard = ({
 
   const handleGraphOpen = async () => {
     setIsGraphOpen(true);
-    if (!historical) {
-      setHistoricalLoading(true);
-      try {
-        await fetchHistoricalData();
-        await fetchData();
-      } finally {
-        setHistoricalLoading(false);
+    setHistoricalLoading(true);
+
+    try {
+      // If no data exists, load it
+      if (!historical) {
+        await Promise.all([fetchHistoricalData(), fetchData()]);
       }
+    } catch (error) {
+      console.error("Error loading graph data:", error);
+    } finally {
+      // Short delay before setting loading to false to ensure component updates properly
+      setTimeout(() => {
+        setHistoricalLoading(false);
+      }, 100);
     }
   };
 

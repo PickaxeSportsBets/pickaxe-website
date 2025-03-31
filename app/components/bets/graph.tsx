@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import pako from "pako";
 import {
   LineChart,
@@ -190,10 +190,43 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
   betData,
   isLoading = false,
 }) => {
-  console.log(rawData);
-  console.log(betData);
   const [visibleLines, setVisibleLines] = useState<VisibleLines>({});
+  const [displayState, setDisplayState] = useState<
+    "loading" | "data" | "no-data"
+  >("loading");
+  const processedDataRef = useRef<ProcessedDataEntry[]>([]);
+  const initialRenderComplete = useRef(false);
 
+  // Process data only when rawData changes
+  useEffect(() => {
+    if (Array.isArray(rawData) && rawData.length > 0) {
+      const processed = processHistoricalData(rawData);
+      processedDataRef.current = processed;
+
+      // Only update display state after initial load
+      if (initialRenderComplete.current) {
+        setDisplayState(processed.length > 0 ? "data" : "no-data");
+      }
+    }
+  }, [rawData]);
+
+  // Handle loading state transitions
+  useEffect(() => {
+    if (isLoading) {
+      setDisplayState("loading");
+    } else if (initialRenderComplete.current) {
+      // We've already done at least one render
+      const hasData = processedDataRef.current.length > 0;
+      setDisplayState(hasData ? "data" : "no-data");
+    } else {
+      // First render after loading finished
+      initialRenderComplete.current = true;
+      const hasData = processedDataRef.current.length > 0;
+      setDisplayState(hasData ? "data" : "no-data");
+    }
+  }, [isLoading]);
+
+  // Set up initial visibility for all bookmakers
   useEffect(() => {
     if (Array.isArray(rawData) && rawData.length > 0) {
       const bookmakers = new Set<string>();
@@ -218,16 +251,11 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
     }
   }, [rawData]);
 
-  // Use the new processHistoricalData function
-  const processedData = useMemo(
-    () => processHistoricalData(rawData),
-    [rawData]
-  );
-
+  // Get all available bookmakers from processed data
   const availableBookmakers = useMemo(() => {
-    if (!processedData.length) return [];
+    if (!processedDataRef.current.length) return [];
     const bookmakers = new Set<string>();
-    processedData.forEach((entry) => {
+    processedDataRef.current.forEach((entry) => {
       Object.keys(entry).forEach((key) => {
         if (key !== "timestamp") {
           bookmakers.add(key);
@@ -235,16 +263,16 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
       });
     });
     return Array.from(bookmakers);
-  }, [processedData]);
+  }, [processedDataRef.current]);
 
   // Calculate Y-axis domain based on all odds values
   const yAxisDomain = useMemo(() => {
-    if (!processedData.length) return [-130, -100];
+    if (!processedDataRef.current.length) return [-130, -100];
 
     let min = Infinity;
     let max = -Infinity;
 
-    processedData.forEach((entry) => {
+    processedDataRef.current.forEach((entry) => {
       Object.entries(entry).forEach(([key, value]) => {
         if (key !== "timestamp" && typeof value === "number") {
           min = Math.min(min, value);
@@ -255,7 +283,7 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
 
     const padding = (max - min) * 0.1;
     return [Math.floor(min - padding), Math.ceil(max + padding)];
-  }, [processedData]);
+  }, [processedDataRef.current]);
 
   // Base Dialog wrapper
   const DialogWrapper: React.FC<{ children: React.ReactNode }> = ({
@@ -269,7 +297,9 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
   );
 
   // Handle loading state first
-  if (isLoading) {
+  if (!isOpen) return null;
+
+  if (displayState === "loading") {
     return (
       <DialogWrapper>
         <div className="h-[calc(90vh-100px)] flex items-center justify-center">
@@ -285,12 +315,7 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
   }
 
   // Then handle no data case
-  if (
-    !rawData ||
-    !Array.isArray(rawData) ||
-    rawData.length === 0 ||
-    !processedData.length
-  ) {
+  if (displayState === "no-data") {
     return (
       <DialogWrapper>
         <DialogHeader>
@@ -415,7 +440,7 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
       <div className="h-[calc(90vh-100px)] bg-primary-bg-light dark:bg-primary-bg-dark rounded-lg p-4">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
-            data={processedData}
+            data={processedDataRef.current}
             margin={{ top: 20, right: 30, left: 20, bottom: 100 }}
           >
             <CartesianGrid
@@ -466,6 +491,7 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
                 }}
                 opacity={visibleLines[bookmaker] ? 1 : 0.2}
                 connectNulls={false}
+                isAnimationActive={false} // Disable animation to prevent flicker when toggling
               />
             ))}
           </LineChart>
