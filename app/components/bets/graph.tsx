@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
+import useDebouncedValue from "@/hooks/useDebounce";
 import pako from "pako";
 import {
   LineChart,
@@ -196,39 +197,41 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
   >("loading");
   const processedDataRef = useRef<ProcessedDataEntry[]>([]);
   const initialRenderComplete = useRef(false);
-
-  // Process data only when rawData changes
+  const hasSetInitialVisibility = useRef(false);
+  const debouncedRawData = useDebouncedValue(rawData, 300);
   useEffect(() => {
-    if (Array.isArray(rawData) && rawData.length > 0) {
-      const processed = processHistoricalData(rawData);
-      processedDataRef.current = processed;
+    let timer: NodeJS.Timeout;
 
-      // Only update display state after initial load
-      if (initialRenderComplete.current) {
-        setDisplayState(processed.length > 0 ? "data" : "no-data");
-      }
-    }
-  }, [rawData]);
-
-  // Handle loading state transitions
-  useEffect(() => {
     if (isLoading) {
-      setDisplayState("loading");
-    } else if (initialRenderComplete.current) {
-      // We've already done at least one render
-      const hasData = processedDataRef.current.length > 0;
-      setDisplayState(hasData ? "data" : "no-data");
-    } else {
-      // First render after loading finished
-      initialRenderComplete.current = true;
-      const hasData = processedDataRef.current.length > 0;
-      setDisplayState(hasData ? "data" : "no-data");
+      if (displayState !== "loading") setDisplayState("loading");
+      return;
     }
-  }, [isLoading]);
 
-  // Set up initial visibility for all bookmakers
+    if (!debouncedRawData) {
+      if (displayState !== "loading") setDisplayState("loading");
+      return;
+    }
+
+    const processed = processHistoricalData(debouncedRawData);
+    processedDataRef.current = processed;
+    const newState = processed.length > 0 ? "data" : "no-data";
+
+    if (newState !== displayState) {
+      timer = setTimeout(() => {
+        setDisplayState(newState);
+      }, 0); // You can even set this to 0 since debouncing rawData already handles it.
+    }
+
+    return () => clearTimeout(timer);
+  }, [debouncedRawData, isLoading, displayState]);
+
+  // Set up initial visibility for all bookmakers - only once
   useEffect(() => {
-    if (Array.isArray(rawData) && rawData.length > 0) {
+    if (
+      Array.isArray(rawData) &&
+      rawData.length > 0 &&
+      !hasSetInitialVisibility.current
+    ) {
       const bookmakers = new Set<string>();
 
       rawData.forEach((bet) => {
@@ -236,6 +239,23 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
           bet.past_data.forEach((point) => {
             bookmakers.add(point.bookmaker);
           });
+        } else if (typeof bet.past_data === "string") {
+          try {
+            const compressedData = atob(bet.past_data);
+            const uint8Array = new Uint8Array(
+              [...compressedData].map((c) => c.charCodeAt(0))
+            );
+            const decompressedData = new TextDecoder().decode(
+              pako.inflate(uint8Array)
+            );
+            const pastDataPoints = JSON.parse(decompressedData);
+
+            pastDataPoints.forEach((point: HistoricalDataPoint) => {
+              bookmakers.add(point.bookmaker);
+            });
+          } catch (e) {
+            console.error("Error decoding past_data:", e);
+          }
         }
       });
 
@@ -248,10 +268,11 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
       );
 
       setVisibleLines(initialVisibility);
+      hasSetInitialVisibility.current = true;
     }
   }, [rawData]);
 
-  // Get all available bookmakers from processed data
+  // Get all available bookmakers from processed data - memo to prevent unnecessary recalculations
   const availableBookmakers = useMemo(() => {
     if (!processedDataRef.current.length) return [];
     const bookmakers = new Set<string>();
@@ -263,7 +284,7 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
       });
     });
     return Array.from(bookmakers);
-  }, [processedDataRef.current]);
+  }, [processedDataRef.current.length]); // Only depend on the length, not the entire data
 
   // Calculate Y-axis domain based on all odds values
   const yAxisDomain = useMemo(() => {
@@ -283,7 +304,7 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
 
     const padding = (max - min) * 0.1;
     return [Math.floor(min - padding), Math.ceil(max + padding)];
-  }, [processedDataRef.current]);
+  }, [processedDataRef.current.length]); // Only depend on the length, not the entire data
 
   // Base Dialog wrapper
   const DialogWrapper: React.FC<{ children: React.ReactNode }> = ({
@@ -358,6 +379,7 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
     if (!entry?.dataKey) return;
 
     try {
+      // Update visibility without causing a re-render of the chart data
       setVisibleLines((prev) => ({
         ...prev,
         [entry.dataKey]: !prev[entry.dataKey],
@@ -480,18 +502,25 @@ const OddsHistoryGraph: React.FC<OddsHistoryGraphProps> = ({
                 type="monotone"
                 dataKey={bookmaker}
                 name={bookmaker}
-                stroke={getLineColor(bookmaker)}
+                stroke={
+                  visibleLines[bookmaker] ? getLineColor(bookmaker) : "#CCCCCC"
+                }
                 strokeWidth={2}
                 dot={false}
                 activeDot={{
                   r: 6,
                   strokeWidth: 2,
-                  fill: getLineColor(bookmaker),
+                  fill: visibleLines[bookmaker]
+                    ? getLineColor(bookmaker)
+                    : "#CCCCCC",
                   stroke: "white",
                 }}
-                opacity={visibleLines[bookmaker] ? 1 : 0.2}
+                strokeOpacity={visibleLines[bookmaker] ? 1 : 0.4}
+                style={{
+                  transition: "stroke 0.3s ease, stroke-opacity 0.3s ease",
+                }}
                 connectNulls={false}
-                isAnimationActive={false} // Disable animation to prevent flicker when toggling
+                isAnimationActive={false}
               />
             ))}
           </LineChart>

@@ -16,6 +16,19 @@ interface CalculatorProps {
   className?: string;
 }
 
+interface RiskFreeInputs {
+  odds1: string;
+  odds2: string;
+  bonusAmount: string;
+  estimatedBonusValue: string;
+}
+
+interface BonusInputs {
+  bonusOddsPlus: string;
+  bonusOddsMinus: string;
+  bonusBetSize: string;
+}
+
 const CalculatorCard: React.FC<React.PropsWithChildren<CalculatorProps>> = ({
   title,
   description,
@@ -73,21 +86,43 @@ const ResultRow = ({ label, value }: { label: string; value: string }) => (
 
 const PromosCalculator = () => {
   // Initial Risk-Free Calculator State
-  const [riskFreeInputs, setRiskFreeInputs] = useState({
-    odds1: "",
-    odds2: "",
-    bonusAmount: "",
-    estimatedBonusValue: "",
+  const [riskFreeInputs, setRiskFreeInputs] = useState<RiskFreeInputs>(() => {
+    // Load saved values from localStorage or use defaults
+    const savedValues = localStorage.getItem("riskFreeInputs");
+    return savedValues
+      ? JSON.parse(savedValues)
+      : {
+          odds1: "",
+          odds2: "",
+          bonusAmount: "",
+          estimatedBonusValue: "",
+        };
   });
   const [riskFreeResults, setRiskFreeResults] = useState<CalculatorResult>({});
 
   // Bonus Bet Calculator State
-  const [bonusInputs, setBonusInputs] = useState({
-    bonusOddsPlus: "",
-    bonusOddsMinus: "",
-    bonusBetSize: "",
+  const [bonusInputs, setBonusInputs] = useState<BonusInputs>(() => {
+    // Load saved values from localStorage or use defaults
+    const savedValues = localStorage.getItem("bonusInputs");
+    return savedValues
+      ? JSON.parse(savedValues)
+      : {
+          bonusOddsPlus: "",
+          bonusOddsMinus: "",
+          bonusBetSize: "",
+        };
   });
   const [bonusResults, setBonusResults] = useState<CalculatorResult>({});
+
+  // Save risk-free inputs to localStorage whenever they change
+  React.useEffect(() => {
+    localStorage.setItem("riskFreeInputs", JSON.stringify(riskFreeInputs));
+  }, [riskFreeInputs]);
+
+  // Save bonus inputs to localStorage whenever they change
+  React.useEffect(() => {
+    localStorage.setItem("bonusInputs", JSON.stringify(bonusInputs));
+  }, [bonusInputs]);
 
   const calculateRiskFree = () => {
     const odds1 = parseFloat(riskFreeInputs.odds1);
@@ -156,8 +191,8 @@ const PromosCalculator = () => {
               type="number"
               placeholder="e.g., 200"
               value={riskFreeInputs.odds1}
-              onChange={(e) =>
-                setRiskFreeInputs((prev) => ({
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setRiskFreeInputs((prev: RiskFreeInputs) => ({
                   ...prev,
                   odds1: e.target.value,
                 }))
@@ -168,8 +203,8 @@ const PromosCalculator = () => {
               type="number"
               placeholder="e.g., -200"
               value={riskFreeInputs.odds2}
-              onChange={(e) =>
-                setRiskFreeInputs((prev) => ({
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setRiskFreeInputs((prev: RiskFreeInputs) => ({
                   ...prev,
                   odds2: e.target.value,
                 }))
@@ -180,8 +215,8 @@ const PromosCalculator = () => {
               type="number"
               placeholder="e.g., 500"
               value={riskFreeInputs.bonusAmount}
-              onChange={(e) =>
-                setRiskFreeInputs((prev) => ({
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setRiskFreeInputs((prev: RiskFreeInputs) => ({
                   ...prev,
                   bonusAmount: e.target.value,
                 }))
@@ -192,8 +227,8 @@ const PromosCalculator = () => {
               type="number"
               placeholder="e.g., 60"
               value={riskFreeInputs.estimatedBonusValue}
-              onChange={(e) =>
-                setRiskFreeInputs((prev) => ({
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setRiskFreeInputs((prev: RiskFreeInputs) => ({
                   ...prev,
                   estimatedBonusValue: e.target.value,
                 }))
@@ -250,8 +285,8 @@ const PromosCalculator = () => {
               type="number"
               placeholder="e.g., 200"
               value={bonusInputs.bonusOddsPlus}
-              onChange={(e) =>
-                setBonusInputs((prev) => ({
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setBonusInputs((prev: BonusInputs) => ({
                   ...prev,
                   bonusOddsPlus: e.target.value,
                 }))
@@ -262,8 +297,8 @@ const PromosCalculator = () => {
               type="number"
               placeholder="e.g., -200"
               value={bonusInputs.bonusOddsMinus}
-              onChange={(e) =>
-                setBonusInputs((prev) => ({
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setBonusInputs((prev: BonusInputs) => ({
                   ...prev,
                   bonusOddsMinus: e.target.value,
                 }))
@@ -274,8 +309,8 @@ const PromosCalculator = () => {
               type="number"
               placeholder="e.g., 500"
               value={bonusInputs.bonusBetSize}
-              onChange={(e) =>
-                setBonusInputs((prev) => ({
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setBonusInputs((prev: BonusInputs) => ({
                   ...prev,
                   bonusBetSize: e.target.value,
                 }))

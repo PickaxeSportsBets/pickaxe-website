@@ -595,7 +595,8 @@ const EVBetCard = ({
         isOpen={isOpen}
         onClose={() => {
           setIsGraphOpen(false);
-          setHistorical(null);
+          // Don't clear historical data when closing the graph
+          // setHistorical(null);
         }}
         isLoading={historicalLoading}
         betData={bet}
