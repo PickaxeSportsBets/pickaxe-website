@@ -24,7 +24,7 @@ export default function Header() {
               href="/"
               className="text-3xl font-bold text-primary-text-light dark:text-primary-text-dark hover:text-accent-green-light dark:hover:text-accent-green-dark transition-colors"
             >
-              Pickaxe
+              PickaxeBets
             </Link>
           </div>
           <div className="flex items-center gap-4">

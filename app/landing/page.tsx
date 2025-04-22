@@ -391,17 +391,6 @@ const LandingPage = () => {
       </section>
 
       {/* Footer */}
-      <footer className="py-8 bg-gray-100 dark:bg-[#111928] border-t border-gray-200 dark:border-gray-700/50 mt-16 md:mt-24">
-        <div className="container mx-auto px-4 text-center text-sm text-secondary-text-light dark:text-secondary-text-dark">
-          © {new Date().getFullYear()} Pickaxe. All rights reserved.
-          {/* Optional: Add links to privacy policy, terms, etc. */}
-          {/* <div className="mt-2">
-                    <a href="/privacy" className="hover:text-accent-green-light dark:hover:text-accent-green-dark mx-2">Privacy Policy</a>
-                    <span className="opacity-50">|</span>
-                    <a href="/terms" className="hover:text-accent-green-light dark:hover:text-accent-green-dark mx-2">Terms of Service</a>
-                </div> */}
-        </div>
-      </footer>
     </div>
   );
 };

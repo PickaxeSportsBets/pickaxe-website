@@ -12,7 +12,7 @@ const Footer = () => {
           {/* Company Info */}
           <div className="space-y-4">
             <h3 className="text-lg font-medium text-primary-text-light dark:text-primary-text-dark">
-              Pickaxe
+              PickaxeBets Inc.
             </h3>
             <p className="text-sm text-secondary-text-light dark:text-secondary-text-dark">
               Sports betting analytics and tools for informed decisions.
