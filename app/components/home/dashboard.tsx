@@ -405,7 +405,7 @@ export default function Home() {
   return (
     <>
       <Header />
-      {/* {isLoadingSubscription ? (
+      {isLoadingSubscription ? (
         <SubscriptionLoadingState />
       ) : (
         subscriptionStatus &&
@@ -420,7 +420,7 @@ export default function Home() {
             </div>
           </>
         )
-      )} */}
+      )}
       <div className="min-h-screen bg-primary-bg-light dark:bg-primary-bg-dark">
         <div className="max-w-[90%] mx-auto px-2 sm:px-4 lg:px-6">
           <NavButtons
@@ -430,7 +430,7 @@ export default function Home() {
             resetPageNumber={() => setCurrentPageNumber(1)}
           />
 
-          {/* <SubscriptionCheck
+          <SubscriptionCheck
             subscriptionStatus={
               subscriptionStatus || {
                 isSubscribed: false,
@@ -438,7 +438,7 @@ export default function Home() {
               }
             }
             loading={isLoadingSubscription}
-          > */}
+          >
           {currPage !== Page.PROMOS && (
             <>
               <SearchAndControls
@@ -459,7 +459,7 @@ export default function Home() {
           <div className="py-4">
             {loading ? <LoadingSkeleton /> : renderContent()}
           </div>
-          {/* </SubscriptionCheck> */}
+          </SubscriptionCheck>
         </div>
       </div>
       <Toaster />
