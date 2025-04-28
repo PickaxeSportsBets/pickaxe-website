@@ -342,6 +342,7 @@ const EVBetCard = ({
                     bet.market_point &&
                     `(${bet.market_point})`}
                 </div>
+
               </div>
               <div
                 className={`text-lg font-medium ${
@@ -432,6 +433,10 @@ const EVBetCard = ({
                       />
                     </div>
                   ))}
+                  {/* Add Fair Odds column */}
+                  <div className="text-secondary-text-light dark:text-secondary-text-dark font-medium flex flex-col items-center justify-center">
+                    <span>Fair Odds</span>
+                  </div>
                 </div>
 
                 <div className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -481,6 +486,25 @@ const EVBetCard = ({
                             </a>
                           );
                         })}
+                        {/* Fair Odds column for this row */}
+                        <div className={`font-medium flex items-center justify-center ${
+                          // Determine if this is the matching selection or opposite selection
+                          (name.toLowerCase() === bet.team.toLowerCase() || 
+                           (name.toLowerCase() === 'over' && bet.team.toLowerCase() === 'over') ||
+                           (name.toLowerCase() === 'under' && bet.team.toLowerCase() === 'under'))
+                           ? bet.fair_odds >= 0 
+                               ? "text-accent-green-light dark:text-accent-green-dark" 
+                               : "text-negative-red-light dark:text-negative-red-dark"
+                           : (-bet.fair_odds) >= 0
+                               ? "text-accent-green-light dark:text-accent-green-dark" 
+                               : "text-negative-red-light dark:text-negative-red-dark"
+                        }`}>
+                          {name.toLowerCase() === bet.team.toLowerCase() || 
+                           (name.toLowerCase() === 'over' && bet.team.toLowerCase() === 'over') ||
+                           (name.toLowerCase() === 'under' && bet.team.toLowerCase() === 'under')
+                            ? bet.fair_odds >= 0 ? `+${bet.fair_odds}` : bet.fair_odds
+                            : (-bet.fair_odds) >= 0 ? `+${-bet.fair_odds}` : -bet.fair_odds}
+                        </div>
                       </div>
                     );
                   })}
@@ -507,6 +531,18 @@ const EVBetCard = ({
                 </AlertDialogTitle>
                 <p className="text-sm text-muted-foreground mt-1">
                   Available Odds Comparison
+                </p>
+                <p className="text-sm mt-2">
+                  Fair Odds:{" "}
+                  <span
+                    className={`font-medium ${
+                      bet.fair_odds >= 0
+                        ? "text-accent-green-light dark:text-accent-green-dark"
+                        : "text-negative-red-light dark:text-negative-red-dark"
+                    }`}
+                  >
+                    {bet.fair_odds >= 0 ? `+${bet.fair_odds}` : bet.fair_odds}
+                  </span>
                 </p>
               </AlertDialogHeader>
 
