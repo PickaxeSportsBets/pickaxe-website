@@ -357,7 +357,7 @@ const EVBetCard = ({
               <div className="flex items-center justify-between md:justify-start w-full md:w-auto gap-6">
                 <Image
                   src={
-                    BookmakerLogos[bet.bookmaker?.toLowerCase()] ||
+                    BookmakerLogos[bet.bookmaker?.toLowerCase().replace(/[^a-z]/g, "")] ||
                     "/images/placeholder.png"
                   }
                   alt={bet.bookmaker || "Bookmaker"}
@@ -423,7 +423,7 @@ const EVBetCard = ({
                     >
                       <Image
                         src={
-                          BookmakerLogos[bookie.toLowerCase()] ||
+                          BookmakerLogos[bookie.toLowerCase().replace(/[^a-z]/g, "")] ||
                           "/images/placeholder.png"
                         }
                         alt={bookie}
@@ -585,7 +585,7 @@ const EVBetCard = ({
                               <div className="flex items-center gap-3">
                                 <Image
                                   src={
-                                    BookmakerLogos[bookie.toLowerCase()] ||
+                                    BookmakerLogos[bookie.toLowerCase().replace(/[^a-z]/g, "")] ||
                                     "/images/placeholder.png"
                                   }
                                   alt={bookie}
