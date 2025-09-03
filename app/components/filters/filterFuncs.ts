@@ -88,7 +88,7 @@ export const filterEvBets = (bets: any[], filters: FilterState) => {
     }
 
     // Bookmaker filtering
-    const mainBookmaker = bet.bookmaker?.toLowerCase();
+    const mainBookmaker = bet.bookmaker?.toLowerCase().replace(/[^a-z]/g, "");
     if (!filters.bookmakers.includes(mainBookmaker)) {
       return false;
     }
@@ -142,8 +142,8 @@ export const filterArbBets = (bets: any[], filters: FilterState) => {
     }
 
     // Bookmaker filtering
-    const team1Book = bet.team1_book?.toLowerCase();
-    const team2Book = bet.team2_book?.toLowerCase();
+    const team1Book = bet.team1_book?.toLowerCase().replace(/[^a-z]/g, "");
+    const team2Book = bet.team2_book?.toLowerCase().replace(/[^a-z]/g, "");
 
     // If only one bookmaker is selected, show all bets where that bookmaker appears
     if (filters.bookmakers.length === 1) {
