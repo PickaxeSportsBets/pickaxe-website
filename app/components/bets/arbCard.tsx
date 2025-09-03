@@ -271,7 +271,7 @@ const ArbBetCard = ({
                 <div className="flex items-center justify-between md:justify-start space-x-4">
                   <Image
                     src={
-                      BookmakerLogos[bet.team1_book.toLowerCase()] ||
+                      BookmakerLogos[bet.team1_book.toLowerCase().replace(/[^a-z]/g, "")] ||
                       "/images/placeholder.png"
                     }
                     alt={bet.team1_book}
@@ -329,7 +329,7 @@ const ArbBetCard = ({
                 <div className="flex items-center justify-between md:justify-start space-x-4">
                   <Image
                     src={
-                      BookmakerLogos[bet.team2_book.toLowerCase()] ||
+                      BookmakerLogos[bet.team2_book.toLowerCase().replace(/[^a-z]/g, "")] ||
                       "/images/placeholder.png"
                     }
                     alt={bet.team2_book}
