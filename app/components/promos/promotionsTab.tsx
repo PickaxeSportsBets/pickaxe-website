@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from "react";
 import { createClient } from "@/app/utils/supabase/client";
 
+// Promotions tab component for filtering arbitrage bets by bookmaker
+
 const supabase = createClient();
 
 interface PromotionBet {
