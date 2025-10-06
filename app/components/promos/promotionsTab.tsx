@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useHeaders } from "@/lib/headersContext";
 import { Calculator } from "lucide-react";
+import ArbitrageCalculator from "./arbitrageCalculator";
 
 // Promotions tab component for filtering arbitrage bets by bookmaker
 
@@ -68,95 +69,14 @@ interface PromotionCalculatorModalProps {
   isOpen: boolean;
   onClose: () => void;
   bet: PromotionBet | null;
-  promotionType: string;
-  amount: number;
 }
 
 const PromotionCalculatorModal: React.FC<PromotionCalculatorModalProps> = ({
   isOpen,
   onClose,
   bet,
-  promotionType,
-  amount,
 }) => {
-  const [bonusOddsPlus, setBonusOddsPlus] = useState("");
-  const [bonusOddsMinus, setBonusOddsMinus] = useState("");
-  const [bonusBetSize, setBonusBetSize] = useState(amount.toString());
-  const [results, setResults] = useState<any>({});
-
-  useEffect(() => {
-    if (bet) {
-      // Set the odds based on which team has the selected bookmaker
-      const selectedBookmaker = bet.team1_book === bet.team1_book ? bet.team1_book : bet.team2_book;
-      const isTeam1Selected = bet.team1_book === selectedBookmaker;
-      
-      if (isTeam1Selected) {
-        setBonusOddsPlus(bet.team1_odds.toString());
-        setBonusOddsMinus(bet.team2_odds.toString());
-      } else {
-        setBonusOddsPlus(bet.team2_odds.toString());
-        setBonusOddsMinus(bet.team1_odds.toString());
-      }
-      setBonusBetSize(amount.toString());
-    }
-  }, [bet, amount]);
-
-  const calculateBonus = React.useCallback(() => {
-    const plusOdds = parseFloat(bonusOddsPlus);
-    const minusOdds = parseFloat(bonusOddsMinus);
-    const bonusSize = parseFloat(bonusBetSize);
-
-    if (!plusOdds || !minusOdds || !bonusSize || plusOdds <= 0 || minusOdds >= 0) return;
-
-    const plusOddsDecimal = 1 + plusOdds / 100;
-    const minusOddsDecimal = 1 - 100 / minusOdds;
-    const bonusBetProfit = bonusSize * plusOddsDecimal - bonusSize;
-    const hedgeBet = bonusBetProfit / minusOddsDecimal;
-    const guaranteedProfit = bonusSize * plusOddsDecimal - bonusSize - hedgeBet;
-
-    setResults({
-      bet1Amount: bonusSize,
-      bet2Amount: hedgeBet,
-      guaranteedProfit,
-    });
-  }, [bonusOddsPlus, bonusOddsMinus, bonusBetSize]);
-
-  const calculateArbitrage = React.useCallback(() => {
-    const odds1 = parseFloat(bonusOddsPlus);
-    const odds2 = parseFloat(bonusOddsMinus);
-    const totalWager = parseFloat(bonusBetSize);
-
-    if (!odds1 || !odds2 || !totalWager) return;
-
-    const decimal1 = odds1 > 0 ? 1 + odds1 / 100 : 1 + 100 / Math.abs(odds1);
-    const decimal2 = odds2 > 0 ? 1 + odds2 / 100 : 1 + 100 / Math.abs(odds2);
-
-    const stake1 = (totalWager * decimal2) / (decimal1 + decimal2);
-    const stake2 = (totalWager * decimal1) / (decimal1 + decimal2);
-
-    const payout1 = stake1 * decimal1;
-    const payout2 = stake2 * decimal2;
-
-    const profit1 = payout1 - totalWager;
-    const profit2 = payout2 - totalWager;
-    const guaranteedProfit = Math.min(profit1, profit2);
-    const roi = (guaranteedProfit / totalWager) * 100;
-
-    setResults({
-      stake1,
-      stake2,
-      guaranteedProfit,
-      roi,
-    });
-  }, [bonusOddsPlus, bonusOddsMinus, bonusBetSize]);
-
-  useEffect(() => {
-    if (promotionType === "bonus" || promotionType === "hedge") {
-      calculateBonus();
-    } else if (promotionType === "arb") {
-      calculateArbitrage();
-    }
-  }, [promotionType, calculateBonus, calculateArbitrage]);
+  const [activeTab, setActiveTab] = useState("arbitrage");
 
   if (!isOpen || !bet) return null;
 
@@ -174,12 +94,10 @@ const PromotionCalculatorModal: React.FC<PromotionCalculatorModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-secondary-bg-light dark:bg-secondary-bg-dark rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-secondary-bg-light dark:bg-secondary-bg-dark rounded-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-medium text-primary-text-light dark:text-primary-text-dark">
-            {promotionType === "bonus" ? "Bonus Bet Calculator" : 
-             promotionType === "hedge" ? "Risk-Free Bet Calculator" : 
-             "Arbitrage Calculator"}
+            Calculator
           </h2>
           <button
             onClick={onClose}
@@ -207,116 +125,73 @@ const PromotionCalculatorModal: React.FC<PromotionCalculatorModalProps> = ({
           </div>
         </div>
 
-        {/* Calculator Inputs */}
-        <div className="space-y-4 mb-6">
-          <div>
-            <label className="block text-sm text-secondary-text-light dark:text-secondary-text-dark mb-2">
-              Odds 1 (+)
-            </label>
-            <input
-              type="number"
-              value={bonusOddsPlus}
-              onChange={(e) => setBonusOddsPlus(e.target.value)}
-              className="w-full bg-primary-bg-light dark:bg-primary-bg-dark text-primary-text-light dark:text-primary-text-dark px-4 py-2 rounded border border-secondary-text-light dark:border-secondary-text-dark focus:outline-none focus:border-accent-green-light dark:focus:border-accent-green-dark"
-            />
-          </div>
-          <div>
-            <label className="block text-sm text-secondary-text-light dark:text-secondary-text-dark mb-2">
-              Odds 2 (-)
-            </label>
-            <input
-              type="number"
-              value={bonusOddsMinus}
-              onChange={(e) => setBonusOddsMinus(e.target.value)}
-              className="w-full bg-primary-bg-light dark:bg-primary-bg-dark text-primary-text-light dark:text-primary-text-dark px-4 py-2 rounded border border-secondary-text-light dark:border-secondary-text-dark focus:outline-none focus:border-accent-green-light dark:focus:border-accent-green-dark"
-            />
-          </div>
-          <div>
-            <label className="block text-sm text-secondary-text-light dark:text-secondary-text-dark mb-2">
-              {promotionType === "arb" ? "Total Wager ($)" : "Bet Size ($)"}
-            </label>
-            <input
-              type="number"
-              value={bonusBetSize}
-              onChange={(e) => setBonusBetSize(e.target.value)}
-              className="w-full bg-primary-bg-light dark:bg-primary-bg-dark text-primary-text-light dark:text-primary-text-dark px-4 py-2 rounded border border-secondary-text-light dark:border-secondary-text-dark focus:outline-none focus:border-accent-green-light dark:focus:border-accent-green-dark"
-            />
-          </div>
+        {/* Tabs */}
+        <div className="flex space-x-1 mb-6 bg-primary-bg-light dark:bg-primary-bg-dark rounded-lg p-1">
+          <button
+            onClick={() => setActiveTab("arbitrage")}
+            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+              activeTab === "arbitrage"
+                ? "bg-button-green-light dark:bg-button-green-dark text-primary-text-light dark:text-primary-text-dark"
+                : "text-secondary-text-light dark:text-secondary-text-dark hover:text-primary-text-light dark:hover:text-primary-text-dark"
+            }`}
+          >
+            Arbitrage
+          </button>
+          <button
+            onClick={() => setActiveTab("bonus")}
+            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+              activeTab === "bonus"
+                ? "bg-button-green-light dark:bg-button-green-dark text-primary-text-light dark:text-primary-text-dark"
+                : "text-secondary-text-light dark:text-secondary-text-dark hover:text-primary-text-light dark:hover:text-primary-text-dark"
+            }`}
+          >
+            Bonus Bet
+          </button>
+          <button
+            onClick={() => setActiveTab("hedge")}
+            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+              activeTab === "hedge"
+                ? "bg-button-green-light dark:bg-button-green-dark text-primary-text-light dark:text-primary-text-dark"
+                : "text-secondary-text-light dark:text-secondary-text-dark hover:text-primary-text-light dark:hover:text-primary-text-dark"
+            }`}
+          >
+            Risk-Free Bet
+          </button>
         </div>
 
-        {/* Results */}
-        {Object.keys(results).length > 0 && (
-          <div className="p-4 bg-primary-bg-light dark:bg-primary-bg-dark rounded-lg">
-            <h3 className="font-medium text-primary-text-light dark:text-primary-text-dark mb-3">
-              Results
-            </h3>
-            <div className="space-y-2">
-              {promotionType === "arb" ? (
-                <>
-                  <div className="flex justify-between">
-                    <span className="text-secondary-text-light dark:text-secondary-text-dark">
-                      Stake 1
-                    </span>
-                    <span className="text-primary-text-light dark:text-primary-text-dark">
-                      ${results.stake1?.toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-secondary-text-light dark:text-secondary-text-dark">
-                      Stake 2
-                    </span>
-                    <span className="text-primary-text-light dark:text-primary-text-dark">
-                      ${results.stake2?.toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-secondary-text-light dark:text-secondary-text-dark">
-                      Guaranteed Profit
-                    </span>
-                    <span className="text-accent-green-light dark:text-accent-green-dark">
-                      ${results.guaranteedProfit?.toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-secondary-text-light dark:text-secondary-text-dark">
-                      ROI
-                    </span>
-                    <span className="text-accent-green-light dark:text-accent-green-dark">
-                      {results.roi?.toFixed(2)}%
-                    </span>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="flex justify-between">
-                    <span className="text-secondary-text-light dark:text-secondary-text-dark">
-                      {promotionType === "bonus" ? "Bonus Bet" : "Risk-Free Bet"}
-                    </span>
-                    <span className="text-primary-text-light dark:text-primary-text-dark">
-                      ${results.bet1Amount?.toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-secondary-text-light dark:text-secondary-text-dark">
-                      Hedge Bet
-                    </span>
-                    <span className="text-primary-text-light dark:text-primary-text-dark">
-                      ${results.bet2Amount?.toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-secondary-text-light dark:text-secondary-text-dark">
-                      Guaranteed Profit
-                    </span>
-                    <span className="text-accent-green-light dark:text-accent-green-dark">
-                      ${results.guaranteedProfit?.toFixed(2)}
-                    </span>
-                  </div>
-                </>
-              )}
+        {/* Tab Content */}
+        <div className="min-h-[400px]">
+          {activeTab === "arbitrage" && (
+            <div>
+              <h3 className="text-lg font-medium text-primary-text-light dark:text-primary-text-dark mb-4">
+                Arbitrage Calculator
+              </h3>
+              <ArbitrageCalculator />
             </div>
-          </div>
-        )}
+          )}
+          
+          {activeTab === "bonus" && (
+            <div>
+              <h3 className="text-lg font-medium text-primary-text-light dark:text-primary-text-dark mb-4">
+                Bonus Bet Calculator
+              </h3>
+              <div className="text-secondary-text-light dark:text-secondary-text-dark">
+                Bonus bet calculator coming soon...
+              </div>
+            </div>
+          )}
+          
+          {activeTab === "hedge" && (
+            <div>
+              <h3 className="text-lg font-medium text-primary-text-light dark:text-primary-text-dark mb-4">
+                Risk-Free Bet Calculator
+              </h3>
+              <div className="text-secondary-text-light dark:text-secondary-text-dark">
+                Risk-free bet calculator coming soon...
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -325,8 +200,6 @@ const PromotionCalculatorModal: React.FC<PromotionCalculatorModalProps> = ({
 const PromotionsTab = () => {
   const { getAuthHeaders, loading: headersLoading } = useHeaders();
   const [selectedBookmaker, setSelectedBookmaker] = useState("");
-  const [promotionType, setPromotionType] = useState("");
-  const [amount, setAmount] = useState("");
   const [bets, setBets] = useState<PromotionBet[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedBet, setSelectedBet] = useState<PromotionBet | null>(null);
@@ -346,11 +219,6 @@ const PromotionsTab = () => {
     "Fliff"
   ];
 
-  const promotionTypes = [
-    { value: "bonus", label: "Bonus Bet" },
-    { value: "hedge", label: "Risk-Free Bet" },
-    { value: "arb", label: "Pure Arbitrage" }
-  ];
 
   const fetchPromotionBets = React.useCallback(async () => {
     if (!selectedBookmaker || headersLoading) return;
@@ -404,10 +272,6 @@ const PromotionsTab = () => {
   }, [fetchPromotionBets]);
 
   const handleBetClick = (bet: PromotionBet) => {
-    if (!promotionType || !amount) {
-      alert("Please select a promotion type and amount first");
-      return;
-    }
     setSelectedBet(bet);
     setIsModalOpen(true);
   };
@@ -431,7 +295,7 @@ const PromotionsTab = () => {
         </h1>
         
         {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="mb-6">
           <div>
             <label className="block text-sm text-secondary-text-light dark:text-secondary-text-dark mb-2">
               Bookmaker
@@ -439,7 +303,7 @@ const PromotionsTab = () => {
             <select
               value={selectedBookmaker}
               onChange={(e) => setSelectedBookmaker(e.target.value)}
-              className="w-full bg-primary-bg-light dark:bg-primary-bg-dark text-primary-text-light dark:text-primary-text-dark px-4 py-2 rounded border border-secondary-text-light dark:border-secondary-text-dark focus:outline-none focus:border-accent-green-light dark:focus:border-accent-green-dark"
+              className="w-full max-w-md bg-primary-bg-light dark:bg-primary-bg-dark text-primary-text-light dark:text-primary-text-dark px-4 py-2 rounded border border-secondary-text-light dark:border-secondary-text-dark focus:outline-none focus:border-accent-green-light dark:focus:border-accent-green-dark"
             >
               <option value="">Select Bookmaker</option>
               {bookmakers.map((bookmaker) => (
@@ -448,37 +312,6 @@ const PromotionsTab = () => {
                 </option>
               ))}
             </select>
-          </div>
-
-          <div>
-            <label className="block text-sm text-secondary-text-light dark:text-secondary-text-dark mb-2">
-              Promotion Type
-            </label>
-            <select
-              value={promotionType}
-              onChange={(e) => setPromotionType(e.target.value)}
-              className="w-full bg-primary-bg-light dark:bg-primary-bg-dark text-primary-text-light dark:text-primary-text-dark px-4 py-2 rounded border border-secondary-text-light dark:border-secondary-text-dark focus:outline-none focus:border-accent-green-light dark:focus:border-accent-green-dark"
-            >
-              <option value="">Select Type</option>
-              {promotionTypes.map((type) => (
-                <option key={type.value} value={type.value}>
-                  {type.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm text-secondary-text-light dark:text-secondary-text-dark mb-2">
-              Amount ($)
-            </label>
-            <input
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="e.g., 500"
-              className="w-full bg-primary-bg-light dark:bg-primary-bg-dark text-primary-text-light dark:text-primary-text-dark px-4 py-2 rounded border border-secondary-text-light dark:border-secondary-text-dark focus:outline-none focus:border-accent-green-light dark:focus:border-accent-green-dark"
-            />
           </div>
         </div>
       </div>
@@ -637,15 +470,11 @@ const PromotionsTab = () => {
       )}
 
       {/* Modal */}
-      {promotionType && amount && (
-        <PromotionCalculatorModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          bet={selectedBet}
-          promotionType={promotionType}
-          amount={parseFloat(amount) || 0}
-        />
-      )}
+      <PromotionCalculatorModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        bet={selectedBet}
+      />
     </div>
   );
 };
