@@ -168,7 +168,10 @@ const PromotionCalculatorModal: React.FC<PromotionCalculatorModalProps> = ({
               <h3 className="text-lg font-medium text-primary-text-light dark:text-primary-text-dark mb-4">
                 Arbitrage Calculator
               </h3>
-              <ArbitrageCalculator />
+              <ArbitrageCalculator 
+                prefilledOdds1={bet.team1_odds.toString()}
+                prefilledOdds2={bet.team2_odds.toString()}
+              />
             </div>
           )}
           
@@ -228,9 +231,14 @@ const BonusBetCalculator = ({ bet }: { bet: PromotionBet }) => {
     const hedgeBet = bonusBetProfit / minusOddsDecimal;
     const guaranteedProfit = bonusSize * plusOddsDecimal - bonusSize - hedgeBet;
 
+    const bet1Payout = bonusSize * plusOddsDecimal;
+    const bet2Payout = hedgeBet * minusOddsDecimal;
+
     setResults({
       bet1Amount: bonusSize,
       bet2Amount: hedgeBet,
+      bet1Payout,
+      bet2Payout,
       guaranteedProfit,
     });
   }, [inputs]);
@@ -283,7 +291,7 @@ const BonusBetCalculator = ({ bet }: { bet: PromotionBet }) => {
           <div className="space-y-2">
             <div className="flex justify-between">
               <span className="text-secondary-text-light dark:text-secondary-text-dark">
-                Bonus Bet
+                Bonus Bet Wager
               </span>
               <span className="text-primary-text-light dark:text-primary-text-dark">
                 ${results.bet1Amount?.toFixed(2)}
@@ -291,7 +299,15 @@ const BonusBetCalculator = ({ bet }: { bet: PromotionBet }) => {
             </div>
             <div className="flex justify-between">
               <span className="text-secondary-text-light dark:text-secondary-text-dark">
-                Hedge Bet
+                Bonus Bet Payout
+              </span>
+              <span className="text-primary-text-light dark:text-primary-text-dark">
+                ${results.bet1Payout?.toFixed(2)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-secondary-text-light dark:text-secondary-text-dark">
+                Hedge Bet Wager
               </span>
               <span className="text-primary-text-light dark:text-primary-text-dark">
                 ${results.bet2Amount?.toFixed(2)}
@@ -299,11 +315,21 @@ const BonusBetCalculator = ({ bet }: { bet: PromotionBet }) => {
             </div>
             <div className="flex justify-between">
               <span className="text-secondary-text-light dark:text-secondary-text-dark">
-                Guaranteed Profit
+                Hedge Bet Payout
               </span>
-              <span className="text-accent-green-light dark:text-accent-green-dark">
-                ${results.guaranteedProfit?.toFixed(2)}
+              <span className="text-primary-text-light dark:text-primary-text-dark">
+                ${results.bet2Payout?.toFixed(2)}
               </span>
+            </div>
+            <div className="mt-4 pt-4 border-t border-secondary-text-light dark:border-secondary-text-dark">
+              <div className="flex justify-between">
+                <span className="text-secondary-text-light dark:text-secondary-text-dark">
+                  Guaranteed Profit
+                </span>
+                <span className="text-accent-green-light dark:text-accent-green-dark">
+                  ${results.guaranteedProfit?.toFixed(2)}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -349,10 +375,15 @@ const RiskFreeBetCalculator = ({ bet }: { bet: PromotionBet }) => {
     const profitIfBet1Wins = bet1Payout - bet1Amount - bet2Amount;
     const profitIfBet2Wins = bet2TotalPayout - bet2Amount - bet1Amount + bonusValueDollars;
 
+    const bet1PayoutValue = bet1Payout;
+    const bet2PayoutValue = bet2TotalPayout;
+
     setResults({
       bonusValue: bonusValueDollars,
       bet1Amount,
       bet2Amount,
+      bet1Payout: bet1PayoutValue,
+      bet2Payout: bet2PayoutValue,
       profitBet1Wins: profitIfBet1Wins,
       profitBet2Wins: profitIfBet2Wins,
     });
@@ -425,7 +456,7 @@ const RiskFreeBetCalculator = ({ bet }: { bet: PromotionBet }) => {
             </div>
             <div className="flex justify-between">
               <span className="text-secondary-text-light dark:text-secondary-text-dark">
-                Bet Amount 1
+                Bet 1 Wager
               </span>
               <span className="text-primary-text-light dark:text-primary-text-dark">
                 ${results.bet1Amount?.toFixed(2)}
@@ -433,10 +464,26 @@ const RiskFreeBetCalculator = ({ bet }: { bet: PromotionBet }) => {
             </div>
             <div className="flex justify-between">
               <span className="text-secondary-text-light dark:text-secondary-text-dark">
-                Bet Amount 2
+                Bet 1 Payout
+              </span>
+              <span className="text-primary-text-light dark:text-primary-text-dark">
+                ${results.bet1Payout?.toFixed(2)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-secondary-text-light dark:text-secondary-text-dark">
+                Bet 2 Wager
               </span>
               <span className="text-primary-text-light dark:text-primary-text-dark">
                 ${results.bet2Amount?.toFixed(2)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-secondary-text-light dark:text-secondary-text-dark">
+                Bet 2 Payout
+              </span>
+              <span className="text-primary-text-light dark:text-primary-text-dark">
+                ${results.bet2Payout?.toFixed(2)}
               </span>
             </div>
             <div className="mt-4 pt-4 border-t border-secondary-text-light dark:border-secondary-text-dark">
@@ -691,18 +738,17 @@ const PromotionsTab = () => {
                             <div className="text-accent-green-light dark:text-accent-green-dark">
                               {selectedOdds > 0 ? '+' : ''}{selectedOdds}
                             </div>
-                            <div className="flex items-center gap-2 text-secondary-text-light dark:text-secondary-text-dark text-sm">
+                            <div className="flex items-center justify-center">
                               <Image
                                 src={
                                   BookmakerLogos[selectedBookmaker.toLowerCase().replace(/[^a-z]/g, "")] ||
                                   "/images/placeholder.png"
                                 }
                                 alt={selectedBookmaker}
-                                width={16}
-                                height={16}
+                                width={20}
+                                height={20}
                                 className="rounded"
                               />
-                              {selectedBookmaker}
                             </div>
                           </div>
                         </div>
@@ -722,18 +768,17 @@ const PromotionsTab = () => {
                             >
                               {otherOdds > 0 ? '+' : ''}{otherOdds}
                             </div>
-                            <div className="flex items-center gap-2 text-secondary-text-light dark:text-secondary-text-dark text-sm">
+                            <div className="flex items-center justify-center">
                               <Image
                                 src={
                                   BookmakerLogos[otherBook.toLowerCase().replace(/[^a-z]/g, "")] ||
                                   "/images/placeholder.png"
                                 }
                                 alt={otherBook}
-                                width={16}
-                                height={16}
+                                width={20}
+                                height={20}
                                 className="rounded"
                               />
-                              {otherBook}
                             </div>
                           </div>
                         </div>

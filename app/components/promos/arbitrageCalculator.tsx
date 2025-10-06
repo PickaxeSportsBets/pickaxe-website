@@ -14,9 +14,22 @@ interface ArbitrageResult {
   roi?: number;
 }
 
-const ArbitrageCalculator = () => {
+interface ArbitrageCalculatorProps {
+  prefilledOdds1?: string;
+  prefilledOdds2?: string;
+}
+
+const ArbitrageCalculator = ({ prefilledOdds1, prefilledOdds2 }: ArbitrageCalculatorProps = {}) => {
   const [inputs, setInputs] = useState<ArbitrageInputs>(() => {
-    // Load saved values from localStorage or use defaults
+    // Use prefilled values if provided, otherwise load from localStorage or use defaults
+    if (prefilledOdds1 && prefilledOdds2) {
+      return {
+        odds1: prefilledOdds1,
+        odds2: prefilledOdds2,
+        totalWager: "",
+      };
+    }
+    
     const savedValues = localStorage.getItem("arbitrageInputs");
     return savedValues
       ? JSON.parse(savedValues)
