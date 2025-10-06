@@ -180,12 +180,14 @@ const PromosCalculator = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 py-6">
-        {/* Initial Risk-Free Bet Calculator */}
-        <CalculatorCard
-          title="Initial Risk-Free Bet Hedge"
-          description="Calculate optimal hedge for risk-free bet promotions"
-        >
+      <div className="space-y-8 py-6">
+        {/* Top row with two calculators */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Initial Risk-Free Bet Calculator */}
+          <CalculatorCard
+            title="Initial Risk-Free Bet Hedge"
+            description="Calculate optimal hedge for risk-free bet promotions"
+          >
           <div className="space-y-4">
             <Input
               label="Odds 1 (+)"
@@ -345,12 +347,12 @@ const PromosCalculator = () => {
             )}
           </div>
         </CalculatorCard>
+        </div>
 
-        {/* Arbitrage Calculator */}
+        {/* Arbitrage Calculator - Full width below */}
         <CalculatorCard
           title="Arbitrage Calculator"
           description="Calculate optimal stakes for arbitrage opportunities"
-          className="lg:col-span-1"
         >
           <ArbitrageCalculator />
         </CalculatorCard>
