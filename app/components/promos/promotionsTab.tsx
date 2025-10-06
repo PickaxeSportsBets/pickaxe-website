@@ -2,7 +2,9 @@
 import React, { useState, useEffect } from "react";
 import { useHeaders } from "@/lib/headersContext";
 import { Calculator } from "lucide-react";
+import Image from "next/image";
 import ArbitrageCalculator from "./arbitrageCalculator";
+import BookmakerLogos from "../bets/utils";
 
 // Promotions tab component for filtering arbitrage bets by bookmaker
 
@@ -175,9 +177,7 @@ const PromotionCalculatorModal: React.FC<PromotionCalculatorModalProps> = ({
               <h3 className="text-lg font-medium text-primary-text-light dark:text-primary-text-dark mb-4">
                 Bonus Bet Calculator
               </h3>
-              <div className="text-secondary-text-light dark:text-secondary-text-dark">
-                Bonus bet calculator coming soon...
-              </div>
+              <BonusBetCalculator bet={bet} />
             </div>
           )}
           
@@ -186,13 +186,283 @@ const PromotionCalculatorModal: React.FC<PromotionCalculatorModalProps> = ({
               <h3 className="text-lg font-medium text-primary-text-light dark:text-primary-text-dark mb-4">
                 Risk-Free Bet Calculator
               </h3>
-              <div className="text-secondary-text-light dark:text-secondary-text-dark">
-                Risk-free bet calculator coming soon...
-              </div>
+              <RiskFreeBetCalculator bet={bet} />
             </div>
           )}
         </div>
       </div>
+    </div>
+  );
+};
+
+// Bonus Bet Calculator Component
+const BonusBetCalculator = ({ bet }: { bet: PromotionBet }) => {
+  const [inputs, setInputs] = useState({
+    bonusOddsPlus: "",
+    bonusOddsMinus: "",
+    bonusBetSize: "",
+  });
+  const [results, setResults] = useState<any>({});
+
+  useEffect(() => {
+    if (bet) {
+      const isTeam1Selected = bet.team1_book === bet.team1_book; // This will be determined by the selected bookmaker
+      setInputs({
+        bonusOddsPlus: bet.team1_odds.toString(),
+        bonusOddsMinus: bet.team2_odds.toString(),
+        bonusBetSize: "500", // Default amount
+      });
+    }
+  }, [bet]);
+
+  const calculateBonus = React.useCallback(() => {
+    const plusOdds = parseFloat(inputs.bonusOddsPlus);
+    const minusOdds = parseFloat(inputs.bonusOddsMinus);
+    const bonusSize = parseFloat(inputs.bonusBetSize);
+
+    if (!plusOdds || !minusOdds || !bonusSize || plusOdds <= 0 || minusOdds >= 0) return;
+
+    const plusOddsDecimal = 1 + plusOdds / 100;
+    const minusOddsDecimal = 1 - 100 / minusOdds;
+    const bonusBetProfit = bonusSize * plusOddsDecimal - bonusSize;
+    const hedgeBet = bonusBetProfit / minusOddsDecimal;
+    const guaranteedProfit = bonusSize * plusOddsDecimal - bonusSize - hedgeBet;
+
+    setResults({
+      bet1Amount: bonusSize,
+      bet2Amount: hedgeBet,
+      guaranteedProfit,
+    });
+  }, [inputs]);
+
+  useEffect(() => {
+    calculateBonus();
+  }, [calculateBonus]);
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm text-secondary-text-light dark:text-secondary-text-dark mb-2">
+          Odds 1 (+)
+        </label>
+        <input
+          type="number"
+          value={inputs.bonusOddsPlus}
+          onChange={(e) => setInputs(prev => ({ ...prev, bonusOddsPlus: e.target.value }))}
+          className="w-full bg-primary-bg-light dark:bg-primary-bg-dark text-primary-text-light dark:text-primary-text-dark px-4 py-2 rounded border border-secondary-text-light dark:border-secondary-text-dark focus:outline-none focus:border-accent-green-light dark:focus:border-accent-green-dark"
+        />
+      </div>
+      <div>
+        <label className="block text-sm text-secondary-text-light dark:text-secondary-text-dark mb-2">
+          Odds 2 (-)
+        </label>
+        <input
+          type="number"
+          value={inputs.bonusOddsMinus}
+          onChange={(e) => setInputs(prev => ({ ...prev, bonusOddsMinus: e.target.value }))}
+          className="w-full bg-primary-bg-light dark:bg-primary-bg-dark text-primary-text-light dark:text-primary-text-dark px-4 py-2 rounded border border-secondary-text-light dark:border-secondary-text-dark focus:outline-none focus:border-accent-green-light dark:focus:border-accent-green-dark"
+        />
+      </div>
+      <div>
+        <label className="block text-sm text-secondary-text-light dark:text-secondary-text-dark mb-2">
+          Bonus Bet Size ($)
+        </label>
+        <input
+          type="number"
+          value={inputs.bonusBetSize}
+          onChange={(e) => setInputs(prev => ({ ...prev, bonusBetSize: e.target.value }))}
+          className="w-full bg-primary-bg-light dark:bg-primary-bg-dark text-primary-text-light dark:text-primary-text-dark px-4 py-2 rounded border border-secondary-text-light dark:border-secondary-text-dark focus:outline-none focus:border-accent-green-light dark:focus:border-accent-green-dark"
+        />
+      </div>
+
+      {Object.keys(results).length > 0 && (
+        <div className="p-4 bg-primary-bg-light dark:bg-primary-bg-dark rounded-lg">
+          <h4 className="font-medium text-primary-text-light dark:text-primary-text-dark mb-3">
+            Results
+          </h4>
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <span className="text-secondary-text-light dark:text-secondary-text-dark">
+                Bonus Bet
+              </span>
+              <span className="text-primary-text-light dark:text-primary-text-dark">
+                ${results.bet1Amount?.toFixed(2)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-secondary-text-light dark:text-secondary-text-dark">
+                Hedge Bet
+              </span>
+              <span className="text-primary-text-light dark:text-primary-text-dark">
+                ${results.bet2Amount?.toFixed(2)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-secondary-text-light dark:text-secondary-text-dark">
+                Guaranteed Profit
+              </span>
+              <span className="text-accent-green-light dark:text-accent-green-dark">
+                ${results.guaranteedProfit?.toFixed(2)}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Risk-Free Bet Calculator Component
+const RiskFreeBetCalculator = ({ bet }: { bet: PromotionBet }) => {
+  const [inputs, setInputs] = useState({
+    odds1: "",
+    odds2: "",
+    bonusAmount: "",
+    estimatedBonusValue: "",
+  });
+  const [results, setResults] = useState<any>({});
+
+  useEffect(() => {
+    if (bet) {
+      setInputs({
+        odds1: bet.team1_odds.toString(),
+        odds2: bet.team2_odds.toString(),
+        bonusAmount: "500", // Default amount
+        estimatedBonusValue: "60", // Default percentage
+      });
+    }
+  }, [bet]);
+
+  const calculateRiskFree = React.useCallback(() => {
+    const odds1 = parseFloat(inputs.odds1);
+    const odds2 = parseFloat(inputs.odds2);
+    const bonusAmount = parseFloat(inputs.bonusAmount);
+    const estimatedBonusValue = parseFloat(inputs.estimatedBonusValue);
+
+    if (!odds1 || !odds2 || !bonusAmount || !estimatedBonusValue) return;
+
+    const bonusValueDollars = (bonusAmount * estimatedBonusValue) / 100;
+    const bet1Amount = bonusAmount;
+    const bet1Payout = bet1Amount * (1 + odds1 / 100);
+    const bet2Amount = (bet1Payout - bonusValueDollars) / (1 - 100 / odds2);
+    const bet2TotalPayout = bet2Amount * (1 - 100 / odds2);
+    const profitIfBet1Wins = bet1Payout - bet1Amount - bet2Amount;
+    const profitIfBet2Wins = bet2TotalPayout - bet2Amount - bet1Amount + bonusValueDollars;
+
+    setResults({
+      bonusValue: bonusValueDollars,
+      bet1Amount,
+      bet2Amount,
+      profitBet1Wins: profitIfBet1Wins,
+      profitBet2Wins: profitIfBet2Wins,
+    });
+  }, [inputs]);
+
+  useEffect(() => {
+    calculateRiskFree();
+  }, [calculateRiskFree]);
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm text-secondary-text-light dark:text-secondary-text-dark mb-2">
+          Odds 1 (+)
+        </label>
+        <input
+          type="number"
+          value={inputs.odds1}
+          onChange={(e) => setInputs(prev => ({ ...prev, odds1: e.target.value }))}
+          className="w-full bg-primary-bg-light dark:bg-primary-bg-dark text-primary-text-light dark:text-primary-text-dark px-4 py-2 rounded border border-secondary-text-light dark:border-secondary-text-dark focus:outline-none focus:border-accent-green-light dark:focus:border-accent-green-dark"
+        />
+      </div>
+      <div>
+        <label className="block text-sm text-secondary-text-light dark:text-secondary-text-dark mb-2">
+          Odds 2 (-)
+        </label>
+        <input
+          type="number"
+          value={inputs.odds2}
+          onChange={(e) => setInputs(prev => ({ ...prev, odds2: e.target.value }))}
+          className="w-full bg-primary-bg-light dark:bg-primary-bg-dark text-primary-text-light dark:text-primary-text-dark px-4 py-2 rounded border border-secondary-text-light dark:border-secondary-text-dark focus:outline-none focus:border-accent-green-light dark:focus:border-accent-green-dark"
+        />
+      </div>
+      <div>
+        <label className="block text-sm text-secondary-text-light dark:text-secondary-text-dark mb-2">
+          Bonus Amount ($)
+        </label>
+        <input
+          type="number"
+          value={inputs.bonusAmount}
+          onChange={(e) => setInputs(prev => ({ ...prev, bonusAmount: e.target.value }))}
+          className="w-full bg-primary-bg-light dark:bg-primary-bg-dark text-primary-text-light dark:text-primary-text-dark px-4 py-2 rounded border border-secondary-text-light dark:border-secondary-text-dark focus:outline-none focus:border-accent-green-light dark:focus:border-accent-green-dark"
+        />
+      </div>
+      <div>
+        <label className="block text-sm text-secondary-text-light dark:text-secondary-text-dark mb-2">
+          Estimated Bonus Value (%)
+        </label>
+        <input
+          type="number"
+          value={inputs.estimatedBonusValue}
+          onChange={(e) => setInputs(prev => ({ ...prev, estimatedBonusValue: e.target.value }))}
+          className="w-full bg-primary-bg-light dark:bg-primary-bg-dark text-primary-text-light dark:text-primary-text-dark px-4 py-2 rounded border border-secondary-text-light dark:border-secondary-text-dark focus:outline-none focus:border-accent-green-light dark:focus:border-accent-green-dark"
+        />
+      </div>
+
+      {Object.keys(results).length > 0 && (
+        <div className="p-4 bg-primary-bg-light dark:bg-primary-bg-dark rounded-lg">
+          <h4 className="font-medium text-primary-text-light dark:text-primary-text-dark mb-3">
+            Results
+          </h4>
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <span className="text-secondary-text-light dark:text-secondary-text-dark">
+                Estimated Bonus Value
+              </span>
+              <span className="text-primary-text-light dark:text-primary-text-dark">
+                ${results.bonusValue?.toFixed(2)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-secondary-text-light dark:text-secondary-text-dark">
+                Bet Amount 1
+              </span>
+              <span className="text-primary-text-light dark:text-primary-text-dark">
+                ${results.bet1Amount?.toFixed(2)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-secondary-text-light dark:text-secondary-text-dark">
+                Bet Amount 2
+              </span>
+              <span className="text-primary-text-light dark:text-primary-text-dark">
+                ${results.bet2Amount?.toFixed(2)}
+              </span>
+            </div>
+            <div className="mt-4 pt-4 border-t border-secondary-text-light dark:border-secondary-text-dark">
+              <div className="text-primary-text-light dark:text-primary-text-dark font-medium mb-3">
+                Profit Scenarios
+              </div>
+              <div className="flex justify-between">
+                <span className="text-secondary-text-light dark:text-secondary-text-dark">
+                  If Bet 1 (+{inputs.odds1}) wins
+                </span>
+                <span className="text-primary-text-light dark:text-primary-text-dark">
+                  ${results.profitBet1Wins?.toFixed(2)}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-secondary-text-light dark:text-secondary-text-dark">
+                  If Bet 2 ({inputs.odds2}) wins
+                </span>
+                <span className="text-primary-text-light dark:text-primary-text-dark">
+                  ${results.profitBet2Wins?.toFixed(2)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -421,7 +691,17 @@ const PromotionsTab = () => {
                             <div className="text-accent-green-light dark:text-accent-green-dark">
                               {selectedOdds > 0 ? '+' : ''}{selectedOdds}
                             </div>
-                            <div className="text-secondary-text-light dark:text-secondary-text-dark text-sm">
+                            <div className="flex items-center gap-2 text-secondary-text-light dark:text-secondary-text-dark text-sm">
+                              <Image
+                                src={
+                                  BookmakerLogos[selectedBookmaker.toLowerCase().replace(/[^a-z]/g, "")] ||
+                                  "/images/placeholder.png"
+                                }
+                                alt={selectedBookmaker}
+                                width={16}
+                                height={16}
+                                className="rounded"
+                              />
                               {selectedBookmaker}
                             </div>
                           </div>
@@ -442,7 +722,17 @@ const PromotionsTab = () => {
                             >
                               {otherOdds > 0 ? '+' : ''}{otherOdds}
                             </div>
-                            <div className="text-secondary-text-light dark:text-secondary-text-dark text-sm">
+                            <div className="flex items-center gap-2 text-secondary-text-light dark:text-secondary-text-dark text-sm">
+                              <Image
+                                src={
+                                  BookmakerLogos[otherBook.toLowerCase().replace(/[^a-z]/g, "")] ||
+                                  "/images/placeholder.png"
+                                }
+                                alt={otherBook}
+                                width={16}
+                                height={16}
+                                className="rounded"
+                              />
                               {otherBook}
                             </div>
                           </div>
