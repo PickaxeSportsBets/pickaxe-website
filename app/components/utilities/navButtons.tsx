@@ -51,7 +51,7 @@ const NavButtons: React.FC<NavButtonsProps> = ({
           }}
           className={buttonClass("PROMOS")}
         >
-          Promotions
+          Calculator
         </button>
       )}
     </div>

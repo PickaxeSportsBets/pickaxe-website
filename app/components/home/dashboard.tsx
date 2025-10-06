@@ -9,7 +9,7 @@ import NavButtons from "../utilities/navButtons";
 import ArbBetCard from "../bets/arbCard";
 import { createClient } from "@/app/utils/supabase/client";
 import { formatDistanceToNow, sub } from "date-fns";
-import PromosCalculator from "../promos/promo";
+import ArbitrageCalculator from "../promos/arbitrageCalculator";
 import LoadingSkeleton from "../utilities/loadingSkeleton";
 import SearchAndControls from "../filters/filter";
 import { useToast } from "@/hooks/use-toast";
@@ -396,7 +396,7 @@ export default function Home() {
           </>
         );
       case Page.PROMOS:
-        return <PromosCalculator />;
+        return <ArbitrageCalculator />;
       default:
         return null;
     }
