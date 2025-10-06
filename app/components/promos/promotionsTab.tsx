@@ -47,8 +47,6 @@ const PromotionCalculatorModal: React.FC<PromotionCalculatorModalProps> = ({
   promotionType,
   amount,
 }) => {
-  if (!isOpen || !bet) return null;
-
   const [bonusOddsPlus, setBonusOddsPlus] = useState("");
   const [bonusOddsMinus, setBonusOddsMinus] = useState("");
   const [bonusBetSize, setBonusBetSize] = useState(amount.toString());
@@ -71,7 +69,7 @@ const PromotionCalculatorModal: React.FC<PromotionCalculatorModalProps> = ({
     }
   }, [bet, amount]);
 
-  const calculateBonus = () => {
+  const calculateBonus = React.useCallback(() => {
     const plusOdds = parseFloat(bonusOddsPlus);
     const minusOdds = parseFloat(bonusOddsMinus);
     const bonusSize = parseFloat(bonusBetSize);
@@ -89,9 +87,9 @@ const PromotionCalculatorModal: React.FC<PromotionCalculatorModalProps> = ({
       bet2Amount: hedgeBet,
       guaranteedProfit,
     });
-  };
+  }, [bonusOddsPlus, bonusOddsMinus, bonusBetSize]);
 
-  const calculateArbitrage = () => {
+  const calculateArbitrage = React.useCallback(() => {
     const odds1 = parseFloat(bonusOddsPlus);
     const odds2 = parseFloat(bonusOddsMinus);
     const totalWager = parseFloat(bonusBetSize);
@@ -118,7 +116,7 @@ const PromotionCalculatorModal: React.FC<PromotionCalculatorModalProps> = ({
       guaranteedProfit,
       roi,
     });
-  };
+  }, [bonusOddsPlus, bonusOddsMinus, bonusBetSize]);
 
   useEffect(() => {
     if (promotionType === "bonus" || promotionType === "hedge") {
@@ -126,7 +124,9 @@ const PromotionCalculatorModal: React.FC<PromotionCalculatorModalProps> = ({
     } else if (promotionType === "arb") {
       calculateArbitrage();
     }
-  }, [bonusOddsPlus, bonusOddsMinus, bonusBetSize, promotionType]);
+  }, [promotionType, calculateBonus, calculateArbitrage]);
+
+  if (!isOpen || !bet) return null;
 
   const formatDateTime = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -319,7 +319,7 @@ const PromotionsTab = () => {
     { value: "arb", label: "Pure Arbitrage" }
   ];
 
-  const fetchPromotionBets = async () => {
+  const fetchPromotionBets = React.useCallback(async () => {
     if (!selectedBookmaker || !promotionType || !amount) return;
 
     setLoading(true);
@@ -350,11 +350,11 @@ const PromotionsTab = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedBookmaker, promotionType, amount]);
 
   useEffect(() => {
     fetchPromotionBets();
-  }, [selectedBookmaker, promotionType, amount]);
+  }, [fetchPromotionBets]);
 
   const handleBetClick = (bet: PromotionBet) => {
     setSelectedBet(bet);

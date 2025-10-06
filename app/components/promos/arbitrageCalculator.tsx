@@ -34,7 +34,7 @@ const ArbitrageCalculator = () => {
     localStorage.setItem("arbitrageInputs", JSON.stringify(inputs));
   }, [inputs]);
 
-  const calculateArbitrage = () => {
+  const calculateArbitrage = React.useCallback(() => {
     const odds1 = parseFloat(inputs.odds1);
     const odds2 = parseFloat(inputs.odds2);
     const totalWager = parseFloat(inputs.totalWager);
@@ -70,12 +70,12 @@ const ArbitrageCalculator = () => {
       guaranteedProfit,
       roi,
     });
-  };
+  }, [inputs]);
 
   // Calculate whenever inputs change
   React.useEffect(() => {
     calculateArbitrage();
-  }, [inputs]);
+  }, [inputs, calculateArbitrage]);
 
   const getColorClass = (value: number) => {
     if (value > 0) return "text-accent-green-light dark:text-accent-green-dark";
