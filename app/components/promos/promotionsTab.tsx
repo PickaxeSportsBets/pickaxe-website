@@ -1,10 +1,40 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useHeaders } from "@/lib/headersContext";
+import { Calculator } from "lucide-react";
 
 // Promotions tab component for filtering arbitrage bets by bookmaker
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+// Helper functions from arbCard
+const formatDateTime = (dateStr: string) => {
+  const date = new Date(dateStr);
+  const dayOfWeek = date.toLocaleDateString("en-US", { weekday: "long" });
+  const month = date.toLocaleDateString("en-US", { month: "long" });
+  const day = date.getDate();
+  const year = date.getFullYear();
+  const time = date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+    timeZoneName: "short",
+  });
+  return `${dayOfWeek}, ${month} ${day}, ${year} at ${time}`;
+};
+
+const formatTeamName = (name: string, point: string) => {
+  if (!point || point === "null") return name;
+  return `${name} (${point})`;
+};
+
+const formatProfitPercentage = (profit: number, hold: number) => {
+  if (profit > 0) {
+    return `+${profit.toFixed(2)}%`;
+  } else {
+    return `${profit.toFixed(2)}%`;
+  }
+};
 
 interface PromotionBet {
   primary_key: string;
@@ -374,6 +404,10 @@ const PromotionsTab = () => {
   }, [fetchPromotionBets]);
 
   const handleBetClick = (bet: PromotionBet) => {
+    if (!promotionType || !amount) {
+      alert("Please select a promotion type and amount first");
+      return;
+    }
     setSelectedBet(bet);
     setIsModalOpen(true);
   };
@@ -418,13 +452,12 @@ const PromotionsTab = () => {
 
           <div>
             <label className="block text-sm text-secondary-text-light dark:text-secondary-text-dark mb-2">
-              Promotion Type (Coming Soon)
+              Promotion Type
             </label>
             <select
               value={promotionType}
               onChange={(e) => setPromotionType(e.target.value)}
-              disabled
-              className="w-full bg-primary-bg-light dark:bg-primary-bg-dark text-secondary-text-light dark:text-secondary-text-dark px-4 py-2 rounded border border-secondary-text-light dark:border-secondary-text-dark opacity-50 cursor-not-allowed"
+              className="w-full bg-primary-bg-light dark:bg-primary-bg-dark text-primary-text-light dark:text-primary-text-dark px-4 py-2 rounded border border-secondary-text-light dark:border-secondary-text-dark focus:outline-none focus:border-accent-green-light dark:focus:border-accent-green-dark"
             >
               <option value="">Select Type</option>
               {promotionTypes.map((type) => (
@@ -437,15 +470,14 @@ const PromotionsTab = () => {
 
           <div>
             <label className="block text-sm text-secondary-text-light dark:text-secondary-text-dark mb-2">
-              Amount ($) (Coming Soon)
+              Amount ($)
             </label>
             <input
               type="number"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="e.g., 500"
-              disabled
-              className="w-full bg-primary-bg-light dark:bg-primary-bg-dark text-secondary-text-light dark:text-secondary-text-dark px-4 py-2 rounded border border-secondary-text-light dark:border-secondary-text-dark opacity-50 cursor-not-allowed"
+              className="w-full bg-primary-bg-light dark:bg-primary-bg-dark text-primary-text-light dark:text-primary-text-dark px-4 py-2 rounded border border-secondary-text-light dark:border-secondary-text-dark focus:outline-none focus:border-accent-green-light dark:focus:border-accent-green-dark"
             />
           </div>
         </div>
@@ -472,34 +504,117 @@ const PromotionsTab = () => {
             const otherBook = isTeam1Selected ? bet.team2_book : bet.team1_book;
 
             return (
-              <div
-                key={bet.primary_key}
-                onClick={() => handleBetClick(bet)}
-                className="bg-secondary-bg-light dark:bg-secondary-bg-dark rounded-lg p-4 hover:bg-secondary-bg-hover-light dark:hover:bg-secondary-bg-hover-dark transition-colors cursor-pointer"
-              >
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <h3 className="font-medium text-primary-text-light dark:text-primary-text-dark">
-                      {bet.game}
-                    </h3>
-                    <p className="text-sm text-secondary-text-light dark:text-secondary-text-dark">
-                      {bet.sport} • {bet.market_type} • {formatDateTime(bet.commence_time)}
-                    </p>
-                    <div className="mt-2 flex gap-4 text-sm">
-                      <span className="text-accent-green-light dark:text-accent-green-dark font-medium">
-                        {selectedTeam} ({selectedOdds > 0 ? '+' : ''}{selectedOdds}) @ {selectedBookmaker}
-                      </span>
-                      <span className="text-primary-text-light dark:text-primary-text-dark">
-                        {otherTeam} ({otherOdds > 0 ? '+' : ''}{otherOdds}) @ {otherBook}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-accent-green-light dark:text-accent-green-dark font-medium">
-                      +{parseFloat(bet.profit_percentage).toFixed(2)}%
-                    </div>
-                    <div className="text-xs text-secondary-text-light dark:text-secondary-text-dark">
-                      Profit
+              <div key={bet.primary_key} className="w-full py-4">
+                <div className="bg-secondary-bg-light dark:bg-secondary-bg-dark rounded-lg overflow-hidden hover:bg-secondary-bg-hover-light dark:hover:bg-secondary-bg-hover-dark transition-all cursor-pointer">
+                  <div className="py-4 md:px-8 px-2">
+                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-0">
+                      <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6 w-full md:w-auto px-4 md:px-0">
+                        <div className="flex items-center gap-2">
+                          {Number(bet.profit_percentage) > 0 ? (
+                            <div className="text-accent-green-light dark:text-accent-green-dark w-24 text-left">
+                              <p className="text-secondary-text-light dark:text-secondary-text-dark text-sm">
+                                Profit
+                              </p>
+                              {formatProfitPercentage(
+                                Number(bet.profit_percentage),
+                                Number(bet.hold_percentage)
+                              )}
+                            </div>
+                          ) : (
+                            <div className="text-negative-red-light dark:text-negative-red-dark w-24 text-left">
+                              <p className="text-secondary-text-light dark:text-secondary-text-dark text-sm">
+                                Profit
+                              </p>
+                              {formatProfitPercentage(
+                                Number(bet.profit_percentage),
+                                Number(bet.hold_percentage)
+                              )}
+                            </div>
+                          )}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleBetClick(bet);
+                            }}
+                            className="p-2 hover:bg-secondary-bg-hover-light dark:hover:bg-secondary-bg-hover-dark rounded-full transition-colors"
+                            aria-label="Open calculator"
+                          >
+                            <Calculator className="w-8 h-8 text-secondary-text-light dark:text-secondary-text-dark" />
+                          </button>
+                        </div>
+                        <div>
+                          <div className="text-secondary-text-light dark:text-secondary-text-dark text-sm break-words md:whitespace-nowrap">
+                            {formatDateTime(bet.commence_time)}
+                          </div>
+                          <div className="text-primary-text-light dark:text-primary-text-dark">
+                            {bet.game}
+                          </div>
+                          <div className="text-secondary-text-light dark:text-secondary-text-dark text-sm">
+                            {bet.sport}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="text-market-purple-light dark:text-market-purple-dark font-medium px-4 md:px-0 text-left md:text-center w-full md:w-auto">
+                        {bet.player ? (
+                          <>
+                            {bet.player} {" - "}
+                            {bet.market_type
+                              ?.split("_")
+                              .map(
+                                (word: string) =>
+                                  word.charAt(0).toUpperCase() + word.slice(1)
+                              )
+                              .join(" ")}
+                          </>
+                        ) : (
+                          bet.market_type
+                            ?.split("_")
+                            .map(
+                              (word: string) =>
+                                word.charAt(0).toUpperCase() + word.slice(1)
+                            )
+                            .join(" ")
+                        )}
+                      </div>
+
+                      <div className="flex flex-col space-y-4 w-full md:w-auto">
+                        {/* Selected Bookmaker Bet */}
+                        <div className="flex items-center justify-between md:justify-end px-4 md:px-0 md:space-x-8">
+                          <div className="text-left md:text-right">
+                            <div className="text-primary-text-light dark:text-primary-text-dark">
+                              {formatTeamName(selectedTeam, isTeam1Selected ? bet.team1_point : bet.team2_point)}
+                            </div>
+                            <div className="text-accent-green-light dark:text-accent-green-dark">
+                              {selectedOdds > 0 ? '+' : ''}{selectedOdds}
+                            </div>
+                            <div className="text-secondary-text-light dark:text-secondary-text-dark text-sm">
+                              {selectedBookmaker}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Other Bookmaker Bet */}
+                        <div className="flex items-center justify-between md:justify-end px-4 md:px-0 md:space-x-8">
+                          <div className="text-left md:text-right">
+                            <div className="text-primary-text-light dark:text-primary-text-dark">
+                              {formatTeamName(otherTeam, isTeam1Selected ? bet.team2_point : bet.team1_point)}
+                            </div>
+                            <div
+                              className={
+                                otherOdds >= 0
+                                  ? "text-accent-green-light dark:text-accent-green-dark"
+                                  : "text-negative-red-light dark:text-negative-red-dark"
+                              }
+                            >
+                              {otherOdds > 0 ? '+' : ''}{otherOdds}
+                            </div>
+                            <div className="text-secondary-text-light dark:text-secondary-text-dark text-sm">
+                              {otherBook}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -522,13 +637,15 @@ const PromotionsTab = () => {
       )}
 
       {/* Modal */}
-      <PromotionCalculatorModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        bet={selectedBet}
-        promotionType={promotionType}
-        amount={parseFloat(amount) || 0}
-      />
+      {promotionType && amount && (
+        <PromotionCalculatorModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          bet={selectedBet}
+          promotionType={promotionType}
+          amount={parseFloat(amount) || 0}
+        />
+      )}
     </div>
   );
 };
