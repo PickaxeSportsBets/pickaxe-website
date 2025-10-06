@@ -531,7 +531,6 @@ const PromotionsTab = () => {
     "Pinnacle",
     "ESPN Bet",
     "Hard Rock Bet",
-    "William Hill",
     "Fanatics",
     "Fliff"
   ];
