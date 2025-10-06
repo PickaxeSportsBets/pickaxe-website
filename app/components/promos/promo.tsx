@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import ArbitrageCalculator from "./arbitrageCalculator";
 
 interface CalculatorResult {
   bonusValue?: number;
@@ -179,7 +180,7 @@ const PromosCalculator = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 py-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 py-6">
         {/* Initial Risk-Free Bet Calculator */}
         <CalculatorCard
           title="Initial Risk-Free Bet Hedge"
@@ -343,6 +344,15 @@ const PromosCalculator = () => {
               </ResultsPanel>
             )}
           </div>
+        </CalculatorCard>
+
+        {/* Arbitrage Calculator */}
+        <CalculatorCard
+          title="Arbitrage Calculator"
+          description="Calculate optimal stakes for arbitrage opportunities"
+          className="lg:col-span-1"
+        >
+          <ArbitrageCalculator />
         </CalculatorCard>
       </div>
     </div>
