@@ -613,7 +613,9 @@ const PromotionsTab = () => {
           <h2 className="text-lg font-medium text-primary-text-light dark:text-primary-text-dark">
             Available Opportunities ({bets.length})
           </h2>
-          {bets.map((bet) => {
+          {bets
+            .sort((a, b) => new Date(a.commence_time).getTime() - new Date(b.commence_time).getTime())
+            .map((bet) => {
             const isTeam1Selected = bet.team1_book === selectedBookmaker;
             const selectedOdds = isTeam1Selected ? bet.team1_odds : bet.team2_odds;
             const selectedTeam = isTeam1Selected ? bet.team1_name : bet.team2_name;
