@@ -326,13 +326,13 @@ const PromotionsTab = () => {
 
     setLoading(true);
     try {
+      // First, get all arbitrage bets with positive profit
       const { data, error } = await supabase
         .from('arbitrage')
         .select('*')
-        .or(`team1_book.eq.${selectedBookmaker},team2_book.eq.${selectedBookmaker}`)
         .gt('profit_percentage', 0)
         .order('profit_percentage', { ascending: false })
-        .limit(50);
+        .limit(100);
 
       if (error) {
         console.error('Error fetching bets:', error);
@@ -342,9 +342,21 @@ const PromotionsTab = () => {
       // Filter to only show bets where the selected bookmaker has positive odds
       const filteredBets = data?.filter(bet => {
         const isTeam1Selected = bet.team1_book === selectedBookmaker;
+        const isTeam2Selected = bet.team2_book === selectedBookmaker;
+        
+        // Check if the selected bookmaker is in either team
+        if (!isTeam1Selected && !isTeam2Selected) return false;
+        
+        // Get the odds for the selected bookmaker
         const selectedOdds = isTeam1Selected ? bet.team1_odds : bet.team2_odds;
+        
+        // Only include if the selected bookmaker has positive odds
         return selectedOdds > 0;
       }) || [];
+
+      console.log(`Found ${data?.length || 0} total arbitrage bets`);
+      console.log(`Found ${filteredBets.length} bets for ${selectedBookmaker} with positive odds`);
+      console.log('Sample bet:', filteredBets[0]);
 
       setBets(filteredBets);
     } catch (error) {
