@@ -44,15 +44,26 @@ const NavButtons: React.FC<NavButtonsProps> = ({
       </button>
 
       {admin && (
-        <button
-          onClick={() => {
-            setCurrPage("PROMOS");
-            resetPageNumber();
-          }}
-          className={buttonClass("PROMOS")}
-        >
-          Calculator
-        </button>
+        <>
+          <button
+            onClick={() => {
+              setCurrPage("PROMOS");
+              resetPageNumber();
+            }}
+            className={buttonClass("PROMOS")}
+          >
+            Calculator
+          </button>
+          <button
+            onClick={() => {
+              setCurrPage("PROMOTIONS");
+              resetPageNumber();
+            }}
+            className={buttonClass("PROMOTIONS")}
+          >
+            Promotions
+          </button>
+        </>
       )}
     </div>
   );

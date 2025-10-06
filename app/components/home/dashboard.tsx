@@ -10,6 +10,7 @@ import ArbBetCard from "../bets/arbCard";
 import { createClient } from "@/app/utils/supabase/client";
 import { formatDistanceToNow, sub } from "date-fns";
 import PromosCalculator from "../promos/promo";
+import PromotionsTab from "../promos/promotionsTab";
 import LoadingSkeleton from "../utilities/loadingSkeleton";
 import SearchAndControls from "../filters/filter";
 import { useToast } from "@/hooks/use-toast";
@@ -36,6 +37,7 @@ enum Page {
   EV = "EV",
   ARB = "ARB",
   PROMOS = "PROMOS",
+  PROMOTIONS = "PROMOTIONS",
 }
 
 interface SubscriptionStatus {
@@ -397,6 +399,8 @@ export default function Home() {
         );
       case Page.PROMOS:
         return <PromosCalculator />;
+      case Page.PROMOTIONS:
+        return <PromotionsTab />;
       default:
         return null;
     }

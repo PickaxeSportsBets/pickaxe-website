@@ -350,12 +350,7 @@ const PromosCalculator = () => {
         </div>
 
         {/* Arbitrage Calculator - Full width below */}
-        <CalculatorCard
-          title="Arbitrage Calculator"
-          description="Calculate optimal stakes for arbitrage opportunities"
-        >
-          <ArbitrageCalculator />
-        </CalculatorCard>
+        <ArbitrageCalculator />
       </div>
     </div>
   );
