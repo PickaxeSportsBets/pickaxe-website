@@ -99,7 +99,7 @@ const PromotionCalculatorModal: React.FC<PromotionCalculatorModalProps> = ({
       <div className="bg-secondary-bg-light dark:bg-secondary-bg-dark rounded-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-medium text-primary-text-light dark:text-primary-text-dark">
-            Calculator
+            Calculators
           </h2>
           <button
             onClick={onClose}
