@@ -213,7 +213,7 @@ const BonusBetCalculator = ({ bet }: { bet: PromotionBet }) => {
       setInputs({
         bonusOddsPlus: bet.team1_odds.toString(),
         bonusOddsMinus: bet.team2_odds.toString(),
-        bonusBetSize: "500", // Default amount
+        bonusBetSize: "", // No default amount
       });
     }
   }, [bet]);
@@ -353,7 +353,7 @@ const RiskFreeBetCalculator = ({ bet }: { bet: PromotionBet }) => {
       setInputs({
         odds1: bet.team1_odds.toString(),
         odds2: bet.team2_odds.toString(),
-        bonusAmount: "500", // Default amount
+        bonusAmount: "", // No default amount
         estimatedBonusValue: "60", // Default percentage
       });
     }
