@@ -213,7 +213,7 @@ const BonusBetCalculator = ({ bet }: { bet: PromotionBet }) => {
       setInputs({
         bonusOddsPlus: bet.team1_odds.toString(),
         bonusOddsMinus: bet.team2_odds.toString(),
-        bonusBetSize: "500", // Default amount
+        bonusBetSize: "100", // Default amount
       });
     }
   }, [bet]);
@@ -251,7 +251,7 @@ const BonusBetCalculator = ({ bet }: { bet: PromotionBet }) => {
     <div className="space-y-4">
       <div>
         <label className="block text-sm text-secondary-text-light dark:text-secondary-text-dark mb-2">
-          Odds 1 (+)
+          Odds (+)
         </label>
         <input
           type="number"
@@ -262,7 +262,7 @@ const BonusBetCalculator = ({ bet }: { bet: PromotionBet }) => {
       </div>
       <div>
         <label className="block text-sm text-secondary-text-light dark:text-secondary-text-dark mb-2">
-          Odds 2 (-)
+          Odds (-)
         </label>
         <input
           type="number"
@@ -291,34 +291,18 @@ const BonusBetCalculator = ({ bet }: { bet: PromotionBet }) => {
           <div className="space-y-2">
             <div className="flex justify-between">
               <span className="text-secondary-text-light dark:text-secondary-text-dark">
-                Bonus Bet Wager
+                Bonus Bet
               </span>
               <span className="text-primary-text-light dark:text-primary-text-dark">
-                ${results.bet1Amount?.toFixed(2)}
+                ${results.bet1Amount?.toFixed(2)} → ${results.bet1Payout?.toFixed(2)}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-secondary-text-light dark:text-secondary-text-dark">
-                Bonus Bet Payout
+                Hedge Bet
               </span>
               <span className="text-primary-text-light dark:text-primary-text-dark">
-                ${results.bet1Payout?.toFixed(2)}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-secondary-text-light dark:text-secondary-text-dark">
-                Hedge Bet Wager
-              </span>
-              <span className="text-primary-text-light dark:text-primary-text-dark">
-                ${results.bet2Amount?.toFixed(2)}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-secondary-text-light dark:text-secondary-text-dark">
-                Hedge Bet Payout
-              </span>
-              <span className="text-primary-text-light dark:text-primary-text-dark">
-                ${results.bet2Payout?.toFixed(2)}
+                ${results.bet2Amount?.toFixed(2)} → ${results.bet2Payout?.toFixed(2)}
               </span>
             </div>
             <div className="mt-4 pt-4 border-t border-secondary-text-light dark:border-secondary-text-dark">
@@ -353,7 +337,7 @@ const RiskFreeBetCalculator = ({ bet }: { bet: PromotionBet }) => {
       setInputs({
         odds1: bet.team1_odds.toString(),
         odds2: bet.team2_odds.toString(),
-        bonusAmount: "500", // Default amount
+        bonusAmount: "100", // Default amount
         estimatedBonusValue: "60", // Default percentage
       });
     }
@@ -397,7 +381,7 @@ const RiskFreeBetCalculator = ({ bet }: { bet: PromotionBet }) => {
     <div className="space-y-4">
       <div>
         <label className="block text-sm text-secondary-text-light dark:text-secondary-text-dark mb-2">
-          Odds 1 (+)
+          Odds (+)
         </label>
         <input
           type="number"
@@ -408,7 +392,7 @@ const RiskFreeBetCalculator = ({ bet }: { bet: PromotionBet }) => {
       </div>
       <div>
         <label className="block text-sm text-secondary-text-light dark:text-secondary-text-dark mb-2">
-          Odds 2 (-)
+          Odds (-)
         </label>
         <input
           type="number"
@@ -456,34 +440,18 @@ const RiskFreeBetCalculator = ({ bet }: { bet: PromotionBet }) => {
             </div>
             <div className="flex justify-between">
               <span className="text-secondary-text-light dark:text-secondary-text-dark">
-                Bet 1 Wager
+                Bet 1
               </span>
               <span className="text-primary-text-light dark:text-primary-text-dark">
-                ${results.bet1Amount?.toFixed(2)}
+                ${results.bet1Amount?.toFixed(2)} → ${results.bet1Payout?.toFixed(2)}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-secondary-text-light dark:text-secondary-text-dark">
-                Bet 1 Payout
+                Bet 2
               </span>
               <span className="text-primary-text-light dark:text-primary-text-dark">
-                ${results.bet1Payout?.toFixed(2)}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-secondary-text-light dark:text-secondary-text-dark">
-                Bet 2 Wager
-              </span>
-              <span className="text-primary-text-light dark:text-primary-text-dark">
-                ${results.bet2Amount?.toFixed(2)}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-secondary-text-light dark:text-secondary-text-dark">
-                Bet 2 Payout
-              </span>
-              <span className="text-primary-text-light dark:text-primary-text-dark">
-                ${results.bet2Payout?.toFixed(2)}
+                ${results.bet2Amount?.toFixed(2)} → ${results.bet2Payout?.toFixed(2)}
               </span>
             </div>
             <div className="mt-4 pt-4 border-t border-secondary-text-light dark:border-secondary-text-dark">
