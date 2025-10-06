@@ -1,10 +1,9 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { createClient } from "@/app/utils/supabase/client";
 
 // Promotions tab component for filtering arbitrage bets by bookmaker
 
-const supabase = createClient();
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 interface PromotionBet {
   primary_key: string;
@@ -322,25 +321,27 @@ const PromotionsTab = () => {
   ];
 
   const fetchPromotionBets = React.useCallback(async () => {
-    if (!selectedBookmaker || !promotionType || !amount) return;
+    if (!selectedBookmaker) return;
 
     setLoading(true);
     try {
-      // First, get all arbitrage bets with positive profit
-      const { data, error } = await supabase
-        .from('arbitrage')
-        .select('*')
-        .gt('profit_percentage', 0)
-        .order('profit_percentage', { ascending: false })
-        .limit(100);
+      // Use the same API endpoint as the dashboard
+      const response = await fetch(`${API_URL}/api/v1/db/arbitrageBets`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-      if (error) {
-        console.error('Error fetching bets:', error);
+      if (!response.ok) {
+        console.error('Error fetching bets:', response.statusText);
         return;
       }
 
+      const data = await response.json();
+
       // Filter to only show bets where the selected bookmaker has positive odds
-      const filteredBets = data?.filter(bet => {
+      const filteredBets = data?.filter((bet: any) => {
         const isTeam1Selected = bet.team1_book === selectedBookmaker;
         const isTeam2Selected = bet.team2_book === selectedBookmaker;
         
@@ -356,7 +357,6 @@ const PromotionsTab = () => {
 
       console.log(`Found ${data?.length || 0} total arbitrage bets`);
       console.log(`Found ${filteredBets.length} bets for ${selectedBookmaker} with positive odds`);
-      console.log('Sample bet:', filteredBets[0]);
 
       setBets(filteredBets);
     } catch (error) {
@@ -364,7 +364,7 @@ const PromotionsTab = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedBookmaker, promotionType, amount]);
+  }, [selectedBookmaker]);
 
   useEffect(() => {
     fetchPromotionBets();
@@ -415,12 +415,13 @@ const PromotionsTab = () => {
 
           <div>
             <label className="block text-sm text-secondary-text-light dark:text-secondary-text-dark mb-2">
-              Promotion Type
+              Promotion Type (Coming Soon)
             </label>
             <select
               value={promotionType}
               onChange={(e) => setPromotionType(e.target.value)}
-              className="w-full bg-primary-bg-light dark:bg-primary-bg-dark text-primary-text-light dark:text-primary-text-dark px-4 py-2 rounded border border-secondary-text-light dark:border-secondary-text-dark focus:outline-none focus:border-accent-green-light dark:focus:border-accent-green-dark"
+              disabled
+              className="w-full bg-primary-bg-light dark:bg-primary-bg-dark text-secondary-text-light dark:text-secondary-text-dark px-4 py-2 rounded border border-secondary-text-light dark:border-secondary-text-dark opacity-50 cursor-not-allowed"
             >
               <option value="">Select Type</option>
               {promotionTypes.map((type) => (
@@ -433,14 +434,15 @@ const PromotionsTab = () => {
 
           <div>
             <label className="block text-sm text-secondary-text-light dark:text-secondary-text-dark mb-2">
-              Amount ($)
+              Amount ($) (Coming Soon)
             </label>
             <input
               type="number"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="e.g., 500"
-              className="w-full bg-primary-bg-light dark:bg-primary-bg-dark text-primary-text-light dark:text-primary-text-dark px-4 py-2 rounded border border-secondary-text-light dark:border-secondary-text-dark focus:outline-none focus:border-accent-green-light dark:focus:border-accent-green-dark"
+              disabled
+              className="w-full bg-primary-bg-light dark:bg-primary-bg-dark text-secondary-text-light dark:text-secondary-text-dark px-4 py-2 rounded border border-secondary-text-light dark:border-secondary-text-dark opacity-50 cursor-not-allowed"
             />
           </div>
         </div>
@@ -502,7 +504,7 @@ const PromotionsTab = () => {
             );
           })}
         </div>
-      ) : selectedBookmaker && promotionType && amount ? (
+      ) : selectedBookmaker ? (
         <div className="text-center py-8">
           <div className="text-secondary-text-light dark:text-secondary-text-dark">
             No opportunities found for {selectedBookmaker} with positive odds.
@@ -511,7 +513,7 @@ const PromotionsTab = () => {
       ) : (
         <div className="text-center py-8">
           <div className="text-secondary-text-light dark:text-secondary-text-dark">
-            Please select a bookmaker, promotion type, and amount to see available opportunities.
+            Please select a bookmaker to see available opportunities.
           </div>
         </div>
       )}
