@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import { useHeaders } from "@/lib/headersContext";
 
 // Promotions tab component for filtering arbitrage bets by bookmaker
 
@@ -292,6 +293,7 @@ const PromotionCalculatorModal: React.FC<PromotionCalculatorModalProps> = ({
 };
 
 const PromotionsTab = () => {
+  const { getAuthHeaders, loading: headersLoading } = useHeaders();
   const [selectedBookmaker, setSelectedBookmaker] = useState("");
   const [promotionType, setPromotionType] = useState("");
   const [amount, setAmount] = useState("");
@@ -321,16 +323,17 @@ const PromotionsTab = () => {
   ];
 
   const fetchPromotionBets = React.useCallback(async () => {
-    if (!selectedBookmaker) return;
+    if (!selectedBookmaker || headersLoading) return;
 
     setLoading(true);
     try {
+      // Get authentication headers
+      const headers = await getAuthHeaders();
+
       // Use the same API endpoint as the dashboard
       const response = await fetch(`${API_URL}/api/v1/db/arbitrageBets`, {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers,
       });
 
       if (!response.ok) {
@@ -364,7 +367,7 @@ const PromotionsTab = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedBookmaker]);
+  }, [selectedBookmaker, headersLoading, getAuthHeaders]);
 
   useEffect(() => {
     fetchPromotionBets();
