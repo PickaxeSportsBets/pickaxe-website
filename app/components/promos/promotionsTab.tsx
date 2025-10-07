@@ -734,19 +734,21 @@ const PromotionsTab = () => {
                             <div className="text-primary-text-light dark:text-primary-text-dark">
                               {formatTeamName(selectedTeam, isTeam1Selected ? bet.team1_point : bet.team2_point)}
                             </div>
-                            <div className="flex items-center gap-2 text-accent-green-light dark:text-accent-green-dark">
+                            <div className="text-accent-green-light dark:text-accent-green-dark">
                               {selectedOdds > 0 ? '+' : ''}{selectedOdds}
-                              <Image
-                                src={
-                                  BookmakerLogos[selectedBookmaker.toLowerCase().replace(/[^a-z]/g, "")] ||
-                                  "/images/placeholder.png"
-                                }
-                                alt={selectedBookmaker}
-                                width={20}
-                                height={20}
-                                className="rounded"
-                              />
                             </div>
+                          </div>
+                          <div className="flex items-center justify-between md:justify-start space-x-4">
+                            <Image
+                              src={
+                                BookmakerLogos[selectedBookmaker.toLowerCase().replace(/[^a-z]/g, "")] ||
+                                "/images/placeholder.png"
+                              }
+                              alt={selectedBookmaker}
+                              width={24}
+                              height={24}
+                              className="rounded"
+                            />
                           </div>
                         </div>
 
@@ -756,23 +758,25 @@ const PromotionsTab = () => {
                             <div className="text-primary-text-light dark:text-primary-text-dark">
                               {formatTeamName(otherTeam, isTeam1Selected ? bet.team2_point : bet.team1_point)}
                             </div>
-                            <div className={`flex items-center gap-2 ${
+                            <div className={`${
                               otherOdds >= 0
                                 ? "text-accent-green-light dark:text-accent-green-dark"
                                 : "text-negative-red-light dark:text-negative-red-dark"
                             }`}>
                               {otherOdds > 0 ? '+' : ''}{otherOdds}
-                              <Image
-                                src={
-                                  BookmakerLogos[otherBook.toLowerCase().replace(/[^a-z]/g, "")] ||
-                                  "/images/placeholder.png"
-                                }
-                                alt={otherBook}
-                                width={20}
-                                height={20}
-                                className="rounded"
-                              />
                             </div>
+                          </div>
+                          <div className="flex items-center justify-between md:justify-start space-x-4">
+                            <Image
+                              src={
+                                BookmakerLogos[otherBook.toLowerCase().replace(/[^a-z]/g, "")] ||
+                                "/images/placeholder.png"
+                              }
+                              alt={otherBook}
+                              width={24}
+                              height={24}
+                              className="rounded"
+                            />
                           </div>
                         </div>
                       </div>
