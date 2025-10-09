@@ -4,7 +4,8 @@ import React, { useState } from "react";
 interface ArbitrageInputs {
   odds1: string;
   odds2: string;
-  totalWager: string;
+  stake1: string;
+  stake2: string;
 }
 
 interface ArbitrageResult {
@@ -12,6 +13,9 @@ interface ArbitrageResult {
   stake2?: number;
   guaranteedProfit?: number;
   roi?: number;
+  payout1?: number;
+  payout2?: number;
+  totalStake?: number;
 }
 
 interface ArbitrageCalculatorProps {
@@ -26,7 +30,8 @@ const ArbitrageCalculator = ({ prefilledOdds1, prefilledOdds2 }: ArbitrageCalcul
       return {
         odds1: prefilledOdds1,
         odds2: prefilledOdds2,
-        totalWager: "",
+        stake1: "",
+        stake2: "",
       };
     }
     
@@ -36,7 +41,8 @@ const ArbitrageCalculator = ({ prefilledOdds1, prefilledOdds2 }: ArbitrageCalcul
       : {
           odds1: "",
           odds2: "",
-          totalWager: "",
+          stake1: "",
+          stake2: "",
         };
   });
 
@@ -47,41 +53,85 @@ const ArbitrageCalculator = ({ prefilledOdds1, prefilledOdds2 }: ArbitrageCalcul
     localStorage.setItem("arbitrageInputs", JSON.stringify(inputs));
   }, [inputs]);
 
-  const calculateArbitrage = React.useCallback(() => {
-    const odds1 = parseFloat(inputs.odds1);
-    const odds2 = parseFloat(inputs.odds2);
-    const totalWager = parseFloat(inputs.totalWager);
+  const toDecimalOdds = (americanOdds: string) => {
+    const odds = parseFloat(americanOdds.replace("+", ""));
+    return odds > 0 ? 1 + odds / 100 : 1 + 100 / Math.abs(odds);
+  };
 
-    if (!odds1 || !odds2 || !totalWager) {
+  const calculateArbitrageStakes = (
+    stake: number,
+    isFirstBet: boolean,
+    odds1: string,
+    odds2: string
+  ) => {
+    const decimal1 = toDecimalOdds(odds1);
+    const decimal2 = toDecimalOdds(odds2);
+
+    if (isFirstBet) {
+      // If stake1 is provided, calculate stake2
+      const calculatedStake2 = (stake * decimal1) / decimal2;
+      return {
+        stake1: stake,
+        stake2: calculatedStake2,
+      };
+    } else {
+      // If stake2 is provided, calculate stake1
+      const calculatedStake1 = (stake * decimal2) / decimal1;
+      return {
+        stake1: calculatedStake1,
+        stake2: stake,
+      };
+    }
+  };
+
+  const getPayout = (stake: number, odds: string) => {
+    const decimal = toDecimalOdds(odds);
+    return (stake * decimal).toFixed(2);
+  };
+
+  const calculateArbitrage = React.useCallback(() => {
+    const odds1 = inputs.odds1;
+    const odds2 = inputs.odds2;
+    const stake1 = parseFloat(inputs.stake1);
+    const stake2 = parseFloat(inputs.stake2);
+
+    if (!odds1 || !odds2 || (!stake1 && !stake2)) {
       setResults({});
       return;
     }
 
-    // Convert American odds to decimal odds
-    const decimal1 = odds1 > 0 ? 1 + odds1 / 100 : 1 + 100 / Math.abs(odds1);
-    const decimal2 = odds2 > 0 ? 1 + odds2 / 100 : 1 + 100 / Math.abs(odds2);
+    let currentStake1 = stake1;
+    let currentStake2 = stake2;
 
-    // Calculate stakes for equal profit
-    const stake1 = (totalWager * decimal2) / (decimal1 + decimal2);
-    const stake2 = (totalWager * decimal1) / (decimal1 + decimal2);
+    // If only one stake is provided, calculate the other
+    if (stake1 && !stake2) {
+      const stakes = calculateArbitrageStakes(stake1, true, odds1, odds2);
+      currentStake2 = stakes.stake2;
+    } else if (stake2 && !stake1) {
+      const stakes = calculateArbitrageStakes(stake2, false, odds1, odds2);
+      currentStake1 = stakes.stake1;
+    }
 
-    // Calculate payouts
-    const payout1 = stake1 * decimal1;
-    const payout2 = stake2 * decimal2;
+    const totalStake = currentStake1 + currentStake2;
+    const payout1 = parseFloat(getPayout(currentStake1, odds1));
+    const payout2 = parseFloat(getPayout(currentStake2, odds2));
 
     // Calculate guaranteed profit (minimum of the two scenarios)
-    const profit1 = payout1 - totalWager;
-    const profit2 = payout2 - totalWager;
+    const profit1 = payout1 - totalStake;
+    const profit2 = payout2 - totalStake;
     const guaranteedProfit = Math.min(profit1, profit2);
 
     // Calculate ROI
-    const roi = (guaranteedProfit / totalWager) * 100;
+    const roi = totalStake > 0 ? (guaranteedProfit / totalStake) * 100 : 0;
 
     setResults({
-      stake1,
-      stake2,
+      stake1: currentStake1,
+      stake2: currentStake2,
       guaranteedProfit,
       roi,
+      payout1,
+      payout2,
+      totalStake,
     });
   }, [inputs]);
 
@@ -89,6 +139,36 @@ const ArbitrageCalculator = ({ prefilledOdds1, prefilledOdds2 }: ArbitrageCalcul
   React.useEffect(() => {
     calculateArbitrage();
   }, [inputs, calculateArbitrage]);
+
+  const handleStake1Change = (value: string) => {
+    setInputs(prev => ({ ...prev, stake1: value }));
+    if (!isNaN(parseFloat(value)) && value !== "") {
+      const stakes = calculateArbitrageStakes(
+        parseFloat(value),
+        true,
+        inputs.odds1,
+        inputs.odds2
+      );
+      setInputs(prev => ({ ...prev, stake2: stakes.stake2.toFixed(2) }));
+    } else {
+      setInputs(prev => ({ ...prev, stake2: "" }));
+    }
+  };
+
+  const handleStake2Change = (value: string) => {
+    setInputs(prev => ({ ...prev, stake2: value }));
+    if (!isNaN(parseFloat(value)) && value !== "") {
+      const stakes = calculateArbitrageStakes(
+        parseFloat(value),
+        false,
+        inputs.odds1,
+        inputs.odds2
+      );
+      setInputs(prev => ({ ...prev, stake1: stakes.stake1.toFixed(2) }));
+    } else {
+      setInputs(prev => ({ ...prev, stake1: "" }));
+    }
+  };
 
   const getColorClass = (value: number) => {
     if (value > 0) return "text-accent-green-light dark:text-accent-green-dark";
@@ -108,7 +188,7 @@ const ArbitrageCalculator = ({ prefilledOdds1, prefilledOdds2 }: ArbitrageCalcul
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <div>
             <label className="block text-secondary-text-light dark:text-secondary-text-dark text-sm mb-2">
               Odds 1
@@ -144,21 +224,30 @@ const ArbitrageCalculator = ({ prefilledOdds1, prefilledOdds2 }: ArbitrageCalcul
               className="w-full bg-primary-bg-light dark:bg-primary-bg-dark text-primary-text-light dark:text-primary-text-dark px-4 py-2 rounded border border-secondary-text-light dark:border-secondary-text-dark focus:outline-none focus:border-accent-green-light dark:focus:border-accent-green-dark"
             />
           </div>
+        </div>
 
+        <div className="grid grid-cols-2 gap-4 mb-6">
           <div>
             <label className="block text-secondary-text-light dark:text-secondary-text-dark text-sm mb-2">
-              Total Wager ($)
+              Bet 1 Stake ($)
             </label>
             <input
               type="number"
-              placeholder="e.g., 1000"
-              value={inputs.totalWager}
-              onChange={(e) =>
-                setInputs((prev) => ({
-                  ...prev,
-                  totalWager: e.target.value,
-                }))
-              }
+              placeholder="e.g., 100"
+              value={inputs.stake1}
+              onChange={(e) => handleStake1Change(e.target.value)}
+              className="w-full bg-primary-bg-light dark:bg-primary-bg-dark text-primary-text-light dark:text-primary-text-dark px-4 py-2 rounded border border-secondary-text-light dark:border-secondary-text-dark focus:outline-none focus:border-accent-green-light dark:focus:border-accent-green-dark"
+            />
+          </div>
+          <div>
+            <label className="block text-secondary-text-light dark:text-secondary-text-dark text-sm mb-2">
+              Bet 2 Stake ($)
+            </label>
+            <input
+              type="number"
+              placeholder="e.g., 200"
+              value={inputs.stake2}
+              onChange={(e) => handleStake2Change(e.target.value)}
               className="w-full bg-primary-bg-light dark:bg-primary-bg-dark text-primary-text-light dark:text-primary-text-dark px-4 py-2 rounded border border-secondary-text-light dark:border-secondary-text-dark focus:outline-none focus:border-accent-green-light dark:focus:border-accent-green-dark"
             />
           </div>
@@ -199,7 +288,7 @@ const ArbitrageCalculator = ({ prefilledOdds1, prefilledOdds2 }: ArbitrageCalcul
                     Payout:
                   </span>
                   <span className="text-primary-text-light dark:text-primary-text-dark">
-                    ${((results.stake1 || 0) * (parseFloat(inputs.odds1) > 0 ? 1 + parseFloat(inputs.odds1) / 100 : 1 + 100 / Math.abs(parseFloat(inputs.odds1)))).toFixed(2)}
+                    ${results.payout1?.toFixed(2)}
                   </span>
                 </div>
               </div>
@@ -238,7 +327,7 @@ const ArbitrageCalculator = ({ prefilledOdds1, prefilledOdds2 }: ArbitrageCalcul
                     Payout:
                   </span>
                   <span className="text-primary-text-light dark:text-primary-text-dark">
-                    ${((results.stake2 || 0) * (parseFloat(inputs.odds2) > 0 ? 1 + parseFloat(inputs.odds2) / 100 : 1 + 100 / Math.abs(parseFloat(inputs.odds2)))).toFixed(2)}
+                    ${results.payout2?.toFixed(2)}
                   </span>
                 </div>
               </div>
@@ -254,7 +343,7 @@ const ArbitrageCalculator = ({ prefilledOdds1, prefilledOdds2 }: ArbitrageCalcul
                   Total Stake:
                 </span>
                 <span className="text-primary-text-light dark:text-primary-text-dark">
-                  ${parseFloat(inputs.totalWager || "0").toFixed(2)}
+                  ${results.totalStake?.toFixed(2)}
                 </span>
               </div>
               <div className="flex justify-between">
